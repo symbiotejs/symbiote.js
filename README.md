@@ -17,7 +17,7 @@
 * Development environment agnostic: use your favorite build tools freely
 
 ### Installation:
-`git submodule add -b master git@github.com:uploadcare/symbiote.js.git symbiote`
+`git submodule add -b main git@github.com:uploadcare/symbiote.js.git symbiote`
 
 Git-submodule approach allows you to put your git-dependency to any path in your project structure, select branches and versions, create your own branches and pull updates into it, use git tooling to manage code much more flexible.
 
