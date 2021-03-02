@@ -49,8 +49,11 @@ class MyComponent extends BaseComponent {
     };
   }
 
-  // The only custom lifecycle callback in Symbiote is "readyCallback"
-  // It will be fired before native "connectedCallback", when template processing is over and component is created but not inserted into the DOM:
+  /* 
+   * The only custom lifecycle callback in Symbiote is "readyCallback"
+   * It will be fired before native "connectedCallback", when template 
+   * processing is over and component is created but not inserted into the DOM:
+   */
   readyCallback() {
     super.readyCallback();
 
@@ -60,11 +63,11 @@ class MyComponent extends BaseComponent {
   }
 
   // Or bind it to HTML-attributes:
-  set firstname(val) {
+  set firstnameattr(val) {
     this.state.firstName = val;
   }
 
-  set secondname(val) {
+  set secondnameattr(val) {
     this.state.secondName = val;
   }
 }
@@ -77,8 +80,8 @@ MyComponent.template = /*html*/ `
 
 // You need to list attributes to make accessors work:
 MyComponent.attrs = [
-  'firstname',
-  'secondname',
+  'firstnameattr',
+  'secondnameattr',
 ];
 
 // Define your custom HTML-tag:
@@ -86,7 +89,7 @@ window.customElements.define('my-custom-tag', MyComponent);
 ```
 Than you can use your custom tag in your templates or any static HTML file:
 ```html
-<my-custom-tag firstname="Satoshi" secondname="Nakamoto"></my-custom-tag>
+<my-custom-tag firstnameattr="Satoshi" secondnameattr="Nakamoto"></my-custom-tag>
 ```
 
 For more abilities and more advanced usage use Symbiote extensions at:
