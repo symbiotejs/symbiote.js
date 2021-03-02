@@ -14,6 +14,8 @@
 * Tag management automation: no more custom tag names collisions
 * Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
 * Object model matters: access to the direct properties and methods of the DOM elements. Unlike many other libraries, DOM is not hidden behind abstract layers
+* Extensible: use library included extensions or create your own
+* Ultralight: ~ 1.5 Kb minified and gzipped base class; ~ 4kb - for class extended for maximum features
 * Development environment agnostic: use your favorite build tools freely
 
 ### Installation:
