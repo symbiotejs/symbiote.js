@@ -13,7 +13,7 @@
 * Advanced styling security for your solutions out of the box
 * Tag management automation: no more custom tag names collisions
 * Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
-* Object model matters: access to direct properties and methods of DOM elements. Unlike many other libraries, DOM is not hidden behind abstract code layers
+* Object model matters: access to the direct properties and methods of the DOM elements. Unlike many other libraries, DOM is not hidden behind abstract layers
 * Development environment agnostic: use your favorite build tools freely
 
 ### Installation:
@@ -36,6 +36,14 @@ class MyComponent extends BaseComponent {
     this.state = {
       firstName: 'unknown',
       secondName: 'unknown',
+
+      // Click handlers:
+      firstNameClicked: () => {
+        console.log(this.state.firstName);
+      },
+      secondNameClicked: () => {
+        console.log(this.state.secondName);
+      },
     };
   }
 
@@ -61,8 +69,8 @@ class MyComponent extends BaseComponent {
 
 // Use /*html*/ for template syntax highlighting:
 MyComponent.template = /*html*/ `
-<div set="textContent: firstName"></div>
-<div set="textContent: secondName"></div>
+<div set="textContent: firstName; oncllick: firstNameClicked"></div>
+<div set="textContent: secondName; oncllick: secondNameClicked"></div>
 `;
 
 // You need to list attributes to make accessors work:
