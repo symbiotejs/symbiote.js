@@ -12,7 +12,7 @@
 * CSP compatible: no need to use insecure flags (`'unsafe-inline'`) to make your code work
 * Advanced styling security for your solutions out of the box
 * Tag management automation: no more custom tag names collisions
-* Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for template literals
+* Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
 * Object model matters: access to direct properties and methods of DOM elements. Unlike many other libraries, DOM is not hidden behind abstract code layers
 * Development environment agnostic: use your favorite build tools freely
 
