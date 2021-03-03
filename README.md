@@ -103,11 +103,12 @@ For more abilities and more advanced usage use Symbiote extensions at:
 `/core/extensions/...`
 
 ## Browser support
-Symbiote.js is supported and tested in all modern desktop and mobile browsers: 
+Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
 * Chrome
 * Firefox
 * Safari
 * Edge
+* Opera
 * etc...
 
 **Internet Explorer** - is outdated and not supported anymore:
