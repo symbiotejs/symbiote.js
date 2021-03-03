@@ -53,7 +53,10 @@ class MyComponent extends BaseComponent {
 
 The only custom lifecycle callback in Symbiote is "readyCallback".
 If you using your component inside of another component template,
-it will be fired before native "connectedCallback", when template processing is over and component is created but not inserted into the DOM. At this stage you can update your component without cause any re-render in browser.
+it will be fired before native "connectedCallback", when template 
+processing is over and component is created but not inserted into 
+the DOM. At this stage you can update your component without cause 
+of any re-render in browser.
 
 */
   readyCallback() {
