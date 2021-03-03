@@ -109,7 +109,8 @@ Symbiote.js is supported and tested in all modern desktop and mobile browsers:
 * Edge
 * etc...
 
-Internet Explorer is outdated and not supported anymore:
+**Internet Explorer** - is outdated and not supported anymore:
+
 https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
 ### Useful external links:
