@@ -13,6 +13,7 @@
 * Advanced styling security for your solutions out of the box
 * Tag management automation: no more custom tag name collisions
 * Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
+* Shadow DOM is optional: use it where you need it only
 * Object model matters: access to the direct properties and methods of the DOM elements. Unlike many other libraries, DOM is not hidden behind abstract layers
 * Extensible: use library included extensions or create your own
 * Ultralight: ~ 1.5 Kb minified and gzipped base class; ~ 4kb - for class extended for maximum features
