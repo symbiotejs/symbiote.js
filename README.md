@@ -1,4 +1,4 @@
-# Symbiote.js
+# ☣️ Symbiote.js
 
 ## Lightweight and flexible library for creating widgets, micro-frontends, reusable embeddable components and complete web applications
 
