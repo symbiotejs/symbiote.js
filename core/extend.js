@@ -2,13 +2,10 @@ import { BaseComponent } from './BaseComponent.js';
 
 /**
  * @param {...Function} extFnList
- * @returns {typeof BaseComponent}
+ * @returns {typeof import('./typing-fix.tmp').ExtendedBaseType}
  */
 export function extend(...extFnList) {
-  let extended = BaseComponent;
-  extFnList.forEach((extFn) => {
-    extended = extFn(extended);
-  });
-  // @ts-ignore
-  return extended;
+  return extFnList.reduce((ext, extFn) => {
+    return extFn(ext);
+  }, BaseComponent);
 }

@@ -43,7 +43,7 @@ TestApp.styles = {
   },
 }),
   (TestApp.template = /*html*/ `
-<div css="block" rule="block_rule">EXTEND REF</div> 
+<div css="block" rule="block_rule">EXTEND REF</div>
 `);
-// @ts-ignore
+
 TestApp.defineTag('test-app');
