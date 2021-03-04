@@ -1,7 +1,3 @@
-import { extractByAttr } from './render_utils.js';
-import { CssList } from './CssList.js';
-import { DICT } from './dictionary.js';
-
 const vElement = document.createElement('span');
 const styleAttr = 'style';
 
@@ -32,20 +28,6 @@ export function addExternalStyles(element, src) {
       let slot = document.createElement('slot');
       element.shadowRoot.appendChild(slot);
     }
-  });
-}
-
-/**
- * @param {DocumentFragment | HTMLElement} fragment
- * @param {Object<string, Object<string, any>>} stylesObj
- * @param {String} [styleAttrName]
- */
-export function applyFragmentStyles(fragment, stylesObj, styleAttrName = DICT.CSS_ATTR) {
-  extractByAttr(fragment, styleAttrName).forEach((/** @type {HTMLElement} */ el) => {
-    el[DICT.CSS_LIST] = new CssList({
-      element: el,
-      cssMap: stylesObj,
-    });
   });
 }
 

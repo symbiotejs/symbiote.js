@@ -224,4 +224,10 @@ export class BaseComponent extends HTMLElement {
     clearElement(el);
     el.appendChild(fr);
   }
+
+  /**
+   * @param {BaseComponent} [fnCtx]
+   * @param {DocumentFragment} [fragment]
+   */
+  static processExtendedFragment(fnCtx, fragment) {}
 }

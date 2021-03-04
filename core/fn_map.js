@@ -61,6 +61,8 @@ export const FN = Object.freeze({
    * @param {DocumentFragment} fragment
    */
   parseFr: function (fnCtx, fragment) {
+    // Fragment processing defined in extensions:
+    fnCtx.constructor.processExtendedFragment(fnCtx, fragment);
     FN.reflectElements(fnCtx, fragment);
     extractByAttr(fragment, fnCtx.constructor[DICT.DSL_ATTR_PROP]).forEach((el) => {
       let bKey = el.getAttribute(fnCtx.constructor[DICT.DSL_ATTR_PROP]);

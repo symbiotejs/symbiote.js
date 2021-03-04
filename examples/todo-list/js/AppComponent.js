@@ -1,7 +1,7 @@
 import { BaseComponent } from '../../../core/BaseComponent.js';
 import { extend } from '../../../core/extend.js';
-import { ruleTokensExt } from '../../../core/extensions/ruleTokensExt.js';
-import { tagManageExt } from '../../../core/extensions/tagManageExt.js';
+import { ruleTokensExt } from '../../../extensions/ruleTokensExt.js';
+import { tagManageExt } from '../../../extensions/tagManageExt.js';
 
 /*
  * This code contains temporary workaround for this TS inheritance chain issue:
