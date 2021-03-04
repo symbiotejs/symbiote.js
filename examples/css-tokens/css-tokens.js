@@ -1,5 +1,5 @@
 import { extend } from '../../core/extend.js';
-import { ruleTokensExt } from '../../core/extensions/ruleTokensExt.js';
+import { ruleTokensExt } from '../../extensions/ruleTokensExt.js';
 import { DICT } from '../../core/dictionary.js';
 
 let startTime = Date.now();

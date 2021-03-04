@@ -1,4 +1,4 @@
-import { UID } from '../../utils/UID.js';
+import { UID } from '../utils/UID.js';
 
 export const BROADCAST_EVENT_PREFIX = 'broadcast_';
 export const SUBSCRIBTION_EVENT_PREFIX = 'subsribtion_';
@@ -82,7 +82,7 @@ export class DreamChannels {
 
 DreamChannels._store = Object.create(null);
 
-/** @param {typeof import('../BaseComponent').BaseComponent} classObj */
+/** @param {typeof import('../core/BaseComponent').BaseComponent} classObj */
 export function channelsExt(classObj) {
   return class extends classObj {
     constructor() {

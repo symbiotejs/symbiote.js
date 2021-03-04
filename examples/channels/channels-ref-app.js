@@ -1,5 +1,5 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
-import { channelsExt } from '../../core/extensions/channelsExt.js';
+import { channelsExt } from '../../extensions/channelsExt.js';
 
 let ChannelComponent = channelsExt(BaseComponent);
 class FirstChannel extends ChannelComponent {

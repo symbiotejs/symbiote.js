@@ -1,5 +1,5 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
-import { tagManageExt } from '../../core/extensions/tagManageExt.js';
+import { tagManageExt } from '../../extensions/tagManageExt.js';
 
 const Component = tagManageExt(BaseComponent);
 

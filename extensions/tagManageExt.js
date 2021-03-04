@@ -1,6 +1,6 @@
-import { DICT } from '../dictionary.js';
+import { DICT } from '../core/dictionary.js';
 
-/** @param {typeof import('../BaseComponent').BaseComponent} classObj */
+/** @param {typeof import('../core/BaseComponent').BaseComponent} classObj */
 export function tagManageExt(classObj) {
   return class extends classObj {
     /** @param {String} name */

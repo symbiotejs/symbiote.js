@@ -1,20 +1,7 @@
 import { extend } from '../../core/extend.js';
-import { cssTokensExt } from '../../core/extensions/cssTokensExt.js';
-import { ruleTokensExt } from '../../core/extensions/ruleTokensExt.js';
-import { tagManageExt } from '../../core/extensions/tagManageExt.js';
-
-const C1 = extend(cssTokensExt);
-const C2 = extend(ruleTokensExt, cssTokensExt);
-console.dir(C1);
-console.dir(C2);
-window.customElements.define('c-1', C1);
-window.customElements.define('c-2', C2);
-const c1 = new C1();
-const c2 = new C2();
-console.dir(c1.constructor);
-console.dir(c2.constructor);
-console.log(typeof c1);
-console.log(typeof c2);
+import { cssTokensExt } from '../../extensions/cssTokensExt.js';
+import { ruleTokensExt } from '../../extensions/ruleTokensExt.js';
+import { tagManageExt } from '../../extensions/tagManageExt.js';
 
 const Component = extend(cssTokensExt, ruleTokensExt, tagManageExt);
 

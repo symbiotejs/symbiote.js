@@ -1,6 +1,6 @@
 import { extend } from '../../core/extend.js';
-import { tagManageExt } from '../../core/extensions/tagManageExt.js';
-import { ruleTokensExt } from '../../core/extensions/ruleTokensExt.js';
+import { tagManageExt } from '../../extensions/tagManageExt.js';
+import { ruleTokensExt } from '../../extensions/ruleTokensExt.js';
 import { Tpl } from '../../core/Tpl.js';
 import { applyElementStyles } from '../../core/css_utils.js';
 

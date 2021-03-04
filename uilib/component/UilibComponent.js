@@ -1,5 +1,5 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
-import { tagManageExt } from '../../core/extensions/tagManageExt.js';
-import { ruleTokensExt } from '../../core/extensions/ruleTokensExt.js';
+import { tagManageExt } from '../../extensions/tagManageExt.js';
+import { ruleTokensExt } from '../../extensions/ruleTokensExt.js';
 
 export const UilibComponent = tagManageExt(ruleTokensExt(BaseComponent));
