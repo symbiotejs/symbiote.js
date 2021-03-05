@@ -1,11 +1,15 @@
 import { extend } from '../../core/extend.js';
-import { cssTokensExt } from '../../extensions/cssTokensExt.js';
-import { ruleTokensExt } from '../../extensions/ruleTokensExt.js';
+import { ruleTokensExt } from '../../extensions/ruleTokensExt.js'; // This extension includes cssTokensExt
 import { tagManageExt } from '../../extensions/tagManageExt.js';
 
 /** @param {typeof import('../../core/BaseComponent').BaseComponent} classObj */
 function customExtension(classObj) {
   return class extends classObj {
+    constructor() {
+      super();
+      console.log(this.constructor['__extSet']);
+    }
+
     static processExtendedFragment(fnCtx, /** @type {DocumentFragment} */ fr) {
       super.processExtendedFragment(fnCtx, fr);
       let elements = [...fr.querySelectorAll('div')];
@@ -16,7 +20,7 @@ function customExtension(classObj) {
   };
 }
 
-const Component = extend(cssTokensExt, ruleTokensExt, tagManageExt, customExtension);
+const Component = extend(ruleTokensExt, tagManageExt, customExtension, customExtension, customExtension);
 
 class TestApp extends Component {}
 
