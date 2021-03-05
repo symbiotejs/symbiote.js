@@ -1,7 +1,6 @@
 import { Tpl } from './Tpl.js';
 import { State } from './State.js';
 import { FN } from './fn_map.js';
-import { DICT } from './dictionary.js';
 import { clearElement } from './render_utils.js';
 
 /**
