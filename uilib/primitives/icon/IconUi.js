@@ -17,7 +17,7 @@ export class IconUi extends UilibComponent {
     });
   }
 }
-IconUi.attrs = ['path'];
+IconUi.observeAttributes(['path']);
 IconUi.styles = {
   host: {
     display: 'inline-flex',

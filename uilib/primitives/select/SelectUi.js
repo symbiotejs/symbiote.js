@@ -38,7 +38,7 @@ export class SelectUi extends UilibComponent {
     this.state.text = this._sel.value;
   }
 }
-SelectUi.attrs = ['options'];
+SelectUi.observeAttributes(['options']);
 SelectUi.styles = {
   ':host': {
     position: 'relative',

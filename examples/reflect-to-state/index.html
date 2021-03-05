@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="test-app.js" type="module"></script>
+  <style>
+    test-app {
+      display: inline-block;
+      padding: 20px;
+      color: #f00;
+      border: 1px solid currentColor;
+    }
+    simple-greeting {
+      display: inline-block;
+      padding: 20px;
+      color: #0e0;
+      border: 1px solid currentColor;
+    }
+    extended-ref {
+      display: inline-block;
+      padding: 20px;
+      color: #00f;
+      border: 1px solid currentColor;
+    }
+  </style>
+</head>
+<body>
+  <test-app first-name="Harry" second-name="Potter"></test-app>
+  <div>&nbsp;</div>
+  <simple-greeting name="Everyone"></simple-greeting>
+  <div>&nbsp;</div>
+  <extended-ref observed-attribute="OBSERVED" reflected-attribute="REFLECTED"></extended-ref>
+</body>
+</html>

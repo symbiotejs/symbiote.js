@@ -85,10 +85,10 @@ MyComponent.template = /*html*/ `
 `;
 
 // You need to list attributes to make accessors work:
-MyComponent.attrs = [
+MyComponent.observeAttributes([
   'first-name',
   'second-name',
-];
+]);
 
 // Define your custom HTML-tag:
 window.customElements.define('my-custom-tag', MyComponent);

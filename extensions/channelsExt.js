@@ -121,12 +121,8 @@ export function channelsExt(classObj) {
       this.__channelConnection && DreamChannels.disconnect(this.__channelConnection.uid);
     }
 
-    static set attrs(attrList) {
-      this.__attrList = attrList;
-    }
-
     static get observedAttributes() {
-      return this.__attrList ? [ATTR_NAME, ...this.__attrList] : [ATTR_NAME];
+      return [...(this.__observedAttributes || []), ATTR_NAME];
     }
   };
 }

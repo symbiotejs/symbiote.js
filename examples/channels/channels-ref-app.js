@@ -32,7 +32,7 @@ class SecondChannel extends ChannelComponent {
     });
   }
 }
-SecondChannel.attrs = ['test'];
+SecondChannel.observeAttributes(['test']);
 SecondChannel.template = /*html*/ `
 <div set="innerHTML: html"></div>
 `;

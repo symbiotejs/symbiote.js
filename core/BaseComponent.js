@@ -168,15 +168,35 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** @param {String[]} arr */
-  static set attrs(arr) {
-    if (arr.length) {
-      Object.defineProperty(this, 'observedAttributes', {
-        get: () => {
-          return [...arr];
-        },
-      });
+  /**
+   * Shortcut for "observedAttributes" native prop Defines list of attributes which should be observed and processed
+   *
+   * @param {String[]} arr
+   */
+  static observeAttributes(arr) {
+    this.__observedAttributes = [...new Set([...(this.__observedAttributes || []), ...arr])];
+  }
+
+  /**
+   * List of attributes which should be set as a state properties directly
+   *
+   * @param {String[]} arr
+   */
+  static reflectToState(arr) {
+    if (!this['observedAttributes']) {
+      this.observeAttributes(arr);
     }
+    let notObserved = arr.filter((attr) => {
+      return !this['observedAttributes'].includes(attr);
+    });
+    if (notObserved.length) {
+      this.__observedAttributes = [...new Set([...(this.__observedAttributes || []), ...notObserved])];
+    }
+    this.__reflectedToState = [...arr];
+  }
+
+  static get observedAttributes() {
+    return this.__observedAttributes;
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
@@ -184,6 +204,15 @@ export class BaseComponent extends HTMLElement {
       return;
     }
     this[name] = newVal;
+    if (this.constructor['__reflectedToState'] && this.constructor['__reflectedToState'].includes(name)) {
+      if (!this.state) {
+        this.state = this.constructor['__reflectedToState'].reduce((state, attr) => {
+          state[attr] = null;
+          return state;
+        }, {});
+      }
+      this.state[name] = newVal;
+    }
   }
 
   /** @param {String} tpl */
