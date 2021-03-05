@@ -64,9 +64,9 @@ export const FN = Object.freeze({
     // Fragment processing defined in extensions:
     fnCtx.constructor.processExtendedFragment(fnCtx, fragment);
     FN.reflectElements(fnCtx, fragment);
-    extractByAttr(fragment, fnCtx.constructor[DICT.DSL_ATTR_PROP]).forEach((el) => {
-      let bKey = el.getAttribute(fnCtx.constructor[DICT.DSL_ATTR_PROP]);
-      let pairsArr = bKey.split(';');
+    extractByAttr(fragment, DICT.DSL_ATTR).forEach((el) => {
+      let bKey = el.getAttribute(DICT.DSL_ATTR);
+      let pairsArr = bKey.split(DICT.DSL_PAIR_SPLIT);
       pairsArr.forEach((pair) => {
         if (!pair) {
           return;
@@ -119,7 +119,7 @@ export const FN = Object.freeze({
           });
         }
       });
-      el.removeAttribute(fnCtx.constructor[DICT.DSL_ATTR_PROP]);
+      el.removeAttribute(DICT.DSL_ATTR);
     });
     // Should go after binding processing:
     FN.callAllReadyCbks(fragment);

@@ -201,15 +201,6 @@ export class BaseComponent extends HTMLElement {
     return this.__renderShadow;
   }
 
-  /** @param {String} val */
-  static set [DICT.DSL_ATTR_PROP](val) {
-    this.__dslAttribute = val;
-  }
-
-  static get [DICT.DSL_ATTR_PROP]() {
-    return this.__dslAttribute || DICT.DSL_ATTR;
-  }
-
   /**
    * Placed here because need to be redefined in extensions
    *
