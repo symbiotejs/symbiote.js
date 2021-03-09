@@ -36,7 +36,8 @@ TestApp.styles = {
     backgroundColor: '#f00',
   },
 };
-(TestApp.dynamicStylingRules = {
+
+TestApp.dynamicStylingRules = {
   block_rule: {
     mouseover: {
       add: 'over',
@@ -45,9 +46,10 @@ TestApp.styles = {
       remove: 'over',
     },
   },
-}),
-  (TestApp.template = /*html*/ `
+};
+
+TestApp.template = /*html*/ `
 <div css="block" rule="block_rule">EXTEND REF</div>
-`);
+`;
 
 TestApp.defineTag('test-app');

@@ -13,8 +13,8 @@ export class ButtonUi extends UilibComponent {
     };
   }
 
-  connectedCallback() {
-    super.connectedCallback();
+  readyCallback() {
+    super.readyCallback();
     this.setAttribute('role', 'button');
     if (this.tabIndex === -1) {
       this.tabIndex = 0;

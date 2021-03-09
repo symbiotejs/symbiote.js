@@ -2,7 +2,7 @@ import { UilibComponent } from '../../component/UilibComponent.js';
 import { ButtonUi } from './ButtonUi.js';
 import { ICON_SET } from '../../icons/ICON_SET.js';
 
-ButtonUi.defineTag('uc-button-ui');
+ButtonUi.defineTag('my-button-ui');
 
 // Custom constructor and tag name example (to avoid tag name collisions):
 class Btn extends ButtonUi {}
@@ -48,15 +48,17 @@ TestApp.styles = {
   },
 };
 let buttonRefs = /*html*/ `
-<uc-button-ui text="Default button" icon="${ICON_SET.star}" set="ariaClick: on.click"></uc-button-ui>
+<${ButtonUi.is} text="Default button" icon="${ICON_SET.star}" set="ariaClick: on.click"></${ButtonUi.is}>
 <div>&nbsp;</div>
-<uc-button-ui outline text="Outline button" set="ariaClick: on.click"></uc-button-ui>
+<my-button-ui text="Default button" icon="${ICON_SET.star}" set="ariaClick: on.click"></my-button-ui>
 <div>&nbsp;</div>
-<uc-button-ui shade text="Shade button" set="ariaClick: on.click"></uc-button-ui>
+<my-button-ui outline text="Outline button" set="ariaClick: on.click"></my-button-ui>
 <div>&nbsp;</div>
-<uc-button-ui outline shade  text="Combined styles" set="ariaClick: on.click"></uc-button-ui>
+<my-button-ui shade text="Shade button" set="ariaClick: on.click"></my-button-ui>
 <div>&nbsp;</div>
-<uc-button-ui light text="Light button" set="ariaClick: on.click"></uc-button-ui>
+<my-button-ui outline shade  text="Combined styles" set="ariaClick: on.click"></my-button-ui>
+<div>&nbsp;</div>
+<my-button-ui light text="Light button" set="ariaClick: on.click"></my-button-ui>
 <div>&nbsp;</div>
 <ui-btn text="Custom class" set="ariaClick: on.click"></ui-btn>
 <div>&nbsp;</div>
