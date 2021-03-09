@@ -10,16 +10,18 @@
 import { BaseComponent } from './BaseComponent.js';
 import { extend } from './extend.js';
 import { channelsExt } from '../extensions/channelsExt.js';
+import { cssTokensExt } from '../extensions/cssTokensExt.js';
 import { ruleTokensExt } from '../extensions/ruleTokensExt.js';
 import { tagManageExt } from '../extensions/tagManageExt.js';
 
 const _Channels = channelsExt(BaseComponent);
+const _Css = cssTokensExt(BaseComponent);
 const _Rule = ruleTokensExt(BaseComponent);
 const _Tag = tagManageExt(BaseComponent);
 
-/** @type {typeof _Channels & typeof _Rule & typeof _Tag} */
+/** @type {typeof _Channels & typeof _Css & typeof _Rule & typeof _Tag} */
 // @ts-ignore
-const Component = extend(channelsExt, ruleTokensExt, tagManageExt);
+const Component = extend(channelsExt, ruleTokensExt, cssTokensExt, tagManageExt);
 
 // @ts-ignore
 export class ExtendedBaseType extends Component {}
