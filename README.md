@@ -80,7 +80,7 @@ of any re-render in browser.
 
 // Use /*html*/ for template syntax highlighting:
 MyComponent.template = /*html*/ `
-<div set="textContent: firstName; oncllick: firstNameClicked"></div>
+<div set="textContent: firstName; onclick: firstNameClicked"></div>
 <div set="textContent: secondName; oncllick: secondNameClicked"></div>
 `;
 
