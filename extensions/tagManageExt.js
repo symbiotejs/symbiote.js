@@ -30,7 +30,7 @@ export function tagManageExt(classObj) {
 
     static get autoTagName() {
       let tag = this.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-      return this.tagPrefix + '-' + tag;
+      return `${this.tagPrefix}-${tag.replace(/\$/g, '_s_')}`; // "$" symbol cannot be in custom tag name
     }
 
     /** @param {String} [tagName] */

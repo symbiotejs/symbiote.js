@@ -3,8 +3,8 @@ import { tagManageExt } from '../../extensions/tagManageExt.js';
 
 const Component = tagManageExt(BaseComponent);
 
-class El extends Component {}
-El.template = /*html*/ `
+class E$l$ extends Component {}
+E$l$.template = /*html*/ `
 <div>AUTO ELEMENT</div> 
 `;
 
@@ -16,7 +16,7 @@ class TestApp extends Component {
 }
 TestApp.template = /*html*/ `
 <div>TAG MANAGE TEST</div>
-<${El.is}>TAG MANAGE TEST</${El.is}>
+<${E$l$.is}>TAG MANAGE TEST</${E$l$.is}>
 `;
 
 TestApp.defineTag('test-app');
