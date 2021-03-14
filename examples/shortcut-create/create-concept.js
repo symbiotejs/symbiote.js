@@ -25,15 +25,15 @@ create()
   .template(template)
   .css(css)
   .state(state)
-  .created
-  // constructor()
-  ()
+  .created(() => {
+    // constructor()
+  })
   .ready(() => {
     // readyCallback
   })
-  .connected
-  // connectedCAllback
-  ()
-  .disconnected
-  // disconnectedCallback
-  ();
+  .connected(() => {
+    // connectedCAllback
+  })
+  .disconnected(() => {
+    // disconnectedCallback
+  });
