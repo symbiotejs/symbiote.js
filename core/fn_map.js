@@ -32,7 +32,7 @@ export const FN = Object.freeze({
    */
   reflectElements: function (fnCtx, fr) {
     let attrName = DICT.EL_REF_ATTR;
-    let elements = [...fr.querySelectorAll(`[${attrName}]`)];
+    let elements = extractByAttr(fr, attrName);
     elements.forEach((el) => {
       if (!fnCtx.__refsMap) {
         fnCtx.__refsMap = Object.create(null);
