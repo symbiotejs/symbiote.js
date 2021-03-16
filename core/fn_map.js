@@ -32,7 +32,7 @@ export const FN = Object.freeze({
    */
   reflectElements: function (fnCtx, fr) {
     let attrName = DICT.EL_REF_ATTR;
-    let elements = [...fr.querySelectorAll(`[${attrName}]`)];
+    let elements = extractByAttr(fr, attrName);
     elements.forEach((el) => {
       if (!fnCtx.__refsMap) {
         fnCtx.__refsMap = Object.create(null);
@@ -75,11 +75,7 @@ export const FN = Object.freeze({
         let propName = keyValArr[0];
         let valKey = keyValArr[1];
         let sub;
-        if (
-          valKey &&
-          valKey.indexOf(DICT.NAMED_CTX_BRACKETS[0]) === 0 &&
-          valKey.indexOf(DICT.NAMED_CTX_BRACKETS[1]) !== -1
-        ) {
+        if (valKey && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[0]) === 0 && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[1]) !== -1) {
           let valArr = valKey.split(DICT.NAMED_CTX_BRACKETS[1]);
           let ctxName = valArr[0].replace(DICT.NAMED_CTX_BRACKETS[0], '');
           valKey = valArr[1].trim();
