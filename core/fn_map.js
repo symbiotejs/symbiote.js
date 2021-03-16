@@ -76,6 +76,7 @@ export const FN = Object.freeze({
         let valKey = keyValArr[1];
         let sub;
         if (valKey && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[0]) === 0 && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[1]) !== -1) {
+          // Example: set="propName: [ctxName]value"
           let valArr = valKey.split(DICT.NAMED_CTX_BRACKETS[1]);
           let ctxName = valArr[0].replace(DICT.NAMED_CTX_BRACKETS[0], '');
           valKey = valArr[1].trim();
@@ -83,17 +84,20 @@ export const FN = Object.freeze({
             fnCtx.sub(prop, val, ctxName);
           };
         } else if (valKey && valKey.indexOf(DICT.DATA_CTX_PREFIX) === 0) {
+          // Example: set="propName: *value"
           valKey = valKey.replace(DICT.DATA_CTX_PREFIX, '');
           sub = fnCtx.sub.bind(fnCtx.dataCtxProvider);
         } else {
           sub = fnCtx.sub.bind(fnCtx);
         }
         if (propName.indexOf(DICT.ATTR_BIND_PREFIX) === 0) {
+          // Example: set="@attrName: value"
           let attrName = propName.replace(DICT.ATTR_BIND_PREFIX, '');
           sub(valKey, (val) => {
             el.setAttribute(attrName, val);
           });
         } else if (propName.indexOf(DICT.STATE_BIND_PREFIX) === 0) {
+          // Example: <my-component set="#attrAndStateName: value"></my-component>
           propName = propName.replace(DICT.STATE_BIND_PREFIX, '');
           sub(valKey, (val) => {
             // 'state' is not a DICT-string here:
@@ -102,14 +106,19 @@ export const FN = Object.freeze({
         } else {
           sub(valKey, (val) => {
             if (propName === DICT.SUB_INNER_HTML && val.constructor === String) {
+              // Example: set="innerHTML: htmlStringValue"
               fnCtx.constructor.__processSubtreeSubscribtion(fnCtx, el, val);
             } else if (propName === DICT.CSS_ATTR && val.constructor === String) {
+              // Example: set="css: tokenListValue"
               el[DICT.CSS_LIST] && (el[DICT.CSS_LIST].value = val);
             } else if (propName === DICT.RULE_ATTR && val.constructor === String) {
+              // Example: set="rule: ruleListValue"
               el[DICT.RULE_LIST] && (el[DICT.RULE_LIST].value = val);
             } else if (propName === DICT.SUB_ARIA_CLICK) {
+              // Example: set="ariaClick: clickHandlerNameValue"
               setAriaClick(el, val);
             } else {
+              // Direct property:
               el[propName] = val;
             }
           });
