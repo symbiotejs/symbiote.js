@@ -2,16 +2,6 @@
 
 import { create } from '../../shortcuts/create.js';
 
-const template = /*html*/ `
-  <span css="el" set="textContent: text; onclick: clicked"></span>
-`;
-
-const css = {
-  el: {
-    color: '#f00',
-  },
-};
-
 const state = {
   text: 'SOME TEXT',
   clicked: () => {
@@ -19,9 +9,19 @@ const state = {
   },
 };
 
+const css = {
+  el: {
+    color: '#f00',
+  },
+};
+
+const template = /*html*/ `
+  <span css="el" set="textContent: text; onclick: clicked"></span>
+`;
+
 create()
   .tag('my-component')
-  .shadow(false) // default
+  .shadow(true)
   .template(template)
   .css(css)
   .state(state)

@@ -19,7 +19,7 @@ export class BaseComponent extends HTMLElement {
     Object.defineProperty(this, propName, {
       set: (val) => {
         this[localPropName] = val;
-        handler && handler.bind(this)(val);
+        handler && handler(val);
       },
       get: () => {
         return this[localPropName];
