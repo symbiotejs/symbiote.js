@@ -21,7 +21,6 @@ export class State {
     this.uid = Symbol();
     this.element = src.element || null;
     this.name = src.name || null;
-    this.store = cloneObj(src.schema);
     if (src.schema.constructor === Object) {
       this.store = cloneObj(src.schema);
     } else {
