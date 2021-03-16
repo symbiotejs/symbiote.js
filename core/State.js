@@ -18,7 +18,7 @@ export class State {
    * @param {Object<string, any>} src.schema
    */
   constructor(src) {
-    this.uid = Symbol('State instance ID');
+    this.uid = Symbol();
     this.element = src.element || null;
     this.name = src.name || null;
     this.store = cloneObj(src.schema);

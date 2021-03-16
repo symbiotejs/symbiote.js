@@ -1,5 +1,6 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
 import { channelsExt } from '../../extensions/channelsExt.js';
+import { DICT } from '../../core/dictionary.js';
 
 let ChannelComponent = channelsExt(BaseComponent);
 class FirstChannel extends ChannelComponent {
@@ -38,13 +39,13 @@ SecondChannel.template = /*html*/ `
 `;
 window.customElements.define('second-ch', SecondChannel);
 
-window.addEventListener('subsribtion_test-channel', (/** @type {CustomEvent} */ e) => {
+window.addEventListener(DICT.PROJECT_PREFIX + '-subsription_test-channel', (/** @type {CustomEvent} */ e) => {
   console.log(e.detail);
 });
 
 window.setInterval(() => {
   window.dispatchEvent(
-    new CustomEvent('broadcast_test-channel', {
+    new CustomEvent(DICT.PROJECT_PREFIX + '-broadcast_test-channel', {
       detail: {
         setProps: {
           html: '',

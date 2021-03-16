@@ -1,7 +1,8 @@
 import { UID } from '../utils/UID.js';
+import { DICT } from '../core/dictionary.js';
 
-export const BROADCAST_EVENT_PREFIX = 'broadcast_';
-export const SUBSCRIBTION_EVENT_PREFIX = 'subsribtion_';
+export const BROADCAST_EVENT_PREFIX = `${DICT.PROJECT_PREFIX}-broadcast_`;
+export const SUBSCRIPTION_EVENT_PREFIX = `${DICT.PROJECT_PREFIX}-subsription_`;
 export const ATTR_NAME = 'channel';
 
 export class MsgChannel {
@@ -28,7 +29,7 @@ export class MsgChannel {
     });
     if (dispatchEvent) {
       window.dispatchEvent(
-        new CustomEvent(SUBSCRIBTION_EVENT_PREFIX + this.uid, {
+        new CustomEvent(SUBSCRIPTION_EVENT_PREFIX + this.uid, {
           detail: msg,
         })
       );
