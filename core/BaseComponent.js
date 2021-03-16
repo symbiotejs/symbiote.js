@@ -174,7 +174,7 @@ export class BaseComponent extends HTMLElement {
    * @param {String[]} arr
    */
   static observeAttributes(arr) {
-    this.__observedAttributes = [...new Set([...(this.__observedAttributes || []), ...arr])];
+    this.__observedAttributes = [...arr];
   }
 
   /**
@@ -183,20 +183,11 @@ export class BaseComponent extends HTMLElement {
    * @param {String[]} arr
    */
   static reflectToState(arr) {
-    if (!this['observedAttributes']) {
-      this.observeAttributes(arr);
-    }
-    let notObserved = arr.filter((attr) => {
-      return !this['observedAttributes'].includes(attr);
-    });
-    if (notObserved.length) {
-      this.__observedAttributes = [...new Set([...(this.__observedAttributes || []), ...notObserved])];
-    }
     this.__reflectedToState = [...arr];
   }
 
   static get observedAttributes() {
-    return this.__observedAttributes;
+    return [...new Set([...(this.__observedAttributes || []), ...(this.__reflectedToState || [])])];
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
