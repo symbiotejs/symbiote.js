@@ -45,6 +45,14 @@ export class Tpl {
 
   /** @returns {DocumentFragment} */
   clone() {
+    /*
+    There is an important difference between "cloneNode" and "importNode" methods.
+    In case of "cloneNode", all Custom Elements in template become HTMLElement instances,
+    without any properties or methods defined for it's classes until they will be
+    upgraded by browser. 
+    With "importNode" - we get correct instances of Custom Element classes.
+    This behavior needs to be deeply investigated. Also, performance check needed.
+    */
     // return this.tplEl.content.cloneNode(true);
     return document.importNode(this.tplEl.content, true);
   }
