@@ -79,21 +79,21 @@
       "git add"
     ]
   },
-  "name": "@uploadcare/dream-js",
+  "name": "@uploadcare/symbiote-js",
   "version": "0.0.1-alpha.0",
-  "description": "Dream.js",
+  "description": "Symbiote.js",
   "author": "Uploadcare Inc. <hello@uploadcare.com> (https://uploadcare.com)",
   "license": "BSD-2-Clause",
   "dependencies": {},
   "bugs": {
     "url": "https://github.com/uploadcare/uploadcare-uploader/issues"
   },
-  "homepage": "https://github.com/uploadcare/dream-js#readme",
+  "homepage": "https://github.com/uploadcare/symbiote-js#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uploadcare/dream-js.git"
+    "url": "git+https://github.com/uploadcare/symbiote-js.git"
   },
   "keywords": [
-    "uploadcare, dream.js, web components, custom elements, shadow dom"
+    "symbiote.js, web components, custom elements, shadow dom, uploadcare"
   ]
 }

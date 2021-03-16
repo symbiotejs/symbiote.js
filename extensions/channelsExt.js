@@ -59,7 +59,7 @@ export class MsgChannel {
   }
 }
 
-export class DreamChannels {
+export class SymChannels {
   /**
    * @param {String} uid
    * @param {any} [create]
@@ -80,7 +80,7 @@ export class DreamChannels {
   }
 }
 
-DreamChannels._store = Object.create(null);
+SymChannels._store = Object.create(null);
 
 /** @param {typeof import('../core/BaseComponent').BaseComponent} classObj */
 export function channelsExt(classObj) {
@@ -93,7 +93,7 @@ export function channelsExt(classObj) {
     attributeChangedCallback(name, oldVal, newVal) {
       super.attributeChangedCallback(name, oldVal, newVal);
       if (name === ATTR_NAME) {
-        this.__channelConnection = DreamChannels.connect(newVal);
+        this.__channelConnection = SymChannels.connect(newVal);
         this.__channelConnection.subscribe((msg) => {
           if (msg.constructor !== Object || msg.from === this.__channelPortId) {
             return;
@@ -118,7 +118,7 @@ export function channelsExt(classObj) {
 
     disconnectedCallback() {
       super.disconnectedCallback();
-      this.__channelConnection && DreamChannels.disconnect(this.__channelConnection.uid);
+      this.__channelConnection && SymChannels.disconnect(this.__channelConnection.uid);
     }
 
     static get observedAttributes() {

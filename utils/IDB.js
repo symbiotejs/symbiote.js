@@ -1,7 +1,9 @@
+import { DICT } from '../core/dictionary.js';
+
 export const READY_EVENT_NAME = 'idb-store-ready';
 
-const DEFAULT_DB_NAME = 'dream-db';
-const UPD_EVENT_PREFIX = 'dream-idb-update_';
+const DEFAULT_DB_NAME = `${DICT.PROJECT_PREFIX}-db`;
+const UPD_EVENT_PREFIX = `${DICT.PROJECT_PREFIX}-idb-update_`;
 
 class DbInstance {
   _notifyWhenReady(event = null) {

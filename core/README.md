@@ -1,6 +1,6 @@
 ### Component basic example
 ```javascript
-import { BaseComponent } from '<relative path>/core/dream.js';
+import { BaseComponent } from '<relative path>/core/BaseComponent.js';
 
 class MyComponent extends BaseComponent {
   constructor() {
