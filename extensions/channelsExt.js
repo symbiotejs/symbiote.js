@@ -94,6 +94,9 @@ export function channelsExt(classObj) {
     attributeChangedCallback(name, oldVal, newVal) {
       super.attributeChangedCallback(name, oldVal, newVal);
       if (name === ATTR_NAME) {
+        if (this.__channelConnection?.constructor === MsgChannel) {
+          SymChannels.disconnect(this.__channelConnection.uid);
+        }
         this.__channelConnection = SymChannels.connect(newVal);
         this.__channelConnection.subscribe((msg) => {
           if (msg.constructor !== Object || msg.from === this.__channelPortId) {
