@@ -1,0 +1,99 @@
+{
+  "type": "module",
+  "scripts": {
+    "lint:types": "tsc",
+    "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
+    "format:eslint": "eslint --ext .js,.html . --fix --ignore-path .gitignore",
+    "lint:prettier": "prettier \"**/*.js\" --check --ignore-path .gitignore",
+    "format:prettier": "prettier \"**/*.js\" --write --ignore-path .gitignore",
+    "lint": "npm run lint:types && npm run lint:eslint && npm run lint:prettier",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "localhost": "node ./localhost/server.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.11.0",
+    "express": "^4.17.1",
+    "express-static-gzip": "^2.0.7",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.2.1",
+    "prettier": "^2.0.5",
+    "prettier-plugin-jsdoc": "0.0.17",
+    "rimraf": "^2.6.3",
+    "rollup": "^2.22.2",
+    "rollup-plugin-terser": "^6.1.0",
+    "typescript": "^3.9.7"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint-config-prettier"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-unused-vars": "off",
+      "no-console": "off",
+      "max-classes-per-file": "off",
+      "prefer-const": "off",
+      "no-param-reassign": "off",
+      "guard-for-in": "off",
+      "no-restricted-syntax": "off",
+      "class-methods-use-this": "off",
+      "dot-notation": "off",
+      "no-plusplus": "off",
+      "no-return-await": "off",
+      "no-await-in-loop": "off",
+      "one-var": "off",
+      "default-case": "warn",
+      "no-shadow": "warn",
+      "no-prototype-builtins": "off",
+      "require-jsdoc": "off",
+      "valid-jsdoc": "off"
+    },
+    "env": {
+      "node": true,
+      "browser": true
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 2,
+    "semi": true,
+    "arrowParens": "always",
+    "printWidth": 200,
+    "parser": "jsdoc-parser"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "tsc --skipLibCheck --allowJs --noEmit",
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "name": "@uploadcare/symbiote-js",
+  "version": "0.0.1-alpha.0",
+  "description": "Symbiote.js",
+  "author": "Uploadcare Inc. <hello@uploadcare.com> (https://uploadcare.com)",
+  "license": "BSD-2-Clause",
+  "dependencies": {},
+  "bugs": {
+    "url": "https://github.com/uploadcare/uploadcare-uploader/issues"
+  },
+  "homepage": "https://github.com/uploadcare/symbiote-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uploadcare/symbiote-js.git"
+  },
+  "keywords": [
+    "symbiote.js, web components, custom elements, shadow dom, uploadcare"
+  ]
+}

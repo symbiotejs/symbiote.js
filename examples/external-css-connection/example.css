@@ -1,0 +1,10 @@
+:host {
+  --color: #f00;
+  background-color: #eee;
+  display: block;
+  font-size: 40px;
+  transition: 0.4s;
+}
+:host(:hover) {
+  background-color: #000;
+}

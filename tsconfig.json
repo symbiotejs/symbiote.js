@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": [
+        "es2017",
+        "ESNext",
+        "ESNext.Array",
+        "DOM",
+        "DOM.Iterable"
+      ],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": [
+    "**/*.js", "localhost/server.mjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "coverage"
+  ]
+}
