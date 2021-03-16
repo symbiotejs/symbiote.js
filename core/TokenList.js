@@ -3,16 +3,16 @@ export class TokenList {
 
   constructor() {
     this._set = new Set();
-    this._updCallabck = TokenList._voidFn;
+    this._updCallback = TokenList._voidFn;
   }
 
   /** @param {() => any} cb */
   set updateCallback(cb) {
-    this._updCallabck = cb;
+    this._updCallback = cb;
   }
 
   get updateCallback() {
-    return this._updCallabck;
+    return this._updCallback;
   }
 
   get value() {
@@ -22,7 +22,7 @@ export class TokenList {
   /** @param {String} val */
   set value(val) {
     this._set = new Set(val.split(' '));
-    this._updCallabck();
+    this._updCallback();
   }
 
   /** @param {String} tokensStr */
@@ -31,7 +31,7 @@ export class TokenList {
     tArr.forEach((t) => {
       this._set.add(t);
     });
-    this._updCallabck();
+    this._updCallback();
   }
 
   /** @param {String} tokensStr */
@@ -40,7 +40,7 @@ export class TokenList {
     tArr.forEach((t) => {
       this._set.delete(t);
     });
-    this._updCallabck();
+    this._updCallback();
   }
 
   /**
@@ -50,7 +50,7 @@ export class TokenList {
   replace(oldToken, newToken) {
     this._set.delete(oldToken);
     this._set.add(newToken);
-    this._updCallabck();
+    this._updCallback();
   }
 
   /** @param {String} token */
@@ -60,7 +60,7 @@ export class TokenList {
     } else {
       this._set.add(token);
     }
-    this._updCallabck();
+    this._updCallback();
   }
 
   /** @param {String} token */
