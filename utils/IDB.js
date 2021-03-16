@@ -85,7 +85,7 @@ class DbInstance {
     let request = tx.objectStore(this.storeName).get(key);
     return new Promise((resolve, reject) => {
       request.onsuccess = (e) => {
-        if (e.target.result && e.target.result._value) {
+        if (e.target.result?._value) {
           resolve(e.target.result._value);
         } else {
           resolve(null);

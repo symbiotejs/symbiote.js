@@ -19,7 +19,7 @@ export class BaseComponent extends HTMLElement {
     Object.defineProperty(this, propName, {
       set: (val) => {
         this[localPropName] = val;
-        handler && handler(val);
+        handler?.(val);
       },
       get: () => {
         return this[localPropName];
@@ -53,7 +53,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   get providerState() {
-    return this.dataCtxProvider && this.dataCtxProvider.localState;
+    return this.dataCtxProvider?.localState;
   }
 
   /**
@@ -122,7 +122,7 @@ export class BaseComponent extends HTMLElement {
 
   /** @param {String} name */
   ref(name) {
-    return (this.__refsMap && this.__refsMap[name]) || null;
+    return this.__refsMap?.[name] || null;
   }
 
   /** @returns {Object<string, HTMLElement>} */
@@ -204,7 +204,7 @@ export class BaseComponent extends HTMLElement {
       return;
     }
     this[name] = newVal;
-    if (this.constructor['__reflectedToState'] && this.constructor['__reflectedToState'].includes(name)) {
+    if (this.constructor['__reflectedToState']?.includes(name)) {
       if (!this.state) {
         this.state = this.constructor['__reflectedToState'].reduce((state, attr) => {
           state[attr] = null;

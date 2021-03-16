@@ -1,7 +1,7 @@
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
-      if (o[prop] && o[prop].constructor === Object) {
+      if (o[prop]?.constructor === Object) {
         o[prop] = clone(o[prop]);
       }
     }

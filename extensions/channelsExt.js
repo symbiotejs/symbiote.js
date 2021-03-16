@@ -98,7 +98,7 @@ export function channelsExt(classObj) {
           if (msg.constructor !== Object || msg.from === this.__channelPortId) {
             return;
           }
-          if (msg.setProps && msg.setProps.constructor === Object) {
+          if (msg.setProps?.constructor === Object) {
             Object.assign(this, msg.setProps);
           }
         });

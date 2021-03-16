@@ -6,7 +6,7 @@ export class TodoItem extends AppComponent {
     super();
     this.state = {
       id: 0,
-      name: (itemData && itemData.name) || '',
+      name: itemData?.name || '',
       focused: false,
     };
   }

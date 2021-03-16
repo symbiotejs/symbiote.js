@@ -51,7 +51,7 @@ export const FN = Object.freeze({
     let cbName = 'readyCallback';
     [...fr.querySelectorAll('*')].forEach((el) => {
       if (el.tagName.includes('-')) {
-        el[cbName] && el[cbName]();
+        el[cbName]?.();
       }
     });
   },
@@ -75,7 +75,7 @@ export const FN = Object.freeze({
         let propName = keyValArr[0];
         let valKey = keyValArr[1];
         let sub;
-        if (valKey && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[0]) === 0 && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[1]) !== -1) {
+        if (valKey?.indexOf(DICT.NAMED_CTX_BRACKETS[0]) === 0 && valKey.indexOf(DICT.NAMED_CTX_BRACKETS[1]) !== -1) {
           // Example: set="propName: [ctxName]value"
           let valArr = valKey.split(DICT.NAMED_CTX_BRACKETS[1]);
           let ctxName = valArr[0].replace(DICT.NAMED_CTX_BRACKETS[0], '');
@@ -83,7 +83,7 @@ export const FN = Object.freeze({
           sub = (prop, val) => {
             fnCtx.sub(prop, val, ctxName);
           };
-        } else if (valKey && valKey.indexOf(DICT.DATA_CTX_PREFIX) === 0) {
+        } else if (valKey?.indexOf(DICT.DATA_CTX_PREFIX) === 0) {
           // Example: set="propName: *value"
           valKey = valKey.replace(DICT.DATA_CTX_PREFIX, '');
           sub = fnCtx.sub.bind(fnCtx.dataCtxProvider);

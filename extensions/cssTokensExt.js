@@ -32,7 +32,7 @@ export class CssList extends TokenList {
       // this.element.constructor is HTMLElement at this stage. So:
       let constr = getConstructorFor(this.element);
       if (constr && constr !== HTMLElement) {
-        this.defaultsMap = (constr[DICT.STYLES_FLD] && constr[DICT.STYLES_FLD][DICT.HOST_CSS_TOKEN]) || {};
+        this.defaultsMap = constr[DICT.STYLES_FLD]?.[DICT.HOST_CSS_TOKEN] || {};
       }
     }
     this.updateCallback = () => {
@@ -81,7 +81,7 @@ export function cssTokensExt(classObj) {
     constructor() {
       super();
 
-      if (this.constructor[DICT.STYLES_FLD] && this.constructor[DICT.STYLES_FLD][DICT.HOST_CSS_TOKEN]) {
+      if (this.constructor[DICT.STYLES_FLD]?.[DICT.HOST_CSS_TOKEN]) {
         applyElementStyles(this, this.constructor[DICT.STYLES_FLD][DICT.HOST_CSS_TOKEN]);
       }
     }

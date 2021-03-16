@@ -46,7 +46,7 @@ export function setAriaClick(element, handler, name) {
   element.onkeydown = (/** @type {KeyboardEvent} */ e) => {
     if (element.onclick === handler && (e.code === 'Enter' || e.code === 'Space')) {
       e.preventDefault();
-      if (handler && handler.constructor === Function) {
+      if (handler?.constructor === Function) {
         // @ts-ignore
         handler(e);
       }
