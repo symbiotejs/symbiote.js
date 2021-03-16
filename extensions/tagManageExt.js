@@ -45,6 +45,7 @@ export function tagManageExt(classObj) {
       }
       let aliasClassName = this.name + this.aliasConstructors.length;
       let cls = {
+        // Class should have a name to generate tag:
         [aliasClassName]: class extends this {},
       };
       let tagName = aliasTagName || cls[aliasClassName].autoTagName;
