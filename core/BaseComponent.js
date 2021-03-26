@@ -30,7 +30,7 @@ export class BaseComponent extends HTMLElement {
 
   /** @param {Object<string, any>} scheme */
   set state(scheme) {
-    this.__localState = State.registerLocalCtx(this, scheme);
+    this.__localState = State.registerLocalCtx(scheme);
     this.__stateProxy = new Proxy(Object.create(null), {
       set: (target, prop, value) => {
         // @ts-ignore

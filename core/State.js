@@ -1,3 +1,4 @@
+/** @returns {Object<string, *>} */
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
@@ -13,18 +14,17 @@ function cloneObj(obj) {
 export class State {
   /**
    * @param {Object} src
-   * @param {any} [src.element]
    * @param {String} [src.name]
    * @param {Object<string, any>} src.schema
    */
   constructor(src) {
     this.uid = Symbol();
-    this.element = src.element || null;
     this.name = src.name || null;
     if (src.schema.constructor === Object) {
       this.store = cloneObj(src.schema);
     } else {
       // For Proxy support:
+      this._storeIsProxy = true;
       this.store = src.schema;
     }
     /** @type {Object<String, Set<Function>>} */
@@ -41,7 +41,7 @@ export class State {
 
   /** @param {String} prop */
   read(prop) {
-    if (this.store[prop] === undefined) {
+    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
       State.warn('read', prop);
       return null;
     }
@@ -50,7 +50,7 @@ export class State {
 
   /** @param {String} prop */
   has(prop) {
-    return this.store[prop] !== undefined;
+    return this._storeIsProxy ? this.store[prop] !== undefined : this.store.hasOwnProperty(prop);
   }
 
   /**
@@ -58,7 +58,7 @@ export class State {
    * @param {any} val
    */
   pub(prop, val) {
-    if (this.store[prop] === undefined) {
+    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
       State.warn('publish', prop);
       return;
     }
@@ -76,7 +76,7 @@ export class State {
    * @param {Boolean} [init]
    */
   sub(prop, callback, init = true) {
-    if (this.store[prop] === undefined) {
+    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
       State.warn('subscribe', prop);
       return null;
     }
@@ -103,12 +103,10 @@ export class State {
   }
 
   /**
-   * @param {any} element
    * @param {Object<string, any>} schema
    */
-  static registerLocalCtx(element, schema) {
+  static registerLocalCtx(schema) {
     let state = new State({
-      element,
       schema,
     });
     State.globalStore[state.uid] = state;
@@ -118,8 +116,10 @@ export class State {
   /**
    * @param {String} ctxName
    * @param {Object<string, any>} schema
+   * @returns {State}
    */
   static registerNamedCtx(ctxName, schema) {
+    /** @type {State} */
     let state = State.globalStore[ctxName];
     if (state) {
       console.warn('State: context name "' + ctxName + '" already in use');
@@ -138,6 +138,11 @@ export class State {
     delete State.globalStore[ctxName];
   }
 
+  /**
+   * 
+   * @param {String} ctxName 
+   * @returns {State}
+   */
   static getNamedCtx(ctxName) {
     return State.globalStore[ctxName] || (console.warn('State: wrong context name - "' + ctxName + '"'), null);
   }

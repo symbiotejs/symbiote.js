@@ -5,10 +5,6 @@ import { tagManageExt } from '../../extensions/tagManageExt.js';
 /** @param {typeof import('../../core/BaseComponent').BaseComponent} classObj */
 function customExtension(classObj) {
   return class extends classObj {
-    constructor() {
-      super();
-      console.log(this.constructor['__extSet']);
-    }
 
     static processExtendedFragment(fnCtx, /** @type {DocumentFragment} */ fr) {
       super.processExtendedFragment(fnCtx, fr);
