@@ -95,6 +95,20 @@ export class BaseComponent extends HTMLElement {
 
   /**
    * @param {String} propName
+   * @param {any} value
+   * @param {String} [ctxName]
+   */
+  add(propName, value, ctxName) {
+    let ctx = FN.getCtx(this, propName, ctxName);
+    if (ctx) {
+      ctx.add(FN.cleanupPropName(propName), value);
+    } else {
+      console.warn(`${this.constructor.name}: unable to add property (${propName}: ${value})`);
+    }
+  }
+
+  /**
+   * @param {String} propName
    * @param {String} [ctxName]
    */
   read(propName, ctxName) {

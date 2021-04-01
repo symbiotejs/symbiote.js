@@ -57,12 +57,32 @@ export class State {
    * @param {String} prop
    * @param {any} val
    */
+  add(prop, val) {
+    this.store[prop] = val;
+    if (this.callbackMap[prop]) {
+      this.callbackMap[prop].forEach((callback) => {
+        callback(this.store[prop]);
+      });
+    }
+  }
+
+  /**
+   * @param {String} prop
+   * @param {any} val
+   */
   pub(prop, val) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
       State.warn('publish', prop);
       return;
     }
-    this.store[prop] = val;
+    this.add(prop, val);
+  }
+
+  /**
+   * 
+   * @param {String} prop 
+   */
+  notify(prop) {
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
         callback(this.store[prop]);
