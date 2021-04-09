@@ -53,7 +53,13 @@ export function applyElementStyles(element, styles) {
 export function replaceElementStyles(element, styles) {
   vElement.removeAttribute(styleAttr);
   applyElementStyles(vElement, styles);
-  element.setAttribute(styleAttr, vElement.getAttribute(styleAttr));
+  let styleStr = vElement.getAttribute(styleAttr);
+  styleStr.split(';').forEach((keyVal) => {
+    let kvArr = keyVal.split(':').map((str) => str.trim());
+    if (kvArr.length === 2) {
+      element.style.setProperty(kvArr[0], kvArr[1]);
+    }
+  });
 }
 
 /**

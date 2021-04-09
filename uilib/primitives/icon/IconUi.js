@@ -30,12 +30,15 @@ IconUi.styles = {
     height: '100%',
     width: '100%',
   },
+  path: {
+    fill: 'currentColor',
+  },
 };
 IconUi.template = /*html*/ `
 <svg
   css="svg"
   viewBox="0 0 24 24"
   xmlns="http://www.w3.org/2000/svg">
-  <path set="@d: path" style="fill: currentColor"></path>
+  <path css="path" set="@d: path"></path>
 </svg>
 `;
