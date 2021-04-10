@@ -53,13 +53,34 @@ export function applyElementStyles(element, styles) {
 export function replaceElementStyles(element, styles) {
   vElement.removeAttribute(styleAttr);
   applyElementStyles(vElement, styles);
-  let styleStr = vElement.getAttribute(styleAttr);
-  styleStr.split(';').forEach((keyVal) => {
-    let kvArr = keyVal.split(':').map((str) => str.trim());
-    if (kvArr.length === 2) {
-      element.style.setProperty(kvArr[0], kvArr[1]);
+  let newStyleMap = Object.create(null);
+  let newStyleStr = vElement.getAttribute(styleAttr);
+  let oldStylesSet = new Set();
+  let oldStyleStr = element.getAttribute(styleAttr);
+  if (oldStyleStr) {
+    oldStyleStr.split(';').forEach((keyVal) => {
+      let cssProp = keyVal[0]?.trim();
+      if (cssProp) {
+        oldStylesSet.add(cssProp);
+      }
+    });
+  }
+  if (newStyleStr) {
+    newStyleStr.split(';').forEach((keyVal) => {
+      let kvArr = keyVal.split(':').map((str) => str.trim());
+      if (kvArr.length === 2) {
+        newStyleMap[kvArr[0]] = kvArr[1];
+      }
+    });
+  }
+  oldStylesSet.forEach((prop) => {
+    if (!newStyleMap[prop]) {
+      element.style.removeProperty(prop);
     }
   });
+  for (let prop in newStyleMap) {
+    element.style.setProperty(prop, newStyleMap[prop]);
+  }
 }
 
 /**
