@@ -7,6 +7,7 @@ export class IconUi extends UilibComponent {
       path: '',
     };
   }
+
   readyCallback() {
     super.readyCallback();
     this.defineAccessor('path', (d) => {

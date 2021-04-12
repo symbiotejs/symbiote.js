@@ -10,6 +10,7 @@ export class TodoItem extends AppComponent {
       focused: false,
     };
   }
+
   connectedCallback() {
     super.connectedCallback();
     TodoItem.instances.add(this);
@@ -23,6 +24,7 @@ export class TodoItem extends AppComponent {
       });
     };
   }
+
   disconnectedCallback() {
     super.disconnectedCallback();
     TodoItem.instances.delete(this);

@@ -2,9 +2,8 @@ import { DICT } from '../core/dictionary.js';
 import { Tpl } from '../core/Tpl.js';
 import { TokenList } from '../core/TokenList.js';
 import { mergeCss, applyElementStyles, replaceElementStyles } from '../core/css_utils.js';
-import { extractByAttr, clearElement } from '../core/render_utils.js';
+import { extractByAttr, clearElement, getConstructorFor } from '../core/render_utils.js';
 import { FN } from '../core/fn_map.js';
-import { getConstructorFor } from '../core/render_utils.js';
 
 export class CssList extends TokenList {
   /** @param {CssList} fnCtx */

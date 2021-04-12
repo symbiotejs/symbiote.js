@@ -1,7 +1,7 @@
 import { TokenList } from '../core/TokenList.js';
-import { CssList } from './cssTokensExt.js';
+import { CssList, CssExtTpl, cssTokensExt } from './cssTokensExt.js';
 import { DICT } from '../core/dictionary.js';
-import { CssExtTpl, cssTokensExt } from './cssTokensExt.js';
+
 import { extractByAttr, clearElement } from '../core/render_utils.js';
 import { FN } from '../core/fn_map.js';
 

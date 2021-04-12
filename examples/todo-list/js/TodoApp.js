@@ -43,6 +43,7 @@ class TodoApp extends AppComponent {
       },
     };
   }
+
   readyCallback() {
     super.readyCallback();
     this['todo-col'].appendChild(getColumnFragment(todoData));

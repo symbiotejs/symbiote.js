@@ -9,7 +9,7 @@ export const FN = Object.freeze({
    * @param {String} ctxName
    * @returns {import('./State').State}
    */
-  getCtx: function (fnCtx, propName, ctxName) {
+  getCtx(fnCtx, propName, ctxName) {
     let ctx = null;
     if (ctxName) {
       ctx = State.getNamedCtx(ctxName);
@@ -22,7 +22,7 @@ export const FN = Object.freeze({
   },
 
   /** @param {String} propName */
-  cleanupPropName: function (propName) {
+  cleanupPropName(propName) {
     return propName.replace(DICT.DATA_CTX_PREFIX, '');
   },
 
@@ -30,7 +30,7 @@ export const FN = Object.freeze({
    * @param {any} fnCtx
    * @param {DocumentFragment} fr
    */
-  reflectElements: function (fnCtx, fr) {
+  reflectElements(fnCtx, fr) {
     let attrName = DICT.EL_REF_ATTR;
     let elements = extractByAttr(fr, attrName);
     elements.forEach((el) => {
@@ -47,7 +47,7 @@ export const FN = Object.freeze({
   },
 
   /** @param {DocumentFragment} fr */
-  callAllReadyCbks: function (fr) {
+  callAllReadyCbks(fr) {
     let cbName = 'readyCallback';
     [...fr.querySelectorAll('*')].forEach((el) => {
       if (el.tagName.includes('-')) {
@@ -60,7 +60,7 @@ export const FN = Object.freeze({
    * @param {any} fnCtx
    * @param {DocumentFragment} fragment
    */
-  parseFr: function (fnCtx, fragment) {
+  parseFr(fnCtx, fragment) {
     // Fragment processing defined in extensions:
     fnCtx.constructor.processExtendedFragment(fnCtx, fragment);
     FN.reflectElements(fnCtx, fragment);
@@ -134,7 +134,7 @@ export const FN = Object.freeze({
    * @param {any} fnCtx
    * @param {DocumentFragment} fr
    */
-  processSlots: function (fnCtx, fr) {
+  processSlots(fnCtx, fr) {
     fnCtx.__slots = [...fr.querySelectorAll('slot')];
     if (fnCtx.innerHTML && fnCtx.__slots.length) {
       let slotMap = {};
@@ -170,7 +170,7 @@ export const FN = Object.freeze({
   },
 
   /** @param {any} fnCtx */
-  removeSubscriptions: function (fnCtx) {
+  removeSubscriptions(fnCtx) {
     if (fnCtx.__subscriptions) {
       fnCtx.__subscriptions.forEach((sub) => {
         sub.remove();

@@ -55,18 +55,7 @@ export class ButtonUi extends UilibComponent {
   }
 }
 
-ButtonUi.observeAttributes([
-  'disabled',
-  'outline',
-  'shade',
-  'light',
-  'rounded',
-  'square',
-  'text',
-  'icon',
-  'reversed',
-  'color-code',
-]);
+ButtonUi.observeAttributes(['disabled', 'outline', 'shade', 'light', 'rounded', 'square', 'text', 'icon', 'reversed', 'color-code']);
 ButtonUi.styles = {
   ':host': {
     '--color-1': `rgb(var(--rgb-1, ${CSS_DEFAULTS.RGB_1}))`,

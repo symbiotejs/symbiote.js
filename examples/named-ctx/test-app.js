@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
 
 import { State } from '../../core/State.js';
+
 State.registerNamedCtx('ctx', {
   text: 'MY TEXT',
 });

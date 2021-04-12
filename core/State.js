@@ -1,4 +1,4 @@
-/** @returns {Object<string, *>} */
+/** @returns {Object<string, any>} */
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
@@ -78,10 +78,7 @@ export class State {
     this.add(prop, val);
   }
 
-  /**
-   * 
-   * @param {String} prop 
-   */
+  /** @param {String} prop */
   notify(prop) {
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
@@ -122,9 +119,7 @@ export class State {
     delete State.globalStore[this.uid];
   }
 
-  /**
-   * @param {Object<string, any>} schema
-   */
+  /** @param {Object<string, any>} schema */
   static registerLocalCtx(schema) {
     let state = new State({
       schema,
@@ -159,8 +154,7 @@ export class State {
   }
 
   /**
-   * 
-   * @param {String} ctxName 
+   * @param {String} ctxName
    * @returns {State}
    */
   static getNamedCtx(ctxName) {

@@ -5,7 +5,6 @@ import { tagManageExt } from '../../extensions/tagManageExt.js';
 /** @param {typeof import('../../core/BaseComponent').BaseComponent} classObj */
 function customExtension(classObj) {
   return class extends classObj {
-
     static processExtendedFragment(fnCtx, /** @type {DocumentFragment} */ fr) {
       super.processExtendedFragment(fnCtx, fr);
       let elements = [...fr.querySelectorAll('div')];

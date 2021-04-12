@@ -23,6 +23,7 @@ class SecondChannel extends ChannelComponent {
       html: '',
     };
   }
+
   readyCallback() {
     super.readyCallback();
     this.defineAccessor('html', (html) => {
