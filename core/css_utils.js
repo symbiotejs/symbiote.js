@@ -2,6 +2,35 @@ const vElement = document.createElement('span');
 const styleAttr = 'style';
 
 /**
+ * Converts string `foo: bar; back: url(data:image/svg+xml;base64,)`
+ * to an array `['foo: bar, back: url(data:image/svg+xml;base64,)']`
+ *
+ * @param  {string} style
+ * @return {string[]}
+ */
+const splitStyleByDeclaration = style => {
+  if(style.lastIndexOf(';') === style.length - 1) {
+    style = style.substring(0, style.length - 1)
+  }
+  return style.split('; ')
+}
+
+/**
+ * Converts string `back: url(data:image/svg+xml;base64,)`
+ * to an array `['back', 'url(data:image/svg+xml;base64,)']`
+ *
+ * @param  {string} declaration
+ * @return {[string, string]}
+ */
+const splitDeclaration = declaration => {
+  let splitterIdx = declaration.indexOf(':')
+  let property = declaration.substring(0, splitterIdx).trim();
+  let value = declaration.substring(splitterIdx + 1, declaration.length).trim();
+
+  return [property, value]
+}
+
+/**
  * @param {HTMLElement} element
  * @param {String} src
  */
@@ -58,19 +87,17 @@ export function replaceElementStyles(element, styles) {
   let oldStylesSet = new Set();
   let oldStyleStr = element.getAttribute(styleAttr);
   if (oldStyleStr) {
-    oldStyleStr.split(';').forEach((keyVal) => {
-      let cssProp = keyVal[0]?.trim();
+    splitStyleByDeclaration(oldStyleStr).forEach((declaration) => {
+      let cssProp = splitDeclaration(declaration)[0]
       if (cssProp) {
         oldStylesSet.add(cssProp);
       }
     });
   }
   if (newStyleStr) {
-    newStyleStr.split(';').forEach((keyVal) => {
-      let kvArr = keyVal.split(':').map((str) => str.trim());
-      if (kvArr.length === 2) {
-        newStyleMap[kvArr[0]] = kvArr[1];
-      }
+    splitStyleByDeclaration(newStyleStr).forEach((declaration) => {
+      let [property, value] = splitDeclaration(declaration);
+      newStyleMap[property] = value;
     });
   }
   oldStylesSet.forEach((prop) => {
