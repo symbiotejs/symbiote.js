@@ -46,7 +46,7 @@ export class CssList extends TokenList {
    * @param {Object<string, any>} cssTokenMap
    */
   static initTemplateElement(tplEl, cssTokenMap) {
-    let tokenList = new Set((tplEl.getAttribute(DICT.CSS_ATTR) || '').split(' '));
+    let tokenList = new Set((tplEl.getAttribute(DICT.CSS_ATTR) || undefined)?.split(' '));
     let cssMap = mergeCss(cssTokenMap, tokenList);
     applyElementStyles(tplEl, cssMap);
   }
