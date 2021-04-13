@@ -127,7 +127,12 @@ export function getCssValue(element, propName) {
 export function mergeCss(cssObj, tokenSet, mix = {}) {
   let merged = {};
   tokenSet.forEach((name) => {
-    merged = { ...merged, ...cssObj[name.trim()], ...mix };
+    name = name.trim();
+    // TODO: should be under dev flag
+    if(!cssObj[name]) {
+      console.log(`Css token "${name}" not found at`, cssObj)
+    }
+    merged = { ...merged, ...cssObj[name], ...mix };
   });
   return merged;
 }
