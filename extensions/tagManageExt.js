@@ -1,5 +1,7 @@
 import { DICT } from '../core/dictionary.js';
 
+let autoTagCounter = 0;
+
 /** @param {typeof import('../core/BaseComponent').BaseComponent} classObj */
 export function tagManageExt(classObj) {
   return class extends classObj {
@@ -30,7 +32,7 @@ export function tagManageExt(classObj) {
 
     static get autoTagName() {
       let tag = this.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-      return `${this.tagPrefix}-${tag.replace(/\$/g, '_s_')}`; // "$" symbol cannot be in custom tag name
+      return `${this.tagPrefix}-${tag.replace(/\$/g, '_s_')}-${autoTagCounter++}`; // "$" symbol cannot be in custom tag name
     }
 
     /** @param {String} [tagName] */
