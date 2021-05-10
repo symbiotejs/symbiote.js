@@ -1,6 +1,3 @@
-const vElement = document.createElement('span');
-const styleAttr = 'style';
-
 /**
  * Converts string `foo: bar; back: url(data:image/svg+xml;base64,)` to an array `['foo: bar, back: url(data:image/svg+xml;base64,)']`
  *
@@ -74,14 +71,20 @@ export function applyElementStyles(element, styles) {
   }
 }
 
+let vElement;
+const styleAttr = 'style';
+
 /**
  * @param {HTMLElement | SVGElement} element
  * @param {Object<string, any>} styles
  */
 export function replaceElementStyles(element, styles) {
-  // vElement.removeAttribute(styleAttr); - causes CSP error in Safari
-  // TODO: optimize this:
-  let vElement = document.createElement('span');
+  if (!vElement) {
+    vElement = document.createElement('span');
+  } else {
+    // vElement.removeAttribute(styleAttr); - causes CSP error in Safari
+    vElement.style.cssText = null;
+  }
   applyElementStyles(vElement, styles);
   let newStyleMap = Object.create(null);
   let newStyleStr = vElement.getAttribute(styleAttr);
