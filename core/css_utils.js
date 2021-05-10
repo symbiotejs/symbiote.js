@@ -33,8 +33,9 @@ const splitDeclaration = declaration => {
 /**
  * @param {HTMLElement} element
  * @param {String} src
+ * @param {Boolean} [createSlot]
  */
-export function addExternalStyles(element, src) {
+export function addExternalStyles(element, src, createSlot) {
   return new Promise((resolve, reject) => {
     let link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -53,7 +54,7 @@ export function addExternalStyles(element, src) {
       });
     }
     element.shadowRoot.prepend(link);
-    if (!element.shadowRoot.querySelector('slot')) {
+    if (createSlot && !element.shadowRoot.querySelector('slot')) {
       let slot = document.createElement('slot');
       element.shadowRoot.appendChild(slot);
     }
