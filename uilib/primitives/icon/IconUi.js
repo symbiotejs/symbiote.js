@@ -20,7 +20,7 @@ export class IconUi extends UilibComponent {
 }
 IconUi.observeAttributes(['path']);
 IconUi.styles = {
-  host: {
+  ':host': {
     display: 'inline-flex',
     '--size': '1.2em',
     height: 'var(--size)',

@@ -2,33 +2,31 @@ const vElement = document.createElement('span');
 const styleAttr = 'style';
 
 /**
- * Converts string `foo: bar; back: url(data:image/svg+xml;base64,)`
- * to an array `['foo: bar, back: url(data:image/svg+xml;base64,)']`
+ * Converts string `foo: bar; back: url(data:image/svg+xml;base64,)` to an array `['foo: bar, back: url(data:image/svg+xml;base64,)']`
  *
- * @param  {string} style
- * @return {string[]}
+ * @param {string} style
+ * @returns {string[]}
  */
-const splitStyleByDeclaration = style => {
-  if(style.lastIndexOf(';') === style.length - 1) {
-    style = style.substring(0, style.length - 1)
+const splitStyleByDeclaration = (style) => {
+  if (style.lastIndexOf(';') === style.length - 1) {
+    style = style.substring(0, style.length - 1);
   }
-  return style.split('; ')
-}
+  return style.split('; ');
+};
 
 /**
- * Converts string `back: url(data:image/svg+xml;base64,)`
- * to an array `['back', 'url(data:image/svg+xml;base64,)']`
+ * Converts string `back: url(data:image/svg+xml;base64,)` to an array `['back', 'url(data:image/svg+xml;base64,)']`
  *
- * @param  {string} declaration
- * @return {[string, string]}
+ * @param {string} declaration
+ * @returns {[string, string]}
  */
-const splitDeclaration = declaration => {
-  let splitterIdx = declaration.indexOf(':')
+const splitDeclaration = (declaration) => {
+  let splitterIdx = declaration.indexOf(':');
   let property = declaration.substring(0, splitterIdx).trim();
   let value = declaration.substring(splitterIdx + 1, declaration.length).trim();
 
-  return [property, value]
-}
+  return [property, value];
+};
 
 /**
  * @param {HTMLElement} element
@@ -68,7 +66,7 @@ export function addExternalStyles(element, src, createSlot) {
 export function applyElementStyles(element, styles) {
   for (let styleProp in styles) {
     let value = styles[styleProp];
-    if (styleProp.indexOf('--') === 0) {
+    if (styleProp.includes('-')) {
       element.style.setProperty(styleProp, value);
     } else {
       element.style[styleProp] = value;
@@ -81,7 +79,9 @@ export function applyElementStyles(element, styles) {
  * @param {Object<string, any>} styles
  */
 export function replaceElementStyles(element, styles) {
-  vElement.removeAttribute(styleAttr);
+  // vElement.removeAttribute(styleAttr); - causes CSP error in Safari
+  // TODO: optimize this:
+  let vElement = document.createElement('span');
   applyElementStyles(vElement, styles);
   let newStyleMap = Object.create(null);
   let newStyleStr = vElement.getAttribute(styleAttr);
@@ -89,7 +89,7 @@ export function replaceElementStyles(element, styles) {
   let oldStyleStr = element.getAttribute(styleAttr);
   if (oldStyleStr) {
     splitStyleByDeclaration(oldStyleStr).forEach((declaration) => {
-      let cssProp = splitDeclaration(declaration)[0]
+      let cssProp = splitDeclaration(declaration)[0];
       if (cssProp) {
         oldStylesSet.add(cssProp);
       }
@@ -106,9 +106,7 @@ export function replaceElementStyles(element, styles) {
       element.style.removeProperty(prop);
     }
   });
-  for (let prop in newStyleMap) {
-    element.style.setProperty(prop, newStyleMap[prop]);
-  }
+  applyElementStyles(element, newStyleMap);
 }
 
 /**
@@ -130,8 +128,8 @@ export function mergeCss(cssObj, tokenSet, mix = {}) {
   tokenSet.forEach((name) => {
     name = name.trim();
     // TODO: should be under dev flag
-    if(!cssObj[name]) {
-      console.log(`Css token "${name}" not found at`, cssObj)
+    if (!cssObj[name]) {
+      console.log(`Css token "${name}" not found at`, cssObj);
     }
     merged = { ...merged, ...cssObj[name], ...mix };
   });
