@@ -4,7 +4,7 @@ import { BaseComponent } from '<relative path>/core/BaseComponent.js';
 
 class MyComponent extends BaseComponent {
   constructor() {
-    this.state = {
+    this.initLocalState({
       firstName: 'Unknown',
       secondName: 'Unknonw',
 
@@ -14,14 +14,14 @@ class MyComponent extends BaseComponent {
       'on.secondClicked': () => {
         this.state.secondName = 'Snow';
       },
-    };
+    });
   }
 }
 
 MyComponent.template = /*html*/ `
-<div class="first common" set="textContent: firstName; onclick: on.firstClicked"></div>
-<div class="second common" set="textContent: secondName; onclick: on.secondClicked"></div>
+<div class="first common" loc="textContent: firstName; onclick: on.firstClicked"></div>
+<div class="second common" loc="textContent: secondName; onclick: on.secondClicked"></div>
 `;
 
-window.customElements.define('my-component', MyComponent);
+MyComponent.reg('my-component');
 ```

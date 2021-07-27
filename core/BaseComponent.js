@@ -148,7 +148,7 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  readyCallback() {}
+  initCallback() {}
 
   connectedCallback() {
     if (this.__disconnectTimeout) {
@@ -189,7 +189,7 @@ export class BaseComponent extends HTMLElement {
       if (!this.pauseRender) {
         this.render();
       }
-      this.readyCallback?.();
+      this.initCallback?.();
     }
     this.connectedOnce = true;
   }

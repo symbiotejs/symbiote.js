@@ -1,17 +1,17 @@
 # ☣️ Symbiote.js
 
-## Lightweight and flexible library for creating widgets, micro-frontends, reusable embeddable components and complete web applications
+## Ultralight and ultrapowerful library for creating widgets, micro-frontends, reusable embeddable components and complete web applications
 
 ### Key features:
-* Lifecycle control: now you really control it with a power of Custom Elements
+* Lifecycle control from inside: fully automated initialization and removing
 * Environment agnostic: seamless integration with any other popular framework, library or CMS
 * Based on modern web standards: Custom Elements, ES Modules, CSS Variables, etc...
 * Close to native web-platform APIs: HTML, CSS, JavaScript - all you already familiar with
-* State management out of the box: very simple, flexible and performant
+* Powerful data management out of the box: very simple, flexible and performant
+* Synchronous data flow: no more race conditions and unexpected behavior
 * Zero dependency: `npm install... nothing`
 * CSP compatible: no need to use insecure flags (`'unsafe-inline'`) to make your code work
-* Advanced styling security for your solutions out of the box
-* Tag management automation: no more custom tag name collisions
+* Tag names management: no more custom tag name collisions
 * Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
 * Shadow DOM is optional: use it where you need it only
 * Object model matters: access to the direct properties and methods of the DOM elements. Unlike many other libraries, DOM is not hidden behind opaque abstract layers
@@ -35,8 +35,8 @@ class MyComponent extends BaseComponent {
   constructor() {
     super();
 
-    // Define state:
-    this.state = {
+    // Define local state:
+    this.initLocalState({
       firstName: 'unknown',
       secondName: 'unknown',
 
@@ -47,51 +47,36 @@ class MyComponent extends BaseComponent {
       secondNameClicked: () => {
         console.log(this.state.secondName);
       },
-    };
+    });
   }
 
-/* 
-
-The only custom lifecycle callback in Symbiote is "readyCallback".
-If you using your component inside of another component template,
-it will be fired before native "connectedCallback", when template 
-processing is over and component is created but not inserted into 
-the DOM. At this stage you can update your component without cause 
-of any re-render in browser.
-
-*/
-  readyCallback() {
-    super.readyCallback();
-
+  /* 
+  The only custom lifecycle callback in Symbiote is "initCallback".
+  This callback will be called only once after component .
+  */
+  initCallback() {
     // Update state properties when needed:
-    this.state.firstName = 'John';
-    this.state.secondName = 'Snow';
-  }
-
-  // Or bind it to HTML-attributes:
-  set 'first-name'(val) {
-    this.state.firstName = val;
-  }
-
-  set 'second-name'(val) {
-    this.state.secondName = val;
+    this.localState.multiPub({
+      firstName: 'John',
+      secondName: 'Snow',
+    });
   }
 }
 
 // Use /*html*/ for template syntax highlighting:
 MyComponent.template = /*html*/ `
-<div set="textContent: firstName; onclick: firstNameClicked"></div>
-<div set="textContent: secondName; oncllick: secondNameClicked"></div>
+<div loc="textContent: firstName; onclick: firstNameClicked"></div>
+<div loc="textContent: secondName; oncllick: secondNameClicked"></div>
 `;
 
-// You need to list attributes to make accessors work:
-MyComponent.observeAttributes([
-  'first-name',
-  'second-name',
-]);
+// Bind attributes directly to local state:
+MyComponent.bindAttributes({
+  'first-name': ['local'],
+  'second-name': ['local'],
+});
 
 // Define your custom HTML-tag:
-window.customElements.define('my-custom-tag', MyComponent);
+MyComponent.reg('my-custom-tag');
 ```
 Than you can use your custom tag in your templates or any static HTML file:
 ```html
