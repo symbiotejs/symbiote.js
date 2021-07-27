@@ -39,6 +39,16 @@ export class TypedState {
 
   /**
    * 
+   * @param {Object<string, *>} updObj 
+   */
+  setMultipleValues(updObj) {
+    for (let prop in updObj) {
+      this.setValue(prop, updObj[prop]);
+    }
+  }
+
+  /**
+   * 
    * @param {String} prop 
    */
   getValue(prop) {

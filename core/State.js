@@ -78,6 +78,16 @@ export class State {
     this.add(prop, val);
   }
 
+  /**
+   * 
+   * @param {Object<string, *>} updObj 
+   */
+   multiPub(updObj) {
+    for (let prop in updObj) {
+      this.pub(prop, updObj[prop]);
+    }
+  }
+
   /** @param {String} prop */
   notify(prop) {
     if (this.callbackMap[prop]) {
