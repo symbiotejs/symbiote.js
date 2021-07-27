@@ -1,20 +1,14 @@
-export const DICT = {
-  PROJECT_PREFIX: 'symjs',
-  POSTFIX: 'Sym',
+export const DICT = Object.freeze({
+  //  Local state binding attribute name:
+  LOCAL_CTX_ATTR: 'loc',
+  //  External data context attribute name:
+  EXT_CTX_ATTR: 'ext',
+  // Prefix for template binding to attribute:
+  ATTR_BIND_PRFX: '@',
+  // Data context name attribute:
+  CTX_NAME_ATTR: 'ctx-name',
+  // Data context name in CSS custom property:
+  CSS_CTX_PROP: '--ctx-name',
+  // Element reference attribute:
   EL_REF_ATTR: 'ref',
-  STATE_ATTR: 'state',
-  DSL_ATTR: 'set',
-  DSL_PAIR_SPLIT: ';',
-  DATA_CTX_PREFIX: '*',
-  NAMED_CTX_BRACKETS: ['[', ']'],
-  ATTR_BIND_PREFIX: '@',
-  STATE_BIND_PREFIX: '#',
-  CSS_ATTR: 'css',
-  RULE_ATTR: 'rule',
-  CSS_LIST: '__CSS_LIST__',
-  RULE_LIST: '__RULE_LIST__',
-  SUB_INNER_HTML: 'innerHTML',
-  SUB_ARIA_CLICK: 'ariaClick',
-  STYLES_FLD: 'styles',
-  HOST_CSS_TOKEN: ':host',
-};
+});

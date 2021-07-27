@@ -1,257 +1,263 @@
-import { Tpl } from './Tpl.js';
-import { State } from './State.js';
-import { FN } from './fn_map.js';
-import { clearElement } from './render_utils.js';
+import { State } from '../../symbiote/core/State.js';
+import { DICT } from './dictionary.js';
+import { UID } from '../../symbiote/utils/UID.js';
 
-/**
- * Base class for any component
- *
- * @property {Function} post
- */
 export class BaseComponent extends HTMLElement {
-  /**
-   * @param {String} propName
-   * @param {Function} [handler]
+  static set template(html) {
+    this.__tpl = document.createElement('template');
+    this.__tpl.innerHTML = html;
+  }
+
+  /** 
+   * @param {String | DocumentFragment} [template] 
+   * @param {Boolean} [shadow]
    */
-  defineAccessor(propName, handler) {
-    let localPropName = '__' + propName;
-    this[localPropName] = this[propName];
-    Object.defineProperty(this, propName, {
-      set: (val) => {
-        this[localPropName] = val;
-        handler?.(val);
-      },
-      get: () => {
-        return this[localPropName];
-      },
-    });
-    this[propName] = this[localPropName];
-  }
-
-  /** @param {Object<string, any>} scheme */
-  set state(scheme) {
-    this.__localState = State.registerLocalCtx(scheme);
-    this.__stateProxy = new Proxy(Object.create(null), {
-      set: (target, prop, value) => {
-        // @ts-ignore
-        this.pub(prop, value);
-        return true;
-      },
-      get: (target, prop) => {
-        // @ts-ignore
-        return this.localState.read(prop);
-      },
-    });
-  }
-
-  get state() {
-    return this.__stateProxy;
-  }
-
-  get localState() {
-    return this.__localState;
-  }
-
-  get providerState() {
-    return this.dataCtxProvider?.localState;
-  }
-
-  /**
-   * @param {String} propName
-   * @param {Function} callback
-   * @param {String} [ctxName]
-   * @param {Boolean} [init]
-   */
-  sub(propName, callback, ctxName, init = true) {
-    let ctx = FN.getCtx(this, propName, ctxName);
-    let sub = null;
-    if (ctx) {
-      sub = FN.getCtx(this, propName, ctxName).sub(FN.cleanupPropName(propName), callback, init);
-      if (sub) {
-        if (!this.__subscriptions) {
-          this.__subscriptions = new Set();
-        }
-        this.__subscriptions.add(sub);
+  render(template, shadow = this.renderShadow) {
+    /** @type {DocumentFragment} */
+    let fr;
+    if (template || this.constructor['__tpl']) {
+      while (this.firstChild) {
+        this.firstChild.remove();
       }
-    } else {
-      console.warn(`${this.constructor.name}: unable to subscribe (${propName})`);
+      if (template?.constructor === DocumentFragment) {
+        fr = template;
+      } else if (template?.constructor === String) {
+        let tpl = document.createElement('template');
+        // @ts-ignore
+        fr = tpl.content.cloneNode(true);
+      } else if (this.constructor['__tpl']) {
+        fr = this.constructor['__tpl'].content.cloneNode(true);
+      }
+      this.tplProcessors.forEach((fn) => {
+        fn(fr);
+      });
     }
-    return sub;
-  }
-
-  /**
-   * @param {String} propName
-   * @param {any} value
-   * @param {String} [ctxName]
-   */
-  pub(propName, value, ctxName) {
-    let ctx = FN.getCtx(this, propName, ctxName);
-    if (ctx) {
-      ctx.pub(FN.cleanupPropName(propName), value);
+    if (shadow) {
+      if (!this.shadowRoot) {
+        this.attachShadow({
+          mode: 'open',
+        });
+      }
+      fr && this.shadowRoot.appendChild(fr);
     } else {
-      console.warn(`${this.constructor.name}: unable to publish property update (${propName}: ${value})`);
-    }
-  }
-
-  /**
-   * @param {String} propName
-   * @param {any} value
-   * @param {String} [ctxName]
-   */
-  add(propName, value, ctxName) {
-    let ctx = FN.getCtx(this, propName, ctxName);
-    if (ctx) {
-      ctx.add(FN.cleanupPropName(propName), value);
-    } else {
-      console.warn(`${this.constructor.name}: unable to add property (${propName}: ${value})`);
+      fr && this.appendChild(fr);
     }
   }
 
-  /**
-   * @param {String} propName
-   * @param {String} [ctxName]
-   */
-  read(propName, ctxName) {
-    let ctx = FN.getCtx(this, propName, ctxName);
-    return ctx ? FN.getCtx(this, propName, ctxName).read(FN.cleanupPropName(propName)) : null;
+  /** @param {(fr: DocumentFragment) => any} processorFn */
+  addTemplateProcessor(processorFn) {
+    this.tplProcessors.add(processorFn);
+  }
+
+  /** @param {Object<string, any>} init */
+  initLocalState(init) {
+    this.__localStateInitObj = init;
   }
 
   constructor() {
     super();
-    /** Data context provider component */
-    this.defineAccessor('dataCtxProvider');
-    if (!this.dataCtxProvider) {
-      this.dataCtxProvider = null; // JsDoc fix
-    }
+    /** @type {Set<(fr: DocumentFragment) => any>} */
+    this.tplProcessors = new Set();
+    /** @type {Object<string, HTMLElement>} */
+    this.ref = Object.create(null);
+    this.allSubs = new Set();
+    this.pauseRender = false;
+    this.renderShadow = false;
+    this.readyToDestroy = true;
+  }
 
-    if (this.constructor['renderShadow']) {
-      this.attachShadow({
-        mode: 'open',
+  /**
+   * @param {DocumentFragment} fr
+   * @param {String} attr
+   * @param {State} state
+   * @param {Set} subs
+   */
+  static connectToState(fr, attr, state, subs) {
+    [...fr.querySelectorAll(`[${attr}]`)].forEach((el) => {
+      let subSr = el.getAttribute(attr);
+      let keyValsArr = subSr.split(';');
+      keyValsArr.forEach((keyValStr) => {
+        if (!keyValStr) {
+          return;
+        }
+        let kv = keyValStr.split(':').map((str) => str.trim());
+        let prop = kv[0];
+        let isAttr;
+        if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
+          isAttr = true;
+          prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
+        }
+        if (state && !state.has(kv[1])) {
+          state.add(kv[1], undefined);
+        }
+        subs.add(
+          state.sub(kv[1], (val) => {
+            if (isAttr) {
+              if (val?.constructor === Boolean) {
+                val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
+              } else {
+                el.setAttribute(prop, val);
+              }
+            } else {
+              el[prop] = val;
+            }
+          })
+        );
       });
+      el.removeAttribute(attr);
+    });
+  }
+
+  get autoCtxName() {
+    if (!this.__autoCtxName) {
+      this.__autoCtxName = UID.generate();
+      this.style.setProperty(DICT.CSS_CTX_PROP, this.__autoCtxName);
     }
-
-    this.__refsMap = null;
-    this.__slots = null;
+    return this.__autoCtxName;
   }
 
-  /** @param {String} name */
-  ref(name) {
-    return this.__refsMap?.[name] || null;
+  get cssCtxName() {
+    let style = window.getComputedStyle(this);
+    return style.getPropertyValue(DICT.CSS_CTX_PROP);
   }
 
-  /** @returns {Object<string, HTMLElement>} */
-  get refsMap() {
-    return { ...(this.__refsMap || null) };
+  get ctxName() {
+    return this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.autoCtxName;
   }
 
-  readyCallback() {
-    this.__readyOnce = true;
-    if (this.constructor['__tpl']) {
-      /** @type {DocumentFragment} */
-      let fr = this.constructor['__tpl'].clone();
-      FN.parseFr(this, fr);
-      if (this.constructor['renderShadow'] && this.shadowRoot) {
-        this.shadowRoot.appendChild(fr);
-      } else {
-        FN.processSlots(this, fr);
-        this.appendChild(fr);
+  /** @param {Object<string, any>} stateInit */
+  addToExternalState(stateInit) {
+    if (!this.externalState) {
+      this.__extSateInit = stateInit;
+      return;
+    }
+    for (let prop in stateInit) {
+      if (!this.externalState.has(prop)) {
+        this.externalState.add(prop, stateInit[prop]);
       }
     }
   }
 
-  connectedCallback() {
-    if (!this.__readyOnce) {
-      this.readyCallback();
+  get externalState() {
+    return this.ctxName ? State.getNamedCtx(this.ctxName) || State.registerNamedCtx(this.ctxName, this.__extSateInit || {}) : null;
+  }
+
+  __initState() {
+    if (!this.localState) {
+      this.localState = State.registerLocalCtx(this.__localStateInitObj || {});
     }
   }
 
-  detach() {
-    this.__keepSubscriptions = true;
-    this.remove();
-    return this;
+  readyCallback() {}
+
+  connectedCallback() {
+    if (this.__disconnectTimeout) {
+      window.clearTimeout(this.__disconnectTimeout);
+    }
+    if (!this.connectedOnce) {
+      let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
+      if (ctxNameAttrVal) {
+        this.style.setProperty(DICT.CSS_CTX_PROP, ctxNameAttrVal);
+      }
+      this.__initChildren = [...this.childNodes];
+      this.__initState();
+      if (!this.renderShadow) {
+        this.addTemplateProcessor((fr) => {
+          let slot = fr.querySelector('slot');
+          if (!slot) {
+            return;
+          }
+          this.__initChildren.forEach((el) => {
+            slot.parentNode.insertBefore(el, slot);
+          });
+          slot.remove();
+        });
+      }
+      this.addTemplateProcessor((fr) => {
+        [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
+          let refName = el.getAttribute(DICT.EL_REF_ATTR);
+          this.ref[refName] = el;
+          el.removeAttribute(DICT.EL_REF_ATTR);
+        });
+      });
+      this.addTemplateProcessor((fr) => {
+        BaseComponent.connectToState(fr, DICT.LOCAL_CTX_ATTR, this.localState, this.allSubs);
+      });
+      this.addTemplateProcessor((fr) => {
+        BaseComponent.connectToState(fr, DICT.EXT_CTX_ATTR, this.externalState, this.allSubs);
+      });
+      if (!this.pauseRender) {
+        this.render();
+      }
+      this.readyCallback?.();
+    }
+    this.connectedOnce = true;
   }
 
   disconnectedCallback() {
-    if (this.__keepSubscriptions) {
-      this.__keepSubscriptions = false;
+    if (!this.readyToDestroy) {
       return;
     }
-    FN.removeSubscriptions(this);
-    if (this.localState) {
-      this.localState.remove();
+    if (this.__disconnectTimeout) {
+      window.clearTimeout(this.__disconnectTimeout);
     }
+    this.__disconnectTimeout = window.setTimeout(() => {
+      this.allSubs.forEach((sub) => {
+        sub.remove();
+        this.allSubs.delete(sub);
+      });
+      this.tplProcessors.forEach((fn) => {
+        this.tplProcessors.delete(fn);
+      });
+    }, 100);
   }
 
   /**
-   * Shortcut for "observedAttributes" native prop Defines list of attributes which should be observed and processed
-   *
-   * @param {String[]} arr
+   * 
+   * @param {String} [tagName] 
+   * @param {Boolean} [isAlias] 
    */
-  static observeAttributes(arr) {
-    this.__observedAttributes = [...arr];
+  static reg(tagName, isAlias = false) {
+    if (!tagName) {
+      tagName = this.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+    }
+    if (window.customElements.get(tagName)) {
+      console.warn(`${tagName} - is already in "customElements" registry`);
+      return;
+    }
+    window.customElements.define(tagName, isAlias ? class extends this {} : this);
+    this.__tag = tagName;
+  }
+
+  static get is() {
+    return this.__tag;
   }
 
   /**
-   * List of attributes which should be set as a state properties directly
-   *
-   * @param {String[]} arr
+   * 
+   * @param {Object<string, ('local' | 'external' | 'property')[]>} desc 
    */
-  static reflectToState(arr) {
-    this.__reflectedToState = [...arr];
-  }
-
-  static get observedAttributes() {
-    return [...new Set([...(this.__observedAttributes || []), ...(this.__reflectedToState || [])])];
+  static bindAttributes(desc) {
+    this.observedAttributes = Object.keys(desc);
+    this.__attrDesc = desc;
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
-    if (newVal === oldVal) {
+    if (oldVal === newVal) {
       return;
     }
-    this[name] = newVal;
-    if (this.constructor['__reflectedToState']?.includes(name)) {
-      if (!this.state) {
-        this.state = this.constructor['__reflectedToState'].reduce((state, attr) => {
-          state[attr] = null;
-          return state;
-        }, {});
-      }
-      this.state[name] = newVal;
+    /** @type {('local' | 'external' | 'property')[]} */
+    let desc = this.constructor['__attrDesc'][name];
+    if (desc.includes('local')) {
+      this.__initState();
+      this.localState.add(name, newVal);
+    }
+    if (desc.includes('external')) {
+      this.addToExternalState({name: newVal});
+    }
+    if (desc.includes('property')) {
+      this[name] = newVal;
     }
   }
 
-  /** @param {String} tpl */
-  static set template(tpl) {
-    this.__tpl = new Tpl(tpl);
-  }
-
-  /** @param {Boolean} val */
-  static set renderShadow(val) {
-    this.__renderShadow = val;
-  }
-
-  static get renderShadow() {
-    return this.__renderShadow;
-  }
-
-  /**
-   * Placed here because need to be redefined in extensions
-   *
-   * @param {any} fnCtx
-   * @param {HTMLElement} el
-   * @param {any} val
-   */
-  static __processSubtreeSubscribtion(fnCtx, el, val) {
-    let tpl = new Tpl(val);
-    let fr = tpl.clone();
-    FN.parseFr(fnCtx, fr);
-    clearElement(el);
-    el.appendChild(fr);
-  }
-
-  /**
-   * @param {BaseComponent} [fnCtx]
-   * @param {DocumentFragment} [fragment]
-   */
-  static processExtendedFragment(fnCtx, fragment) {}
 }
