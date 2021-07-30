@@ -277,22 +277,27 @@ export class BaseComponent extends HTMLElement {
   /**
    * @param {String} propName
    * @param {Function} [handler]
+   * @param {Boolean} [isAsync]
    */
-  defineAccessor(propName, handler) {
+  defineAccessor(propName, handler, isAsync) {
     let localPropName = '__' + propName;
     this[localPropName] = this[propName];
     Object.defineProperty(this, propName, {
       set: (val) => {
         this[localPropName] = val;
-        handler?.(val);
+        if (isAsync) {
+          window.setTimeout(() => {
+            handler?.(val);
+          });
+        } else {
+          handler?.(val);
+        }
       },
       get: () => {
         return this[localPropName];
       },
     });
-    window.setTimeout(() => {
-      this[propName] = this[localPropName];
-    });
+    this[propName] = this[localPropName];
   }
 
 }
