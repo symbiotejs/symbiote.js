@@ -260,4 +260,39 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
+  /**
+   * 
+   * @param {String} propName 
+   */
+  getCssData(propName) {
+    let style = window.getComputedStyle(this);
+    try {
+      return JSON.parse(style.getPropertyValue(propName).trim());
+    } catch(e) {
+      console.warn(`CSS Data error: ${propName}`);
+      return null;
+    }
+  }
+
+  /**
+   * @param {String} propName
+   * @param {Function} [handler]
+   */
+  defineAccessor(propName, handler) {
+    let localPropName = '__' + propName;
+    this[localPropName] = this[propName];
+    Object.defineProperty(this, propName, {
+      set: (val) => {
+        this[localPropName] = val;
+        handler?.(val);
+      },
+      get: () => {
+        return this[localPropName];
+      },
+    });
+    window.setTimeout(() => {
+      this[propName] = this[localPropName];
+    });
+  }
+
 }
