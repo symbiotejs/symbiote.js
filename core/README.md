@@ -1,27 +1,16 @@
-### Component basic example
-```javascript
-import { BaseComponent } from '<relative path>/core/BaseComponent.js';
+## Folder contents
 
-class MyComponent extends BaseComponent {
-  constructor() {
-    this.initLocalState({
-      firstName: 'Unknown',
-      secondName: 'Unknonw',
+### BaseComponent.js
+Base component class. Major utility for web-component creation and template data binding. Unlike many other libraries, such as React, component instance is not abstract and exsists as a certain DOM element with a standard DOM API methods available.
 
-      'on.firstClicked': () => {
-        this.state.firstName = 'John';
-      },
-      'on.secondClicked': () => {
-        this.state.secondName = 'Snow';
-      },
-    });
-  }
-}
+### State.js
+Implements data layer for local component context and the top level context both. The state management approach is based on simple well known pub/sub pattern.
 
-MyComponent.template = /*html*/ `
-<div class="first common" loc="textContent: firstName; onclick: on.firstClicked"></div>
-<div class="second common" loc="textContent: secondName; onclick: on.secondClicked"></div>
-`;
+### TypedState.js
+Wrapper for State with a runtime type checking.
 
-MyComponent.reg('my-component');
-```
+### TypedColection.js
+Normalized typed collection for dedicated data entities.
+
+### AppRouter.js
+SPA routing utility.
