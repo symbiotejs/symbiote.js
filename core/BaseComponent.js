@@ -2,6 +2,8 @@ import { State } from '../../symbiote/core/State.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../../symbiote/utils/UID.js';
 
+let autoTagsCount = 0;
+
 export class BaseComponent extends HTMLElement {
   static set template(html) {
     this.__tpl = document.createElement('template');
@@ -243,7 +245,8 @@ export class BaseComponent extends HTMLElement {
    */
   static reg(tagName, isAlias = false) {
     if (!tagName) {
-      tagName = this.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+      autoTagsCount++;
+      tagName = `${DICT.AUTO_TAG_PRFX}-${autoTagsCount}`;
     }
     if (window.customElements.get(tagName)) {
       console.warn(`${tagName} - is already in "customElements" registry`);
@@ -254,6 +257,9 @@ export class BaseComponent extends HTMLElement {
   }
 
   static get is() {
+    if (!this.__tag) {
+      this.reg();
+    }
     return this.__tag;
   }
 

@@ -11,4 +11,6 @@ export const DICT = Object.freeze({
   CSS_CTX_PROP: '--ctx-name',
   // Element reference attribute:
   EL_REF_ATTR: 'ref',
+  // Prefix for auto generated tag names:
+  AUTO_TAG_PRFX: 'sym',
 });
