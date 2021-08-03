@@ -1,48 +1,20 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
-import { applyElementStyles } from '../../core/css_utils.js';
 
-class MyApp extends BaseComponent {
-  constructor() {
-    super();
-    // @ts-ignore
-    applyElementStyles(this, {
-      position: 'fixed',
-      top: '0',
-      bottom: '0',
-      left: '0',
-      right: '0',
-      display: 'grid',
-      gridTemplateRows: 'min-content 1fr min-content',
-    });
-  }
-}
+class MyApp extends BaseComponent {}
 
 MyApp.template = /*html*/ `
-<div>
+<header>
   <slot name="header"></slot>
-</div>
-<div>
+</header>
+<main>
   <slot></slot>
-</div>
-<div>
+</main>
+<footer>
   <slot name="footer"></slot>
-</div>
+</footer>
 `;
-window.customElements.define('my-app', MyApp);
+MyApp.reg('my-app');
 
-class MyBlock extends BaseComponent {
-  constructor() {
-    super();
-
-    // @ts-ignore
-    applyElementStyles(this, {
-      display: 'block',
-      padding: '20px',
-      height: '100%',
-      border: '1px solid currentColor',
-      boxSizing: 'border-box',
-    });
-  }
-}
+class MyBlock extends BaseComponent {}
 MyBlock.template = /*html*/ `<slot></slot>`;
-window.customElements.define('my-block', MyBlock);
+MyBlock.reg('my-block');
