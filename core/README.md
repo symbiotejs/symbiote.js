@@ -7,7 +7,7 @@ Base component class. Major utility for web-component creation and template data
 Implements data layer for local component context and the top level context both. The state management approach is based on simple well known pub/sub pattern.
 
 ### TypedState.js
-Wrapper for State with a runtime type checking.
+Wrapper for the `State` with a runtime type checking.
 
 ### TypedColection.js
 Normalized typed collection for dedicated data entities.
