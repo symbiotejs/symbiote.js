@@ -83,7 +83,7 @@
   "version": "0.0.1-alpha.0",
   "description": "Symbiote.js",
   "author": "Uploadcare Inc. <hello@uploadcare.com> (https://uploadcare.com)",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "dependencies": {},
   "bugs": {
     "url": "https://github.com/uploadcare/uploadcare-uploader/issues"
