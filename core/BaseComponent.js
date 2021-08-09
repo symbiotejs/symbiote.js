@@ -150,6 +150,47 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
+  get ctxMap() {
+    if (!this.__ctxMap) {
+      this.__ctxMap = {
+        local: this.localState,
+        external: this.externalState,
+      };
+    }
+    return this.__ctxMap;
+  }
+
+  /**
+   * 
+   * @param {'local' | 'external'} ctxType 
+   * @param {String} prop 
+   * @param {(value:*) => {}} handler 
+   */
+  sub(ctxType, prop, handler) {
+    this.allSubs.add(this.ctxMap[ctxType].sub(prop, handler));
+  }
+
+  /**
+   * 
+   * @param {'local' | 'external'} ctxType 
+   * @param {String} prop 
+   * @param {*} value
+   */
+  pub(ctxType, prop, value) {
+    this.ctxMap[ctxType].pub(prop, value);
+  }
+
+  /**
+   * 
+   * @param {'local' | 'external'} ctxType 
+   * @param {Object<string, *>} updObj 
+   */
+  multiPub(ctxType, updObj) {
+    for (let prop in updObj) {
+      this.pub(ctxType, prop, updObj[prop]);
+    }
+  }
+
   initCallback() {}
 
   connectedCallback() {
