@@ -164,7 +164,7 @@ export class BaseComponent extends HTMLElement {
    * 
    * @param {'local' | 'external'} ctxType 
    * @param {String} prop 
-   * @param {(value:*) => {}} handler 
+   * @param {(value:*) => void} handler 
    */
   sub(ctxType, prop, handler) {
     this.allSubs.add(this.ctxMap[ctxType].sub(prop, handler));
