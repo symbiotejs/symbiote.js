@@ -191,6 +191,15 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
+  /**
+   * 
+   * @param {'local' | 'external'} ctxType 
+   * @param {String} prop 
+   */
+  read(ctxType, prop) {
+    return this.ctxMap[ctxType].read(prop);
+  }
+
   initCallback() {}
 
   connectedCallback() {
