@@ -200,6 +200,15 @@ export class BaseComponent extends HTMLElement {
     return this.ctxMap[ctxType].read(prop);
   }
 
+  /**
+   * 
+   * @param {'local' | 'external'} ctxType 
+   * @param {String} prop 
+   */
+  has(ctxType, prop) {
+    return this.ctxMap[ctxType].has(prop);
+  }
+
   initCallback() {}
 
   connectedCallback() {
