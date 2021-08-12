@@ -279,6 +279,8 @@ export class BaseComponent extends HTMLElement {
     this.connectedOnce = true;
   }
 
+  destroyCallback() {}
+
   disconnectedCallback() {
     if (!this.readyToDestroy) {
       return;
@@ -287,6 +289,7 @@ export class BaseComponent extends HTMLElement {
       window.clearTimeout(this.__disconnectTimeout);
     }
     this.__disconnectTimeout = window.setTimeout(() => {
+      this.destroyCallback();
       this.allSubs.forEach((sub) => {
         sub.remove();
         this.allSubs.delete(sub);
