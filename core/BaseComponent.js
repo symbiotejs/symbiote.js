@@ -307,12 +307,12 @@ export class BaseComponent extends HTMLElement {
       autoTagsCount++;
       tagName = `${DICT.AUTO_TAG_PRFX}-${autoTagsCount}`;
     }
+    this.__tag = tagName;
     if (window.customElements.get(tagName)) {
       console.warn(`${tagName} - is already in "customElements" registry`);
       return;
     }
     window.customElements.define(tagName, isAlias ? class extends this {} : this);
-    this.__tag = tagName;
   }
 
   static get is() {
