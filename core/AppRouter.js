@@ -1,9 +1,7 @@
  export class AppRouter {
 
   static _print(msg) {
-    if (window['hdDevModeEnabled']) {
-      console.warn(msg);
-    }
+    console.warn(msg);
   }
 
   /**
@@ -64,7 +62,7 @@
       this._print(`Route "${routeBase.route}" not found...`);
       return;
     }
-    let event = new CustomEvent('hd-on-route', {
+    let event = new CustomEvent('sym-on-route', {
       detail: {
         route: routeBase.route,
         options: Object.assign(routeScheme || {}, routeBase.options),
