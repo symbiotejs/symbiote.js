@@ -144,6 +144,7 @@ export class TypedCollection {
 
   destroy() {
     this.__state.remove();
+    this.__observers = null;
     for (let id in this.__subsMap) {
       this.__subsMap[id].forEach((sub) => {
         sub.remove();
