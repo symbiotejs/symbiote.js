@@ -130,7 +130,7 @@ export class BaseComponent extends HTMLElement {
   /** @param {Object<string, any>} stateInit */
   addToExternalState(stateInit) {
     if (!this.externalState) {
-      this.__extSateInit = stateInit;
+      this.__extStateInit = stateInit;
       return;
     }
     for (let prop in stateInit) {
@@ -141,7 +141,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   get externalState() {
-    return this.ctxName ? State.getNamedCtx(this.ctxName) || State.registerNamedCtx(this.ctxName, this.__extSateInit || {}) : null;
+    return this.ctxName ? State.getNamedCtx(this.ctxName) || State.registerNamedCtx(this.ctxName, this.__extStateInit || {}) : null;
   }
 
   __initState() {
