@@ -1,92 +1,68 @@
-# Symbiote.js
+# ☣️ Symbiote.js
 
-## Lightweight and flexible library for creating widgets, micro-frontends, reusable embeddable components and complete web applications
+## Ultralight and ultrapowerful library for creating widgets, micro-frontends, reusable embeddable components and complete web applications
 
 ### Key features:
-* Lifecycle control: now you really control it with a power of Custom Elements
+* Full lifecycle control from inside of your code
 * Environment agnostic: seamless integration with any other popular framework, library or CMS
-* Based on modern web standards: Custom Elements, ES Modules & CSS Variables
+* Based on modern web standards: Custom Elements, ES Modules, CSS Variables, etc...
 * Close to native web-platform APIs: HTML, CSS, JavaScript - all you already familiar with
-* State management out of the box: very simple, flexible and performant
+* Powerful data management out of the box: very simple, flexible and performant
+* Synchronous data flow: no more race conditions and unexpected behavior
 * Zero dependency: `npm install... nothing`
 * CSP compatible: no need to use insecure flags (`'unsafe-inline'`) to make your code work
-* Advanced styling security for your solutions out of the box
-* Tag management automation: no more custom tag names collisions
-* Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for template literals
-* Object model matters: access to direct properties and methods of DOM elements. Unlike many other libraries, DOM is not hidden behind abstract code layers
-* Development environment agnostic: use your favorite build tools freely
+* Tag names management: no more custom tag name collisions
+* Efficient template replication: just native browser parsing and cloning, no any additional slowing processing stage for the template literals
+* Shadow DOM is optional: use it where you need it only
+* Object model matters: access to the direct properties and methods of the DOM elements. Unlike many other libraries, DOM is not hidden behind opaque abstract layers
+* Extensible: use library included template processors or create your own
+* Ultralight: ~ 2 Kb minified and gzipped 
+* Development environment agnostic: use your favorite build tools
 
 ### Installation:
-`git submodule add -b master git@github.com:uploadcare/symbiote.js.git symbiote`
+`git submodule add -b main git@github.com:uploadcare/symbiote.js.git symbiote`
 
 Git-submodule approach allows you to put your git-dependency to any path in your project structure, select branches and versions, create your own branches and pull updates into it, use git tooling to manage code much more flexible.
 
 We believe that code sharing on ESM level, as it become standard in modern JS world, is more attractive than NPM package publishing.
 
-## Basic usage example:
+## Short example:
 ```javascript
 import { BaseComponent } from '../symbiote/core/BaseComponent.js';
 
-class MyComponent extends BaseComponent {
-
-  constructor() {
-    super();
-
-    // Define state:
-    this.state = {
-      firstName: 'unknown',
-      secondName: 'unknown',
-    };
-  }
-
-  // The only custom lifecycle callback in Symbiote is "readyCallback"
-  // It will be fired before native "connectedCallback", when template processing is over and component is created but not inserted into the DOM:
-  readyCallback() {
-    super.readyCallback();
-
-    // Update state properties when needed:
-    this.state.firstName = 'John';
-    this.state.secondName = 'Snow';
-  }
-
-  // Or bind it to HTML-attributes:
-  set firstname(val) {
-    this.state.firstName = val;
-  }
-
-  set secondname(val) {
-    this.state.secondName = val;
-  }
-}
+class MyComponent extends BaseComponent {}
 
 // Use /*html*/ for template syntax highlighting:
 MyComponent.template = /*html*/ `
-<div set="textContent: firstName"></div>
-<div set="textContent: secondName"></div>
+<div loc="textContent: first-name"></div>
+<div loc="textContent: second-name"></div>
 `;
 
-// You need to list attributes to make accessors work:
-MyComponent.attrs = [
-  'firstname',
-  'secondname',
-];
+// Bind attributes directly to local state:
+MyComponent.bindAttributes({
+  'first-name': ['local'],
+  'second-name': ['local'],
+});
 
 // Define your custom HTML-tag:
-window.customElements.define('my-custom-tag', MyComponent);
+MyComponent.reg('my-custom-tag');
 ```
-Than you can use your custom tag in your templates or any static HTML file:
+That's it! Than you can use your custom tag in your templates or any static HTML file:
 ```html
-<my-custom-tag firstname="Satoshi" secondname="Nakamoto"></my-custom-tag>
+<my-custom-tag first-name="Satoshi" second-name="Nakamoto"></my-custom-tag>
 ```
-
-For more abilities and more advanced usage use Symbiote extensions at:
-
-`/core/extensions/...`
 
 ## Browser support
-Symbiote.js is supported and tested in all modern browsers: Chrome, Firefox, Safari, Edge, etc...
+Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
+* Chrome
+* Firefox
+* Safari
+* Edge
+* Opera
+* etc...
 
-Internet Explorer is outdated and not supported anymore:
+**Internet Explorer** - is outdated and not supported anymore:
+
 https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
 ### Useful external links:
@@ -96,7 +72,4 @@ https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
 ## This is not a final version of the README file, work still in progress...
 
-## Feedback
-
-Issues and PRs are welcome. You can provide your feedback or drop us a support
-request at [hello@uploadcare.com][uc-email-hello].
+## Issues and PRs are welcome
