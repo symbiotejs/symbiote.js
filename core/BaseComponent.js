@@ -359,7 +359,7 @@ export class BaseComponent extends HTMLElement {
   getCssData(propName) {
     let style = window.getComputedStyle(this);
     let val = style.getPropertyValue(propName).trim();
-    // Firefox doesen't transform string values into JSON format:
+    // Firefox doesn't transform string values into JSON format:
     if (val.startsWith(`'`) && val.endsWith(`'`)) {
       val = val.replace(/\'/g, '"');
     }
