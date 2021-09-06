@@ -1,4 +1,15 @@
 import { create } from '../../utils/dom-helpers.js';
+import { State } from '../../core/State.js';
+
+let state = new State({
+  schema: {
+    time: Date.now(),
+  },
+});
+
+window.setInterval(() => {
+  state.pub('time', Date.now());
+}, 1000);
 
 function listItem(text) {
   return {
@@ -25,7 +36,17 @@ let app = create({
       e.target.innerHTML = '';
     },
   },
+
   children: [
+    {
+      processors: [
+        (el) => {
+          state.sub('time', (val) => {
+            el.textContent = val;
+          });
+        },
+      ],
+    },
     {
       tag: 'ul',
       children: [
