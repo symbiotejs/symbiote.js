@@ -36,7 +36,6 @@ let app = create({
       e.target.innerHTML = '';
     },
   },
-
   children: [
     {
       processors: [

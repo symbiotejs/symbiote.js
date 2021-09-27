@@ -2,13 +2,11 @@ import { State } from '../../symbiote/core/State.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../../symbiote/utils/UID.js';
 
+import PROCESSORS from './tpl-processors.js';
+
 let autoTagsCount = 0;
 
 export class BaseComponent extends HTMLElement {
-  static set template(html) {
-    this.__tpl = document.createElement('template');
-    this.__tpl.innerHTML = html;
-  }
 
   /** 
    * @param {String | DocumentFragment} [template] 
@@ -17,7 +15,11 @@ export class BaseComponent extends HTMLElement {
   render(template, shadow = this.renderShadow) {
     /** @type {DocumentFragment} */
     let fr;
-    if (template || this.constructor['__tpl']) {
+    if (template || this.constructor['template']) {
+      if (this.constructor['template'] && !this.constructor['__tpl']) {
+        this.constructor['__tpl'] = document.createElement('template');
+        this.constructor['__tpl'].innerHTML = this.constructor['template'];
+      }
       while (this.firstChild) {
         this.firstChild.remove();
       }
@@ -30,9 +32,9 @@ export class BaseComponent extends HTMLElement {
       } else if (this.constructor['__tpl']) {
         fr = this.constructor['__tpl'].content.cloneNode(true);
       }
-      this.tplProcessors.forEach((fn) => {
-        fn(fr);
-      });
+      for (let fn of this.tplProcessors) {
+        fn(fr, this);
+      }
     }
     if (shadow) {
       if (!this.shadowRoot) {
@@ -46,7 +48,9 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** @param {(fr: DocumentFragment) => any} processorFn */
+  /** 
+   * @param {(fr: DocumentFragment, fnCtx: *) => any} processorFn 
+   */
   addTemplateProcessor(processorFn) {
     this.tplProcessors.add(processorFn);
   }
@@ -58,7 +62,7 @@ export class BaseComponent extends HTMLElement {
 
   constructor() {
     super();
-    /** @type {Set<(fr: DocumentFragment) => any>} */
+    /** @type {Set<(fr: DocumentFragment, fnCtx: *) => any>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, HTMLElement>} */
     this.ref = Object.create(null);
@@ -66,48 +70,6 @@ export class BaseComponent extends HTMLElement {
     this.pauseRender = false;
     this.renderShadow = false;
     this.readyToDestroy = true;
-  }
-
-  /**
-   * @param {DocumentFragment} fr
-   * @param {String} attr
-   * @param {State} state
-   * @param {Set} subs
-   */
-  static connectToState(fr, attr, state, subs) {
-    [...fr.querySelectorAll(`[${attr}]`)].forEach((el) => {
-      let subSr = el.getAttribute(attr);
-      let keyValsArr = subSr.split(';');
-      keyValsArr.forEach((keyValStr) => {
-        if (!keyValStr) {
-          return;
-        }
-        let kv = keyValStr.split(':').map((str) => str.trim());
-        let prop = kv[0];
-        let isAttr;
-        if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
-          isAttr = true;
-          prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
-        }
-        if (state && !state.has(kv[1])) {
-          state.add(kv[1], undefined);
-        }
-        subs.add(
-          state.sub(kv[1], (val) => {
-            if (isAttr) {
-              if (val?.constructor === Boolean) {
-                val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
-              } else {
-                el.setAttribute(prop, val);
-              }
-            } else {
-              el[prop] = val;
-            }
-          })
-        );
-      });
-      el.removeAttribute(attr);
-    });
   }
 
   get autoCtxName() {
@@ -222,55 +184,9 @@ export class BaseComponent extends HTMLElement {
       }
       this.__initChildren = [...this.childNodes];
       this.__initState();
-      if (!this.renderShadow) {
-        this.addTemplateProcessor((fr) => {
-          let slots = [...fr.querySelectorAll('slot')];
-          if (this.__initChildren.length && slots.length) {
-            let slotMap = {};
-            slots.forEach((slot) => {
-              let slotName = slot.getAttribute('name');
-              if (slotName) {
-                slotMap[slotName] = {
-                  slot,
-                  fr: document.createDocumentFragment(),
-                };
-              } else {
-                slotMap.__default__ = {
-                  slot,
-                  fr: document.createDocumentFragment(),
-                };
-              }
-            });
-            this.__initChildren.forEach((/** @type {Element} */ child) => {
-              let slotName = child.getAttribute?.('slot');
-              if (slotName) {
-                slotMap[slotName].fr.appendChild(child);
-              } else if (slotMap.__default__) {
-                slotMap.__default__.fr.appendChild(child);
-              }
-            });
-            Object.values(slotMap).forEach((mapObj) => {
-              mapObj.slot.parentNode.insertBefore(mapObj.fr, mapObj.slot);
-              mapObj.slot.remove();
-            });
-          } else {
-            this.innerHTML = '';
-          }
-        });
+      for (let proc of PROCESSORS) {
+        this.addTemplateProcessor(proc);
       }
-      this.addTemplateProcessor((fr) => {
-        [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
-          let refName = el.getAttribute(DICT.EL_REF_ATTR);
-          this.ref[refName] = el;
-          el.removeAttribute(DICT.EL_REF_ATTR);
-        });
-      });
-      this.addTemplateProcessor((fr) => {
-        BaseComponent.connectToState(fr, DICT.LOCAL_CTX_ATTR, this.localState, this.allSubs);
-      });
-      this.addTemplateProcessor((fr) => {
-        BaseComponent.connectToState(fr, DICT.EXT_CTX_ATTR, this.externalState, this.allSubs);
-      });
       if (!this.pauseRender) {
         this.render();
       }
@@ -290,13 +206,13 @@ export class BaseComponent extends HTMLElement {
     }
     this.__disconnectTimeout = window.setTimeout(() => {
       this.destroyCallback();
-      this.allSubs.forEach((sub) => {
+      for (let sub of this.allSubs) {
         sub.remove();
         this.allSubs.delete(sub);
-      });
-      this.tplProcessors.forEach((fn) => {
-        this.tplProcessors.delete(fn);
-      });
+      }
+      for (let proc of this.tplProcessors) {
+        this.tplProcessors.delete(proc);
+      }
     }, 100);
   }
 
