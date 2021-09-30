@@ -1,5 +1,5 @@
 import { UID } from '../utils/UID.js';
-import { State } from './State.js';
+import { Data } from './Data.js';
 import { TypedState } from './TypedState.js';
 
 export class TypedCollection {
@@ -15,8 +15,8 @@ export class TypedCollection {
     this.__typedSchema = options.typedSchema;
     /** @type {String} */
     this.__ctxId = options.ctxName || UID.generate();
-    /** @type {State} */
-    this.__state = State.registerNamedCtx(this.__ctxId, {});
+    /** @type {Data} */
+    this.__state = Data.registerNamedCtx(this.__ctxId, {});
     /** @type {string[]} */
     this.__watchList = options.watchList || [];
     /** @type {(list:string[]) => void} */

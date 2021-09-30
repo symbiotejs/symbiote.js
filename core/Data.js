@@ -11,7 +11,7 @@ function cloneObj(obj) {
   return clone(obj);
 }
 
-export class State {
+export class Data {
   /**
    * @param {Object} src
    * @param {String} [src.name]
@@ -42,7 +42,7 @@ export class State {
   /** @param {String} prop */
   read(prop) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      State.warn('read', prop);
+      Data.warn('read', prop);
       return null;
     }
     return this.store[prop];
@@ -76,7 +76,7 @@ export class State {
    */
   pub(prop, val) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      State.warn('publish', prop);
+      Data.warn('publish', prop);
       return;
     }
     this.add(prop, val);
@@ -108,7 +108,7 @@ export class State {
    */
   sub(prop, callback, init = true) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      State.warn('subscribe', prop);
+      Data.warn('subscribe', prop);
       return null;
     }
     if (!this.callbackMap[prop]) {
@@ -130,51 +130,51 @@ export class State {
   }
 
   remove() {
-    delete State.globalStore[this.uid];
+    delete Data.globalStore[this.uid];
   }
 
   /** @param {Object<string, any>} schema */
   static registerLocalCtx(schema) {
-    let state = new State({
+    let state = new Data({
       schema,
     });
-    State.globalStore[state.uid] = state;
+    Data.globalStore[state.uid] = state;
     return state;
   }
 
   /**
    * @param {String} ctxName
    * @param {Object<string, any>} schema
-   * @returns {State}
+   * @returns {Data}
    */
   static registerNamedCtx(ctxName, schema) {
-    /** @type {State} */
-    let state = State.globalStore[ctxName];
+    /** @type {Data} */
+    let state = Data.globalStore[ctxName];
     if (state) {
       console.warn('State: context name "' + ctxName + '" already in use');
     } else {
-      state = new State({
+      state = new Data({
         name: ctxName,
         schema,
       });
-      State.globalStore[ctxName] = state;
+      Data.globalStore[ctxName] = state;
     }
     return state;
   }
 
   /** @param {String} ctxName */
   static clearNamedCtx(ctxName) {
-    delete State.globalStore[ctxName];
+    delete Data.globalStore[ctxName];
   }
 
   /**
    * @param {String} ctxName
    * @param {Boolean} [notify]
-   * @returns {State}
+   * @returns {Data}
    */
   static getNamedCtx(ctxName, notify = true) {
-    return State.globalStore[ctxName] || (notify && console.warn('State: wrong context name - "' + ctxName + '"'), null);
+    return Data.globalStore[ctxName] || (notify && console.warn('State: wrong context name - "' + ctxName + '"'), null);
   }
 }
 
-State.globalStore = Object.create(null);
+Data.globalStore = Object.create(null);

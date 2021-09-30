@@ -1,7 +1,7 @@
 import { create } from '../../utils/dom-helpers.js';
-import { State } from '../../core/State.js';
+import { Data } from '../../core/Data.js';
 
-let state = new State({
+let state = new Data({
   schema: {
     time: Date.now(),
   },

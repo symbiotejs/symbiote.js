@@ -1,4 +1,4 @@
-import { State } from '../../symbiote/core/State.js';
+import { Data } from './Data.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../../symbiote/utils/UID.js';
 
@@ -88,13 +88,13 @@ export class BaseComponent extends HTMLElement {
 
   get localCtx() {
     if (!this.__localCtx) {
-      this.__localCtx = State.registerLocalCtx({});
+      this.__localCtx = Data.registerLocalCtx({});
     }
     return this.__localCtx;
   }
 
   get nodeCtx() {
-    return State.getNamedCtx(this.ctxName, false) || State.registerNamedCtx(this.ctxName, {});
+    return Data.getNamedCtx(this.ctxName, false) || Data.registerNamedCtx(this.ctxName, {});
   }
 
   /**
@@ -103,7 +103,7 @@ export class BaseComponent extends HTMLElement {
    * @param {*} fnCtx 
    */
   static __parseProp(prop, fnCtx) {
-    /** @type {State} */
+    /** @type {Data} */
     let ctx;
     /** @type {String} */
     let name;
@@ -112,7 +112,7 @@ export class BaseComponent extends HTMLElement {
       name = prop.replace(DICT.EXT_DATA_CTX_PRFX, '');
     } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
       let pArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
-      ctx = State.getNamedCtx(pArr[0]);
+      ctx = Data.getNamedCtx(pArr[0]);
       name = pArr[1];
     } else {
       ctx = fnCtx.localCtx;
@@ -211,9 +211,9 @@ export class BaseComponent extends HTMLElement {
         let ctxName = propArr[0].trim();
         let propName = propArr[1].trim();
         if (ctxName && propName) {
-          let namedCtx = State.getNamedCtx(ctxName, false);
+          let namedCtx = Data.getNamedCtx(ctxName, false);
           if (!namedCtx) {
-            namedCtx = State.registerNamedCtx(ctxName, {});
+            namedCtx = Data.registerNamedCtx(ctxName, {});
           }
           namedCtx.add(propName, this.init$[prop]);
         }
