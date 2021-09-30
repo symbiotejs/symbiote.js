@@ -2,18 +2,27 @@ import { BaseComponent } from '../../core/BaseComponent.js';
 
 class MyApp extends BaseComponent {
 
-  static stateMap = {
-    firstName: 'John',
+  init$ = {
+    first: 'FIRST',
+    attr: '',
+    '*second': 'SECOND',
+    'myctx/third': 'THIRD',
+    onClick: () => {
+      this.$.first = Date.now();
+    },
   };
-
-  static template = /*html*/ `
-    <div 
-      set="textContent: firstName, [EXT]firstName, [named]firstName;">
-    </div>
-  `;
 
 }
 
-MyApp.reg('my-app');
+MyApp.template = /*html*/ `
+<div set="textContent: first; onclick: onClick"></div>
+<div set="textContent: attr;"></div>
+<div set="textContent: *second"></div>
+<div set="textContent: myctx/third"></div>
+`;
 
-console.log(MyApp.template);
+MyApp.bindAttributes({
+  'attr-test': 'attr',
+});
+
+MyApp.reg('my-app');

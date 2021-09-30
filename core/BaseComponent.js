@@ -55,13 +55,10 @@ export class BaseComponent extends HTMLElement {
     this.tplProcessors.add(processorFn);
   }
 
-  /** @param {Object<string, any>} init */
-  initLocalState(init) {
-    this.__localStateInitObj = init;
-  }
-
   constructor() {
     super();
+    /** @type {Object<string, *>} */
+    this.init$ = Object.create(null);
     /** @type {Set<(fr: DocumentFragment, fnCtx: *) => any>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, HTMLElement>} */
@@ -89,89 +86,142 @@ export class BaseComponent extends HTMLElement {
     return this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.autoCtxName;
   }
 
-  /** @param {Object<string, any>} stateInit */
-  addToExternalState(stateInit) {
-    if (!this.externalState) {
-      this.__extStateInit = stateInit;
-      return;
+  get localCtx() {
+    if (!this.__localCtx) {
+      this.__localCtx = State.registerLocalCtx({});
     }
-    for (let prop in stateInit) {
-      if (!this.externalState.has(prop)) {
-        this.externalState.add(prop, stateInit[prop]);
-      }
-    }
+    return this.__localCtx;
   }
 
-  get externalState() {
-    return this.ctxName ? State.getNamedCtx(this.ctxName) || State.registerNamedCtx(this.ctxName, this.__extStateInit || {}) : null;
-  }
-
-  __initState() {
-    if (!this.localState) {
-      this.localState = State.registerLocalCtx(this.__localStateInitObj || {});
-    }
-  }
-
-  get ctxMap() {
-    if (!this.__ctxMap) {
-      this.__ctxMap = {
-        local: this.localState,
-        external: this.externalState,
-      };
-    }
-    return this.__ctxMap;
+  get nodeCtx() {
+    return State.getNamedCtx(this.ctxName, false) || State.registerNamedCtx(this.ctxName, {});
   }
 
   /**
    * 
-   * @param {'local' | 'external'} ctxType 
+   * @param {String} prop 
+   * @param {*} fnCtx 
+   */
+  static __parseProp(prop, fnCtx) {
+    /** @type {State} */
+    let ctx;
+    /** @type {String} */
+    let name;
+    if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
+      ctx = fnCtx.nodeCtx;
+      name = prop.replace(DICT.EXT_DATA_CTX_PRFX, '');
+    } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
+      let pArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
+      ctx = State.getNamedCtx(pArr[0]);
+      name = pArr[1];
+    } else {
+      ctx = fnCtx.localCtx;
+      name = prop;
+    }
+    return {
+      ctx,
+      name,
+    };
+  }
+
+  /**
+   * 
    * @param {String} prop 
    * @param {(value:*) => void} handler 
    */
-  sub(ctxType, prop, handler) {
-    this.allSubs.add(this.ctxMap[ctxType].sub(prop, handler));
+  sub(prop, handler) {
+    let parsed = BaseComponent.__parseProp(prop, this);
+    this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
   /**
    * 
-   * @param {'local' | 'external'} ctxType 
    * @param {String} prop 
-   * @param {*} value
    */
-  pub(ctxType, prop, value) {
-    this.ctxMap[ctxType].pub(prop, value);
+  has(prop) {
+    let parsed = BaseComponent.__parseProp(prop, this);
+    return parsed.ctx.has(parsed.name);
   }
 
   /**
    * 
-   * @param {'local' | 'external'} ctxType 
-   * @param {Object<string, *>} updObj 
+   * @param {String} prop 
+   * @param {*} val 
    */
-  multiPub(ctxType, updObj) {
-    for (let prop in updObj) {
-      this.pub(ctxType, prop, updObj[prop]);
+  add(prop, val) {
+    let parsed = BaseComponent.__parseProp(prop, this);
+    parsed.ctx.add(parsed.name, val, false);
+  }
+
+  /**
+   * 
+   * @param {Object<string, *>} obj 
+   */
+  add$(obj) {
+    for (let prop in obj) {
+      this.add(prop, obj[prop]);
     }
   }
 
-  /**
-   * 
-   * @param {'local' | 'external'} ctxType 
-   * @param {String} prop 
-   */
-  read(ctxType, prop) {
-    return this.ctxMap[ctxType].read(prop);
+  get $() {
+    if (!this.__stateProxy) {
+      /** @type {Object<string, *>} */
+      let o = Object.create(null);
+      this.__stateProxy = new Proxy(o, {
+        set: (obj, /** @type {String} */ prop, val) => {
+          let parsed = BaseComponent.__parseProp(prop, this);
+          parsed.ctx.pub(parsed.name, val);
+          return true;
+        },
+        get: (obj, /** @type {String} */ prop) => {
+          let parsed = BaseComponent.__parseProp(prop, this);
+          return parsed.ctx.read(parsed.name);
+        },
+      });
+    }
+    return this.__stateProxy;
   }
 
   /**
    * 
-   * @param {'local' | 'external'} ctxType 
-   * @param {String} prop 
+   * @param {Object<string, *>} kvObj 
    */
-  has(ctxType, prop) {
-    return this.ctxMap[ctxType].has(prop);
+  set$(kvObj) {
+    for (let key in kvObj) {
+      this.$[key] = kvObj[key];
+    }
   }
 
   initCallback() {}
+
+  __initDataCtx() {
+    let attrDesc = this.constructor['__attrDesc'];
+    if (attrDesc) {
+      for (let prop of Object.values(attrDesc)) {
+        if (!Object.keys(this.init$).includes(prop)) {
+          this.init$[prop] = '';
+        }
+      }
+    }
+    for (let prop in this.init$) {
+      if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
+        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop]);
+      } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
+        let propArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
+        let ctxName = propArr[0].trim();
+        let propName = propArr[1].trim();
+        if (ctxName && propName) {
+          let namedCtx = State.getNamedCtx(ctxName, false);
+          if (!namedCtx) {
+            namedCtx = State.registerNamedCtx(ctxName, {});
+          }
+          namedCtx.add(propName, this.init$[prop]);
+        }
+      } else {
+        this.localCtx.add(prop, this.init$[prop]);
+      }
+    }
+  }
 
   connectedCallback() {
     if (this.__disconnectTimeout) {
@@ -182,8 +232,8 @@ export class BaseComponent extends HTMLElement {
       if (ctxNameAttrVal) {
         this.style.setProperty(DICT.CSS_CTX_PROP, ctxNameAttrVal);
       }
+      this.__initDataCtx();
       this.__initChildren = [...this.childNodes];
-      this.__initState();
       for (let proc of PROCESSORS) {
         this.addTemplateProcessor(proc);
       }
@@ -243,7 +293,7 @@ export class BaseComponent extends HTMLElement {
 
   /**
    * 
-   * @param {Object<string, ('local' | 'external' | 'property')[]>} desc 
+   * @param {Object<string, string>} desc 
    */
   static bindAttributes(desc) {
     this.observedAttributes = Object.keys(desc);
@@ -254,16 +304,11 @@ export class BaseComponent extends HTMLElement {
     if (oldVal === newVal) {
       return;
     }
-    /** @type {('local' | 'external' | 'property')[]} */
-    let desc = this.constructor['__attrDesc'][name];
-    if (desc.includes('local')) {
-      this.__initState();
-      this.localState.add(name, newVal);
-    }
-    if (desc.includes('external')) {
-      this.addToExternalState({name: newVal});
-    }
-    if (desc.includes('property')) {
+    /** @type {String} */
+    let $prop = this.constructor['__attrDesc'][name];
+    if ($prop) {
+      this.$[$prop] = newVal;
+    } else {
       this[name] = newVal;
     }
   }

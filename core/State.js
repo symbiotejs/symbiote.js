@@ -56,8 +56,12 @@ export class State {
   /**
    * @param {String} prop
    * @param {any} val
+   * @param {Boolean} [rewrite]
    */
-  add(prop, val) {
+  add(prop, val, rewrite = true) {
+    if (!rewrite && Object.keys(this.store).includes(prop)) {
+      return;
+    }
     this.store[prop] = val;
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
@@ -165,10 +169,11 @@ export class State {
 
   /**
    * @param {String} ctxName
+   * @param {Boolean} [notify]
    * @returns {State}
    */
-  static getNamedCtx(ctxName) {
-    return State.globalStore[ctxName] || (console.warn('State: wrong context name - "' + ctxName + '"'), null);
+  static getNamedCtx(ctxName, notify = true) {
+    return State.globalStore[ctxName] || (notify && console.warn('State: wrong context name - "' + ctxName + '"'), null);
   }
 }
 
