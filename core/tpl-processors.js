@@ -80,7 +80,21 @@ function domSetProcessor(fr, fnCtx) {
               el.setAttribute(prop, val);
             }
           } else {
-            el[prop] = val;
+            if (prop.includes('.')) {
+              let parent = el;
+              let lastStep = prop;
+              let propPath = prop.split('.');
+              propPath.forEach((step, idx) => {
+                if (idx < propPath.length - 1) {
+                  parent = parent[step];
+                } else {
+                  lastStep = step;
+                }
+              });
+              parent[lastStep] = val;
+            } else {
+              el[prop] = val;
+            }
           }
         });
       }
