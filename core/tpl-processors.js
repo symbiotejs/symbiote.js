@@ -71,6 +71,21 @@ function domSetProcessor(fr, fnCtx) {
       let valKeysArr = kv[1].split(',').map((valKey) => {
         return valKey.trim();
       });
+      // Deep property:
+      let isDeep, parent, lastStep;
+      if (prop.includes('.')) {
+        isDeep = true;
+        parent = el;
+        lastStep = prop;
+        let propPath = prop.split('.');
+        propPath.forEach((step, idx) => {
+          if (idx < propPath.length - 1) {
+            parent = parent[step];
+          } else {
+            lastStep = step;
+          }
+        });
+      }
       for (let valKey of valKeysArr) {
         fnCtx.sub(valKey, (val) => {
           if (isAttr) {
@@ -79,22 +94,10 @@ function domSetProcessor(fr, fnCtx) {
             } else {
               el.setAttribute(prop, val);
             }
+          } else if (isDeep) {
+            parent[lastStep] = val;
           } else {
-            if (prop.includes('.')) {
-              let parent = el;
-              let lastStep = prop;
-              let propPath = prop.split('.');
-              propPath.forEach((step, idx) => {
-                if (idx < propPath.length - 1) {
-                  parent = parent[step];
-                } else {
-                  lastStep = step;
-                }
-              });
-              parent[lastStep] = val;
-            } else {
-              el[prop] = val;
-            }
+            el[prop] = val;
           }
         });
       }
