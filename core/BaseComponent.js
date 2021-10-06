@@ -27,6 +27,7 @@ export class BaseComponent extends HTMLElement {
         fr = template;
       } else if (template?.constructor === String) {
         let tpl = document.createElement('template');
+        tpl.innerHTML = template;
         // @ts-ignore
         fr = tpl.content.cloneNode(true);
       } else if (this.constructor['__tpl']) {
