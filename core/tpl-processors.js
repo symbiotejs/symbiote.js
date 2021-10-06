@@ -72,19 +72,21 @@ function domSetProcessor(fr, fnCtx) {
         return valKey.trim();
       });
       // Deep property:
-      let isDeep, parent, lastStep;
+      let isDeep, parent, lastStep, dive;
       if (prop.includes('.')) {
         isDeep = true;
-        parent = el;
-        lastStep = prop;
         let propPath = prop.split('.');
-        propPath.forEach((step, idx) => {
-          if (idx < propPath.length - 1) {
-            parent = parent[step];
-          } else {
-            lastStep = step;
-          }
-        });
+        dive = () => {
+          parent = el;
+          propPath.forEach((step, idx) => {
+            if (idx < propPath.length - 1) {
+              parent = parent[step];
+            } else {
+              lastStep = step;
+            }
+          });
+        };
+        dive();
       }
       for (let valKey of valKeysArr) {
         fnCtx.sub(valKey, (val) => {
@@ -95,7 +97,16 @@ function domSetProcessor(fr, fnCtx) {
               el.setAttribute(prop, val);
             }
           } else if (isDeep) {
-            parent[lastStep] = val;
+            if (parent) {
+              parent[lastStep] = val;
+            } else {
+              // Custom element instances are not constructed properly at this time, so:
+              window.setTimeout(() => {
+                dive();
+                parent[lastStep] = val;
+              });
+              // TODO: investigate how to do it better ^^^
+            }
           } else {
             el[prop] = val;
           }
