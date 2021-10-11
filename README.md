@@ -34,14 +34,14 @@ class MyComponent extends BaseComponent {}
 
 // Use /*html*/ for template syntax highlighting:
 MyComponent.template = /*html*/ `
-<div loc="textContent: first-name"></div>
-<div loc="textContent: second-name"></div>
+<div set="textContent: firstName"></div>
+<div set="textContent: secondName"></div>
 `;
 
 // Bind attributes directly to local state:
 MyComponent.bindAttributes({
-  'first-name': ['local'],
-  'second-name': ['local'],
+  'first-name': 'firstName',
+  'second-name': 'secondName',
 });
 
 // Define your custom HTML-tag:

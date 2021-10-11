@@ -1,6 +1,6 @@
 import { UID } from '../utils/UID.js';
-import { State } from './State.js';
-import { TypedState } from './TypedState.js';
+import { Data } from './Data.js';
+import { TypedData } from './TypedData.js';
 
 export class TypedCollection {
   /**
@@ -15,8 +15,8 @@ export class TypedCollection {
     this.__typedSchema = options.typedSchema;
     /** @type {String} */
     this.__ctxId = options.ctxName || UID.generate();
-    /** @type {State} */
-    this.__state = State.registerNamedCtx(this.__ctxId, {});
+    /** @type {Data} */
+    this.__state = Data.registerNamedCtx(this.__ctxId, {});
     /** @type {string[]} */
     this.__watchList = options.watchList || [];
     /** @type {(list:string[]) => void} */
@@ -56,7 +56,7 @@ export class TypedCollection {
   }
 
   add(init) {
-    let item = new TypedState(this.__typedSchema);
+    let item = new TypedData(this.__typedSchema);
     for (let prop in init) {
       item.setValue(prop, init[prop]);
     }
@@ -77,7 +77,7 @@ export class TypedCollection {
   /**
    * 
    * @param {String} id 
-   * @returns {TypedState}
+   * @returns {TypedData}
    */
   read(id) {
     return this.__state.read(id);
@@ -124,7 +124,7 @@ export class TypedCollection {
 
   /**
    * 
-   * @param {(item: TypedState) => Boolean} checkFn 
+   * @param {(item: TypedData) => Boolean} checkFn 
    * @returns {String[]}
    */
   findItems(checkFn) {

@@ -1,10 +1,10 @@
-import { UID } from '../../symbiote/utils/UID.js';
-import { State } from '../../symbiote/core/State.js';
+import { UID } from '../utils/UID.js';
+import { Data } from './Data.js';
 
 const MSG_NAME = '[Typed State] Wrong property name: ';
 const MSG_TYPE = '[Typed State] Wrong property type: ';
 
-export class TypedState {
+export class TypedData {
   /**
    * 
    * @param {Object<string, {type: any, value: any}>} typedSchema 
@@ -17,7 +17,7 @@ export class TypedState {
       acc[key] = typedSchema[key].value;
       return acc;
     }, {});
-    this.__state = State.registerNamedCtx(this.__ctxId, this.__schema);
+    this.__state = Data.registerNamedCtx(this.__ctxId, this.__schema);
   }
 
   /**

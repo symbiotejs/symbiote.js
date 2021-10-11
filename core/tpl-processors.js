@@ -44,18 +44,17 @@ function refProcessor(fr, fnCtx) {
     fnCtx.ref[refName] = el;
     el.removeAttribute(DICT.EL_REF_ATTR);
   });
-}
+};
 
 /**
- * @param {DocumentFragment} fr
- * @param {String} attr
- * @param {import('./State.js').State} state
- * @param {Set} subs
+ * 
+ * @param {DocumentFragment} fr 
+ * @param {import('./BaseComponent.js').BaseComponent} fnCtx 
  */
-function connectToState(fr, attr, state, subs) {
-  [...fr.querySelectorAll(`[${attr}]`)].forEach((el) => {
-    let subSr = el.getAttribute(attr);
-    let keyValsArr = subSr.split(';');
+function domSetProcessor(fr, fnCtx) {
+  [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
+    let subStr = el.getAttribute(DICT.BIND_ATTR);
+    let keyValsArr = subStr.split(';');
     keyValsArr.forEach((keyValStr) => {
       if (!keyValStr) {
         return;
@@ -63,42 +62,63 @@ function connectToState(fr, attr, state, subs) {
       let kv = keyValStr.split(':').map((str) => str.trim());
       let prop = kv[0];
       let isAttr;
+      
       if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
         isAttr = true;
         prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
       }
-      if (state && !state.has(kv[1])) {
-        state.add(kv[1], undefined);
+      /** @type {String[]} */
+      let valKeysArr = kv[1].split(',').map((valKey) => {
+        return valKey.trim();
+      });
+      // Deep property:
+      let isDeep, parent, lastStep, dive;
+      if (prop.includes('.')) {
+        isDeep = true;
+        let propPath = prop.split('.');
+        dive = () => {
+          parent = el;
+          propPath.forEach((step, idx) => {
+            if (idx < propPath.length - 1) {
+              parent = parent[step];
+            } else {
+              lastStep = step;
+            }
+          });
+        };
+        dive();
       }
-      subs.add(
-        state.sub(kv[1], (val) => {
+      for (let valKey of valKeysArr) {
+        fnCtx.sub(valKey, (val) => {
           if (isAttr) {
             if (val?.constructor === Boolean) {
               val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
             } else {
               el.setAttribute(prop, val);
             }
+          } else if (isDeep) {
+            if (parent) {
+              parent[lastStep] = val;
+            } else {
+              // Custom element instances are not constructed properly at this time, so:
+              window.setTimeout(() => {
+                dive();
+                parent[lastStep] = val;
+              });
+              // TODO: investigate how to do it better ^^^
+            }
           } else {
             el[prop] = val;
           }
-        })
-      );
+        });
+      }
     });
-    el.removeAttribute(attr);
+    el.removeAttribute(DICT.BIND_ATTR);
   });
-}
-
-function localStateProcessor(fr, fnCtx) {
-  connectToState(fr, DICT.LOCAL_CTX_ATTR, fnCtx.localState, fnCtx.allSubs);
-}
-
-function externalStateProcessor(fr, fnCtx) {
-  connectToState(fr, DICT.EXT_CTX_ATTR, fnCtx.externalState, fnCtx.allSubs);
-}
+};
 
 export default [
   slotProcessor,
   refProcessor,
-  localStateProcessor,
-  externalStateProcessor,
+  domSetProcessor,
 ];

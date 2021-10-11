@@ -1,10 +1,12 @@
 export const DICT = Object.freeze({
+  //  Template data binding attribute:
+  BIND_ATTR: 'set',
   //  Local state binding attribute name:
-  LOCAL_CTX_ATTR: 'loc',
-  //  External data context attribute name:
-  EXT_CTX_ATTR: 'ext',
-  // Prefix for template binding to attribute:
   ATTR_BIND_PRFX: '@',
+  // External prop prefix:
+  EXT_DATA_CTX_PRFX: '*',
+  // Named data context property splitter:
+  NAMED_DATA_CTX_SPLTR: '/',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx-name',
   // Data context name in CSS custom property:
