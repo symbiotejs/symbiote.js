@@ -222,6 +222,7 @@ export class BaseComponent extends HTMLElement {
         this.localCtx.add(prop, this.init$[prop]);
       }
     }
+    this.__dataCtxInitialized = true;
   }
 
   connectedCallback() {
@@ -308,7 +309,11 @@ export class BaseComponent extends HTMLElement {
     /** @type {String} */
     let $prop = this.constructor['__attrDesc'][name];
     if ($prop) {
-      this.$[$prop] = newVal;
+      if (this.__dataCtxInitialized) {
+        this.$[$prop] = newVal;
+      } else {
+        this.init$[$prop] = newVal;
+      }
     } else {
       this[name] = newVal;
     }
