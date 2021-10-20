@@ -77,6 +77,18 @@ Then you can use the new tag in your HTML:
   second-name="Nakamoto">
 </my-component>
 ```
+## Dive deeper
+* Templates
+* Data context
+* Lifecycle
+* Extending
+* Naming collisions
+* Routing
+* Domain specific data abstractions
+* DOM helpers
+* Indexed DB wrapper
+* Solution history
+* Playground
 
 ## Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
