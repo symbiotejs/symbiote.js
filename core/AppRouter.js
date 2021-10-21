@@ -57,6 +57,9 @@
   static notify() {
     let routeBase = this.readAddressBar();
     let routeScheme = this.appMap[routeBase.route];
+    if (routeScheme && routeScheme.title) {
+      document.title = routeScheme.title;
+    }
     if (routeBase.route === null && this.defaultRoute) {
       this.applyRoute(this.defaultRoute);
       return;
@@ -82,7 +85,7 @@
   /**
    *
    * @param {String} route
-   * @param {Object<string, *>} options
+   * @param {Object<string, *>} [options]
    */
   static reflect(route, options = {}) {
     let routeScheme = this.appMap[route];
@@ -98,13 +101,15 @@
         routeStr += this.separator + prop + '=' + `${options[prop]}`;
       }
     }
-    window.history.pushState(null, routeScheme.title || this.defaultTitle || '', routeStr);
+    let title = routeScheme.title || this.defaultTitle || '';
+    window.history.pushState(null, title, routeStr);
+    document.title = title;
   }
 
   /**
   *
   * @param {String} route
-  * @param {Object<string, *>} options
+  * @param {Object<string, *>} [options]
   */
   static applyRoute(route, options = {}) {
     this.reflect(route, options);
