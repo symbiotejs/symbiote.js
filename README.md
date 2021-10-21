@@ -16,17 +16,18 @@
 * TypeScript friendly - use it in TS or JS projects from the common source code
 * Integration friendly: works with any modern development stack
 * Lifecycle control: no need to initiate something from outside
-* ESM friendly - native modules are best!
+* ESM friendly - native JavaScript modules are best!
+* Developer Experience on the mind: compact names, convenient APIs
 * Open source (MIT license)
 
 ### Tech concept description
 * Native DocumentFragment instead of expensive Virtual DOM sync
 * Shadow DOM - is optional, use it when you need it only
-* Styling approach: total freedom, from the old classics to cutting age platforn abilities
+* Styling approach: total freedom, from the old classics to the cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
-* Templates - are out of the component or render function context, it’s just a simple JavaScript literals. So you can keep them or process wherever you want
+* Templates - are out of the component or render function context. It’s just a simple JavaScript literals. So you can keep them or process wherever you want
 * Fast synchronous UI updates
-* Full data context from the document structure
+* Full data context access from the document structure
 * Full data context availability for template bindings
 * DOM API friendly approach, for the most perfomant solutions
 * Convenient object model access instead of opaque abstractions
@@ -52,7 +53,7 @@ class MyComponent extends BaseComponent {
   }
 }
 
-// Component template with the reactive data bindings:
+// Component template with reactive data bindings:
 MyComponent.template = /*html*/ `
   <div set="textContent: firstName"></div>
   <div set="textContent: secondName; style.color: cssColor"></div>
@@ -65,6 +66,7 @@ MyComponent.bindAttributes({
   'second-name': 'secondName',
 });
 
+// Custom Element registration:
 MyComponent.reg('my-component');
 ```
 
