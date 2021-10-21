@@ -14,7 +14,7 @@
 
   /**
    *
-   * @param {Object} map
+   * @param {Object<string, {}>} map
    */
   static setRoutingMap(map) {
     Object.assign(this.appMap, map);
@@ -25,6 +25,14 @@
         this.errorRoute = route;
       }
     }
+  }
+
+  static set routingEventName(name) {
+    this.__routingEventName = name;
+  }
+
+  static get routingEventName() {
+    return this.__routingEventName || 'sym-on-route';
   }
 
   static readAddressBar() {
@@ -62,7 +70,7 @@
       this._print(`Route "${routeBase.route}" not found...`);
       return;
     }
-    let event = new CustomEvent('sym-on-route', {
+    let event = new CustomEvent(AppRouter.routingEventName, {
       detail: {
         route: routeBase.route,
         options: Object.assign(routeScheme || {}, routeBase.options),
@@ -74,7 +82,7 @@
   /**
    *
    * @param {String} route
-   * @param {Object} options
+   * @param {Object<string, *>} options
    */
   static reflect(route, options = {}) {
     let routeScheme = this.appMap[route];
@@ -96,13 +104,17 @@
   /**
   *
   * @param {String} route
-  * @param {Object} options
+  * @param {Object<string, *>} options
   */
   static applyRoute(route, options = {}) {
     this.reflect(route, options);
     this.notify();
   }
 
+  /**
+   * 
+   * @param {String} char 
+   */
   static setSeparator(char) {
     this._separator = char;
   }

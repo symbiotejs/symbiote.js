@@ -6,31 +6,31 @@
 * Minimalistic but reach
 * No additional dependencies
 * Ultralight (2.6kb br/gzip for featurefull CDN version)
-* Blazing fast (faster than any other mainstream solution)
+* Blazing fast (faster than most of the other mainstream solutions. All of them.)
 * Memory friendly (no any redux-like huge immutables)
-* CSP friendly - is very important for enterprize usage
+* CSP friendly - good for enterprize usage
 * Extensible. Really extensible.
-* Easy to learn - nothing new for experienced developers, nothing complicated for newbies
+* Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies
 * Works in all modern browsers. As is.
 * Easy to test
 * TypeScript friendly - use it in TS or JS projects from the common source code
-* Integration friendly: works with any development stack
+* Integration friendly: works with any modern development stack
 * Lifecycle control: no need to initiate something from outside
-* ESM friendly
+* ESM friendly - native modules are best!
 * Open source (MIT license)
 
 ### Tech concept description
-* Native DocumentFragment instead of expensive Virtual DOM
-* Shadow DOM - is optional
-* Styling approach: total freedom
+* Native DocumentFragment instead of expensive Virtual DOM sync
+* Shadow DOM - is optional, use it when you need it only
+* Styling approach: total freedom, from the old classics to cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
 * Templates - are out of the component or render function context, it’s just a simple JavaScript literals. So you can keep them or process wherever you want
 * Fast synchronous UI updates
 * Full data context from the document structure
 * Full data context availability for template bindings
-* DOM API friendly approach
+* DOM API friendly approach, for the most perfomant solutions
 * Convenient object model access instead of opaque abstractions
-* Custom Elements work strange sometimes. Don’t worry about that (construction flow)
+* Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow)
 
 ### Quick start
 Fastest way to try Symbiote.js is to connect it's base class from CDN:
@@ -103,8 +103,10 @@ Symbiote.js is supported and tested in all major modern desktop and mobile brows
 
 https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
+(But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
+
 ## General sponsor
-Thanks to Uploadcare for supporting this project!
+Big thanks to 🟡 Uploadcare for supporting this project!
 
 ### Useful external links:
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
