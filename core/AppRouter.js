@@ -1,3 +1,5 @@
+ import { Data } from './Data.js';
+ 
  export class AppRouter {
 
   static _print(msg) {
@@ -126,6 +128,30 @@
 
   static get separator() {
     return this._separator || '&';
+  }
+
+  /**
+   * 
+   * @param {String} ctxName 
+   * @param {Object<string, {}>} routingMap 
+   * @returns {Data}
+   */
+  static createRouterData(ctxName, routingMap) {
+    this.setRoutingMap(routingMap);
+    let routeData = Data.registerNamedCtx(ctxName, {
+      route: null,
+      options: null,
+      title: null,
+    });
+    window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
+      routeData.multiPub({
+        route: e.detail.route,
+        options: e.detail.options,
+        title: e.detail.options?.title || this.defaultTitle || '',
+      });
+    });
+    AppRouter.notify();
+    return routeData;
   }
 
 }

@@ -1,8 +1,7 @@
 import { BaseComponent } from '../../core/BaseComponent.js';
-import { Data } from '../../core/Data.js';
 import { AppRouter } from '../../core/AppRouter.js';
 
-AppRouter.setRoutingMap({
+AppRouter.createRouterData('router', {
   home: {
     title: 'Home',
     default: true,
@@ -16,19 +15,8 @@ AppRouter.setRoutingMap({
   },
 });
 
-const routeData = Data.registerNamedCtx('router', {
-  currentRoute: null,
-});
-
-window.addEventListener(AppRouter.routingEventName, (/** @type {CustomEvent} */ e) => {
-  routeData.pub('currentRoute', e.detail);
-});
-
-AppRouter.notify();
-
 class MyApp extends BaseComponent {
   init$ = {
-    routeName: 'DEFAULT',
     options: JSON.stringify({}),
     onHome: () => {
       AppRouter.applyRoute('home');
@@ -42,10 +30,9 @@ class MyApp extends BaseComponent {
   }
 
   initCallback() {
-    this.sub('router/currentRoute', (val) => {
-      console.log(val);
-      this.$.routeName = val.route;
-      this.$.options = JSON.stringify(val.options, null, 2);
+    this.sub('router/options', (opt) => {
+      console.log(opt);
+      this.$.options = JSON.stringify(opt, null, 2);
     });
   }
 }
@@ -56,7 +43,7 @@ MyApp.template = /*html*/ `
   <button set="onclick: onContacts">Contacts</button>
   <a href="?wrong"><button>WRONG ROUTE</button></a>
 </div>
-<div>Current route: <span set="textContent: routeName"></span></div>
+<div>Current route: <span set="textContent: router/route"></span></div>
 <div set="textContent: options" style="white-space: pre"></div>
 `;
 
