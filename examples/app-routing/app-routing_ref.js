@@ -16,12 +16,12 @@ AppRouter.setRoutingMap({
   },
 });
 
-const router = Data.registerNamedCtx('router', {
+const routeData = Data.registerNamedCtx('router', {
   currentRoute: null,
 });
 
 window.addEventListener(AppRouter.routingEventName, (/** @type {CustomEvent} */ e) => {
-  router.pub('currentRoute', e.detail);
+  routeData.pub('currentRoute', e.detail);
 });
 
 AppRouter.notify();
