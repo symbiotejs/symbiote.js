@@ -38,7 +38,7 @@ Also, to bind element to named (abstract) conext, use context name as property p
 
 **More information about data context you can find in "Data context" section.**
 
-Handler binding is the same as own property:
+Action handler binding is the same as own property:
 ```html
 <input type="text" set="oninput: onTextInput" />
 ```
