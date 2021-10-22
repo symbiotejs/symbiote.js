@@ -22,7 +22,7 @@ To bind some property to own elemnt's attribute use `@` prefix:
 </div>
 ```
 
-To bind elemnt to some external data context property, use `*` prefix for property name:
+To bind element to some external data context property, use `*` prefix for property name:
 ```html
 <div 
   set="textContent: *textFromContext">

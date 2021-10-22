@@ -1,13 +1,13 @@
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and complete web applications
+## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and make complete web applications
 
 ### 🔥 Core benefits
 * Minimalistic but reach
 * No additional dependencies
 * Ultralight (2.6kb br/gzip for featurefull CDN version)
 * Blazing fast (faster than most of the other mainstream solutions. All of them.)
-* Memory friendly (no any redux-like huge immutables)
+* Memory friendly (no any redux-like immutables)
 * CSP friendly - good for enterprize usage
 * Extensible. Really extensible.
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies
@@ -21,7 +21,7 @@
 * Open source (MIT license)
 
 ### 💎 Tech concept description
-* Native DocumentFragment instead of expensive Virtual DOM sync
+* Native `DocumentFragment` instead of expensive Virtual DOM sync
 * Shadow DOM - is optional, use it when you need it only
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
@@ -81,7 +81,8 @@ Then you can use the new tag in your HTML:
 ```
 ## 🧜‍♀️ Dive deeper
 * Templates
-* Data context
+* Component data context
+* Data (pub/sub)
 * Lifecycle
 * Extending
 * Naming collisions
@@ -109,6 +110,9 @@ https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
 ## 💰 General sponsor
 Big thanks to 🟡 Uploadcare for supporting this project!
+
+## Symbiote application example
+https://github.com/uploadcare/jsdk/tree/main/upload-blocks
 
 ### 🌎 Useful external links:
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
