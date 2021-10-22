@@ -109,7 +109,9 @@ https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 (But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
 
 ## 💰 General sponsor
-Big thanks to 🟡 Uploadcare for supporting this project!
+Big thanks to 🟡 **Uploadcare** for supporting this project!
+
+> https://uploadcare.com/
 
 ## Symbiote application example
 https://github.com/uploadcare/jsdk/tree/main/upload-blocks
@@ -118,6 +120,7 @@ https://github.com/uploadcare/jsdk/tree/main/upload-blocks
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM
 * https://custom-elements-everywhere.com
+* https://open-wc.org/
 
 ## This is not a final version of the README file, work still in progress...
 
