@@ -1,15 +1,14 @@
 import { Data } from './Data.js';
 import { DICT } from './dictionary.js';
-import { UID } from '../../symbiote/utils/UID.js';
+import { UID } from '../utils/UID.js';
 
 import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
 export class BaseComponent extends HTMLElement {
-
-  /** 
-   * @param {String | DocumentFragment} [template] 
+  /**
+   * @param {String | DocumentFragment} [template]
    * @param {Boolean} [shadow]
    */
   render(template, shadow = this.renderShadow) {
@@ -49,18 +48,16 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** 
-   * @param {(fr: DocumentFragment, fnCtx: *) => any} processorFn 
-   */
+  /** @param {(fr: DocumentFragment, fnCtx: any) => any} processorFn */
   addTemplateProcessor(processorFn) {
     this.tplProcessors.add(processorFn);
   }
 
   constructor() {
     super();
-    /** @type {Object<string, *>} */
+    /** @type {Object<string, any>} */
     this.init$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment, fnCtx: *) => any>} */
+    /** @type {Set<(fr: DocumentFragment, fnCtx: any) => any>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, HTMLElement>} */
     this.ref = Object.create(null);
@@ -99,9 +96,8 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * 
-   * @param {String} prop 
-   * @param {*} fnCtx 
+   * @param {String} prop
+   * @param {any} fnCtx
    */
   static __parseProp(prop, fnCtx) {
     /** @type {Data} */
@@ -126,38 +122,30 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * 
-   * @param {String} prop 
-   * @param {(value:*) => void} handler 
+   * @param {String} prop
+   * @param {(value: any) => void} handler
    */
   sub(prop, handler) {
     let parsed = BaseComponent.__parseProp(prop, this);
     this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
-  /**
-   * 
-   * @param {String} prop 
-   */
+  /** @param {String} prop */
   has(prop) {
     let parsed = BaseComponent.__parseProp(prop, this);
     return parsed.ctx.has(parsed.name);
   }
 
   /**
-   * 
-   * @param {String} prop 
-   * @param {*} val 
+   * @param {String} prop
+   * @param {any} val
    */
   add(prop, val) {
     let parsed = BaseComponent.__parseProp(prop, this);
     parsed.ctx.add(parsed.name, val, false);
   }
 
-  /**
-   * 
-   * @param {Object<string, *>} obj 
-   */
+  /** @param {Object<string, any>} obj */
   add$(obj) {
     for (let prop in obj) {
       this.add(prop, obj[prop]);
@@ -166,7 +154,7 @@ export class BaseComponent extends HTMLElement {
 
   get $() {
     if (!this.__stateProxy) {
-      /** @type {Object<string, *>} */
+      /** @type {Object<string, any>} */
       let o = Object.create(null);
       this.__stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
@@ -183,10 +171,7 @@ export class BaseComponent extends HTMLElement {
     return this.__stateProxy;
   }
 
-  /**
-   * 
-   * @param {Object<string, *>} kvObj 
-   */
+  /** @param {Object<string, any>} kvObj */
   set$(kvObj) {
     for (let key in kvObj) {
       this.$[key] = kvObj[key];
@@ -269,9 +254,8 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * 
-   * @param {String} [tagName] 
-   * @param {Boolean} [isAlias] 
+   * @param {String} [tagName]
+   * @param {Boolean} [isAlias]
    */
   static reg(tagName, isAlias = false) {
     if (!tagName) {
@@ -293,10 +277,7 @@ export class BaseComponent extends HTMLElement {
     return this.__tag;
   }
 
-  /**
-   * 
-   * @param {Object<string, string>} desc 
-   */
+  /** @param {Object<string, string>} desc */
   static bindAttributes(desc) {
     this.observedAttributes = Object.keys(desc);
     this.__attrDesc = desc;
@@ -319,10 +300,7 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /**
-   * 
-   * @param {String} propName 
-   */
+  /** @param {String} propName */
   getCssData(propName) {
     let style = window.getComputedStyle(this);
     let val = style.getPropertyValue(propName).trim();
@@ -332,7 +310,7 @@ export class BaseComponent extends HTMLElement {
     }
     try {
       return JSON.parse(val);
-    } catch(e) {
+    } catch (e) {
       console.warn(`CSS Data error: ${propName}`);
       return null;
     }
@@ -363,5 +341,4 @@ export class BaseComponent extends HTMLElement {
     });
     this[propName] = this[localPropName];
   }
-
 }

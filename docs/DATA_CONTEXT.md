@@ -7,7 +7,14 @@ All components created with Symbiote.js are present in some data context. Some o
 ```javascript
 class MyComponent extends BaseComponent {
   init$ = {
+    // Local component property initialization:
+    myProp: 'some value',
 
+    // Common data context property initialization:
+    '*applicationBooleanProp': true,
+
+    // Named context property initialization:
+    'user-profile/name': 'John',
   }
 }
 ```

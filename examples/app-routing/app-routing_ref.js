@@ -27,7 +27,7 @@ class MyApp extends BaseComponent {
         option2: 'my value',
       });
     },
-  }
+  };
 
   initCallback() {
     this.sub('router/options', (opt) => {
@@ -38,13 +38,13 @@ class MyApp extends BaseComponent {
 }
 
 MyApp.template = /*html*/ `
-<div>
+<nav>
   <button set="onclick: onHome">Home</button>
   <button set="onclick: onContacts">Contacts</button>
   <a href="?wrong"><button>WRONG ROUTE</button></a>
-</div>
+</nav>
 <div>Current route: <span set="textContent: router/route"></span></div>
-<div set="textContent: options" style="white-space: pre"></div>
+<code set="textContent: options" style="white-space: pre"></code>
 `;
 
 MyApp.reg('my-app');
