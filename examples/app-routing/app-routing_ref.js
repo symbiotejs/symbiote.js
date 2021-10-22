@@ -15,9 +15,15 @@ AppRouter.createRouterData('router', {
   },
 });
 
+const COLOR = {
+  regular: '#0f0',
+  error: '#f00',
+};
+
 class MyApp extends BaseComponent {
   init$ = {
     options: JSON.stringify({}),
+    routeColor: COLOR.regular,
     onHome: () => {
       AppRouter.applyRoute('home');
     },
@@ -31,8 +37,8 @@ class MyApp extends BaseComponent {
 
   initCallback() {
     this.sub('router/options', (opt) => {
-      console.log(opt);
       this.$.options = JSON.stringify(opt, null, 2);
+      this.$.routeColor = opt.error ? COLOR.error : COLOR.regular;
     });
   }
 }
@@ -43,7 +49,11 @@ MyApp.template = /*html*/ `
   <button set="onclick: onContacts">Contacts</button>
   <a href="?wrong"><button>WRONG ROUTE</button></a>
 </nav>
-<div>Current route: <span set="textContent: router/route"></span></div>
+<h1>Current route: 
+  <span 
+    set="textContent: router/route; style.color: routeColor">
+  </span>
+</h1>
 <code set="textContent: options" style="white-space: pre"></code>
 `;
 

@@ -1,8 +1,8 @@
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-## Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and complete web applications
+## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and complete web applications
 
-### Core benefits
+### 🔥 Core benefits
 * Minimalistic but reach
 * No additional dependencies
 * Ultralight (2.6kb br/gzip for featurefull CDN version)
@@ -20,7 +20,7 @@
 * Developer Experience on the mind: compact names, convenient APIs
 * Open source (MIT license)
 
-### Tech concept description
+### 💎 Tech concept description
 * Native DocumentFragment instead of expensive Virtual DOM sync
 * Shadow DOM - is optional, use it when you need it only
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
@@ -33,7 +33,7 @@
 * Convenient object model access instead of opaque abstractions
 * Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow)
 
-### Quick start
+### 🍏 Quick start
 Fastest way to try Symbiote.js is to connect it's base class from CDN:
 
 ```javascript
@@ -79,7 +79,7 @@ Then you can use the new tag in your HTML:
   second-name="Nakamoto">
 </my-component>
 ```
-## Dive deeper
+## 🧜‍♀️ Dive deeper
 * Templates
 * Data context
 * Lifecycle
@@ -92,7 +92,7 @@ Then you can use the new tag in your HTML:
 * Solution history
 * Playground
 
-## Browser support
+## ✅ Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
 * Chrome
 * Firefox
@@ -107,10 +107,10 @@ https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
 
 (But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
 
-## General sponsor
+## 💰 General sponsor
 Big thanks to 🟡 Uploadcare for supporting this project!
 
-### Useful external links:
+### 🌎 Useful external links:
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM
 * https://custom-elements-everywhere.com
