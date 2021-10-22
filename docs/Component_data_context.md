@@ -70,7 +70,7 @@ class MyComponent extends BaseComponent {
 }
 ```
 
-## Local context propperties
+## Local context properties
 
 Local data context is assessible for certain component only. This is the simpliest type of data interaction with is very similar to state manipulation approach in meny other solutions. So you might be already know everything you need about it.
 

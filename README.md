@@ -22,19 +22,19 @@
 
 ### 💎 Tech concept description
 * Native `DocumentFragment` instead of expensive Virtual DOM sync
-* Shadow DOM - is optional, use it when you need it only
+* Shadow DOM is optional. Use it when you need it only
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
-* Templates - are out of the component or render function context. It’s just a simple JavaScript literals. So you can keep them or process wherever you want
+* Templates are out of the component or render function context. It’s just a simple JavaScript literals. So you can keep or process them wherever you want
 * Fast synchronous UI updates
 * Full data context access from the document structure
 * Full data context availability for template bindings
-* DOM API friendly approach, for the most perfomant solutions
+* DOM API friendly approach for the most perfomant solutions
 * Convenient object model access instead of opaque abstractions
 * Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow)
 
 ### 🍏 Quick start
-Fastest way to try Symbiote.js is to connect it's base class from CDN:
+Easiest way to try Symbiote.js is to connect its base class from CDN:
 
 ```javascript
 import { BaseComponent } from 'https://uc-jsdk.web.app/build/symbiote.js';
