@@ -9,7 +9,7 @@ const css = {
 
 class CtxEl extends BaseComponent {
   init$ = {
-    '*time': 'initial',
+    '*time': 'Click me!',
   };
   initCallback() {
     applyStyles(this, css);
