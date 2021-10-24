@@ -8,6 +8,7 @@
   <script src="data-context_reg.js" type="module"></script>
 </head>
 <body>
+
   <h3>Manual data context name setting (same level elements):</h3>
   <ctx-el ctx-name="ctx1"></ctx-el>
   <ctx-el ctx-name="ctx1"></ctx-el>
@@ -18,8 +19,11 @@
   </ctx-el>  
 
   <h3>CSS based data context:</h3>
-  <ctx-el style="--ctx-name: ctx1">
-    <ctx-el></ctx-el>
-  </ctx-el>
+  <div style="--ctx-name: ctx1">
+    <ctx-el>
+      <ctx-el></ctx-el>
+    </ctx-el>
+  </div>
+
 </body>
 </html>
