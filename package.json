@@ -7,8 +7,7 @@
     "lint:prettier": "prettier \"**/*.js\" --check --ignore-path .gitignore",
     "format:prettier": "prettier \"**/*.js\" --write --ignore-path .gitignore",
     "lint": "npm run lint:types && npm run lint:eslint && npm run lint:prettier",
-    "format": "npm run format:eslint && npm run format:prettier",
-    "localhost": "node ./localhost/server.mjs"
+    "format": "npm run format:eslint && npm run format:prettier"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
