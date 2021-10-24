@@ -5,6 +5,7 @@ const css = {
   display: 'inline-block',
   border: '1px solid #00f',
   padding: '20px',
+  userSelect: 'none',
 };
 
 class CtxEl extends BaseComponent {
