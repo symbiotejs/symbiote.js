@@ -32,7 +32,7 @@ class MyComponent extends BaseComponent {
 }
 ```
 
-Do make synchronous mutiple updates use `set$`:
+To make synchronous mutiple updates use `set$`:
 ```javascript
 class MyComponent extends BaseComponent {
   initCallback() {
@@ -115,5 +115,6 @@ SecondComponent.reg('second-component');
 ```
 
 ## Context reassign
+
 
 ## Named context (abstract)

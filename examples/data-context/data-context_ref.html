@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data context reference</title>
+  <script src="data-context_reg.js" type="module"></script>
+</head>
+<body>
+  <h3>Manual data context name setting (same level elements):</h3>
+  <ctx-el ctx-name="ctx1"></ctx-el>
+  <ctx-el ctx-name="ctx1"></ctx-el>
+
+  <h3>Data context automatic inheritance:</h3>
+  <ctx-el>
+    <ctx-el></ctx-el>
+  </ctx-el>  
+
+  <h3>CSS based data context:</h3>
+  <ctx-el style="--ctx-name: ctx1">
+    <ctx-el></ctx-el>
+  </ctx-el>
+</body>
+</html>
