@@ -8,7 +8,7 @@ const l10nData = {
 function l10nProcessor(/** @type {DocumentFragment} */ fr) {
   [...fr.querySelectorAll('[l10n]')].forEach((el) => {
     let l10nKey = el.getAttribute('l10n');
-    el.textContent = l10nData[l10nKey] || '';
+    el.textContent = l10nData[l10nKey] || 'L10n error...';
     el.removeAttribute('l10n');
   });
 }
