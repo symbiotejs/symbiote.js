@@ -15,7 +15,7 @@ Attribute value syntax based on key/value pairs:
 * As you can see, nested properties are supported: `style.color`.
 * All keys are native object property names. So, they provide direct access to the DOM API.
 
-To bind some property to own elemnt's attribute use `@` prefix:
+To bind some property to own elemnt's HTML-attribute use `@` prefix:
 ```html
 <div 
   set="@class: className">
@@ -42,6 +42,19 @@ Action handler binding is the same as own property:
 ```html
 <input type="text" set="oninput: onTextInput" />
 ```
+
+## Slots
+
+[Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with any external markup fragment.
+
+> Symbiote.js make slots available without Shadow DOM usage.
+
+Dafault slot:
+
+Named slots:
+
+## Element references
+
 
 ## Conditional rendering
 To be updated...
