@@ -26,6 +26,7 @@
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
 * Templates are out of the component or render function context. It’s just a simple JavaScript literals. So you can keep or process them wherever you want
+* No logical operators in templates. Logic and presentation is strictly separated.
 * Fast synchronous UI updates
 * Full data context access from the document structure
 * Full data context availability for template bindings
