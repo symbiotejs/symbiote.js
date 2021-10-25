@@ -1,20 +1,20 @@
 ## Component lifecycle
 
-Symbiote component - is a Custom Element, so it has all [standard lifecycle callbacks](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#using_the_lifecycle_callbacks). But it also has two custom ones. Let's walk through them:
+Symbiote component - is a Custom Element, so it has all [native lifecycle callbacks](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#using_the_lifecycle_callbacks). But it also has two custom ones. Let's walk through the most of them:
 
 ```javascript
 class MyComponent extends BaseComponent {
   constructor() {
     super();
-    // STANDARD: Element constructor. Element is not present in DOM structure.
+    // NATIVE: Element constructor. Element is not present in DOM structure.
   }
 
   connectedCallback() {
-    // STANDARD: Element connected to the DOM. Standars DOM API methods are available.
+    // NATIVE: Element connected to the DOM. Standars DOM API methods are available.
   }
 
   attributeChangedCallback(attrName, oldValue, newValue) {
-    // STANDARD: HTML attribute has changed
+    // NATIVE: HTML attribute has changed
   }
 
   initCallback() {
@@ -22,7 +22,7 @@ class MyComponent extends BaseComponent {
   }
 
   disconnectedCallback() {
-    // STANDARD: Element removed from DOM, but still presents in memory.
+    // NATIVE: Element removed from DOM, but still presents in memory.
   }
 
   destroyCallback() {
@@ -32,7 +32,16 @@ class MyComponent extends BaseComponent {
 }
 ```
 
-For the most simple cases, you will need custom `initCallback` only.
+For the most simple cases, you will need custom `initCallback` only. Here you can subscribe on some property, or process some template element reference:
+```javascript
+class MyComponent extends BaseComponent {
+  initCallback() {
+    this.sub('propName', (propValue) => {
+      this.ref.someOtputElement.textContent = propValue;
+    });
+  }
+}
+```
 
 If you DO NOT planning to permanently remove your component from DOM and destroy it - set `readyToDestroy` property:
 ```javascript
