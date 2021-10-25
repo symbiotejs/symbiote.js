@@ -1,6 +1,6 @@
 ## Template syntax
 
-One of the core template mechanics in Symbiote.js - is native browser HTML parsing via standard DOM API methods. That's the fastest way to create componet template instance in object model representation. It might be quite contrintuitive, but in modern browsers `innerHTML` works faster, than imperative elements structure creation with `document.createElement`.
+One of the core template mechanics in Symbiote.js - is a native browser HTML parsing via standard DOM API methods. That's the fastest way to create componet template instance in object model representation. It might be quite contrintuitive, but in modern browsers `innerHTML` works faster, than imperative elements structure creation with `document.createElement`.
 That's why we use custom tag attribute `set` to describe template data bindings.
 
 Attribute value syntax based on key/value pairs:
@@ -49,15 +49,44 @@ Action handler binding is the same as own property:
 
 > Symbiote.js make slots available without Shadow DOM usage.
 
-Dafault slot:
+Dafault template slot:
+```html
+<div class="my-wrapper">
+  <slot></slot>
+</div>
+```
 
-Named slots:
+Named template slots:
+```html
+<header>
+  <slot name="header"></slot>
+</header>
+<article>
+  <slot name="article"></slot>
+</article>
+<footer>
+  <slot name="footer"></slot>
+</footer>
+```
 
 ## Element references
-
-
-## Conditional rendering
-To be updated...
+If you need an element reference somewhere in your code logigcs, use `ref` attribute for your temlate element:
+```html
+<div class="layout">
+  <div ref="div1"></div>
+  <div ref="div2"></div>
+</div>
+```
+Reference name shold be unique for each element (like an element's `id`).
+Then you can use `ref` collection to get those elements in your code without any additional search:
+```javascript
+class MyComponent extends BaseComponent {
+  initCallback() {
+    this.ref.div1.contenteditable = true;
+    this.ref.div2.style.color = 'red';
+  }
+}
+```
 
 ## Data based rendering
 To be updated...
