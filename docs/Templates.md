@@ -70,6 +70,7 @@ Named template slots:
 ```
 
 ## Element references
+
 If you need an element reference somewhere in your code logigcs, use `ref` attribute for your temlate element:
 ```html
 <div class="layout">
@@ -89,4 +90,23 @@ class MyComponent extends BaseComponent {
 ```
 
 ## Data based rendering
-To be updated...
+
+```javascript
+class MyComponent extends BaseComponent {
+  init$ = {
+    listHtml: '',
+  }
+
+  initCallback() {
+    this.sub('*list', (/** @type {*[]} */ list) => {
+      this.$.listHtml = list.reduce((html, item) => {
+        return html += /*html*/ `<list-item uid="${item.uid}"></list-item>`;
+      }, '');
+    });
+  }
+}
+
+MyComponent.template = /*html*/ `
+<div class="list-wrapper" set="innerHTML: listHtml"></div>
+`;
+```
