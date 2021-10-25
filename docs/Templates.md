@@ -71,14 +71,14 @@ Named template slots:
 
 ## Element references
 
-If you need an element reference somewhere in your code logigcs, use `ref` attribute for your temlate element:
+If you need an element reference somewhere in your code logics, use `ref` attribute for your template element:
 ```html
 <div class="layout">
   <div ref="div1"></div>
   <div ref="div2"></div>
 </div>
 ```
-Reference name shold be unique for each element (like an element's `id`).
+Reference name should be unique for each element (like an element's `id`).
 Then you can use `ref` collection to get those elements in your code without any additional search:
 ```javascript
 class MyComponent extends BaseComponent {
@@ -98,7 +98,7 @@ class MyComponent extends BaseComponent {
   }
 
   initCallback() {
-    this.sub('*list', (/** @type {*[]} */ list) => {
+    this.sub('*list', (/** @type {{uid:string}[]} */ list) => {
       this.$.listHtml = list.reduce((html, item) => {
         return html += /*html*/ `<list-item uid="${item.uid}"></list-item>`;
       }, '');
