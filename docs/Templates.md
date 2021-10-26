@@ -112,4 +112,4 @@ MyComponent.template = /*html*/ `
 <div class="list-wrapper" set="innerHTML: listHtml"></div>
 `;
 ```
-Anyway, this is not a simple question what to prefer for certain case and this section will be completed in near future with more approaches.
+Anyway, this is not a simple question what to prefer for certain case and this section will be completed in near future with more references.
