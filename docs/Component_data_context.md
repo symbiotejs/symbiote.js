@@ -114,7 +114,24 @@ class SecondComponent extends BaseComponent {
 SecondComponent.reg('second-component');
 ```
 
-## Context reassign
+## Named context
 
+Named context - is abstract data context accessible with unique key:
+```javascript
+import { Data } from '../symbiote/core/Data.js';
 
-## Named context (abstract)
+Data.registerNamedCtx('ctx-name', {
+  count: 0,
+  increment: () => {
+    let ctx = Data.getNamedCtx('ctx-name');
+    ctx.pub('count', ++ctx.read('count'));
+  },
+});
+
+class MyComponent extends BaseComponent {}
+
+MyComponent.template /*html*/ `
+  <h2 set="textContent: ctx-name/count"></h2>
+  <button set="onclick: ctx-name/increment">Click me!</button>
+`;
+```
