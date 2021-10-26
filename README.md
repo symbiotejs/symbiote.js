@@ -68,8 +68,8 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 * Lifecycle
 * Component data context
 * Attribute binding
-* Data (pub/sub)
 * Extending
+* Data (pub/sub)
 * Routing
 * Naming collisions
 * Domain specific data
