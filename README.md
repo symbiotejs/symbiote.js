@@ -9,7 +9,7 @@
 * Blazing fast (faster than most of the other mainstream solutions. All of them.)
 * Memory friendly (no any redux-like immutables)
 * CSP friendly - good for enterprize usage
-* Extensible. Really extensible.
+* Highly extensible
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies
 * Works in all modern browsers. As is.
 * Easy to test
@@ -17,7 +17,7 @@
 * Integration friendly: works with any modern development stack
 * Lifecycle control: no need to initiate something from outside
 * ESM friendly - native JavaScript modules are best!
-* Developer Experience on the mind: compact names, convenient APIs
+* Developer Experience on the mind: compact & convenient APIs, habitual syntax
 * Open source (MIT license)
 
 ### 💎 Tech concept description
@@ -25,7 +25,7 @@
 * Shadow DOM is optional. Use it when you need it only
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
 * Native HTML and DOM API instead of expensive custom template syntax processing
-* Templates are out of the component or render function context. It’s just a simple JavaScript literals. So you can keep or process them wherever you want
+* Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want
 * No logical operators in templates. Logic and presentation is strictly separated.
 * Fast synchronous UI updates
 * Full data context access from the document structure
