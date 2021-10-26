@@ -61,7 +61,7 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 <my-component></my-component>
 ```
 
-**This code can work directly in any modern browser, so you don't need to install anything!**
+**This code can work directly in any modern browser, so you don't need to install anything to try it!**
 
 ## 🧜‍♀️ Dive deeper
 * Templates
