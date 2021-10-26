@@ -64,14 +64,14 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 **This code can work directly in any modern browser, so you don't need to install anything to try it!**
 
 ## 🧜‍♀️ Dive deeper
-* Templates
-* Lifecycle
-* Component data context
-* Attribute binding
-* Extending
+* [Templates](https://github.com/uploadcare/symbiote.js/blob/main/docs/Templates.md)
+* [Lifecycle](https://github.com/uploadcare/symbiote.js/blob/main/docs/Lifecycle.md)
+* [Component data context](https://github.com/uploadcare/symbiote.js/blob/main/docs/Component_data_context.md)
+* [Attribute binding](https://github.com/uploadcare/symbiote.js/blob/main/docs/Attribute_binding.md)
+* [Extending](https://github.com/uploadcare/symbiote.js/blob/main/docs/Extending.md)
+* [Naming collisions](https://github.com/uploadcare/symbiote.js/blob/main/docs/Naming_collisions.md)
 * Data (pub/sub)
 * Routing
-* Naming collisions
 * Domain specific data
 * DOM helpers
 * Indexed DB
