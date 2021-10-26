@@ -44,7 +44,7 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
   class MyComponent extends BaseComponent {
     init$ = {
       count: 0,
-      onClick: () => {
+      increment: () => {
         this.$.count++;
       },
     }
@@ -52,7 +52,7 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 
   MyComponent.template = /*html*/ `
     <h2 set="textContent: count"></h2>
-    <button set="onclick: onClick">Click me!</button>
+    <button set="onclick: increment">Click me!</button>
   `;
 
   MyComponent.reg('my-component');
