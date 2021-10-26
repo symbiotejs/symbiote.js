@@ -98,7 +98,7 @@ Big thanks to 🟡 **Uploadcare** for supporting this project!
 
 > https://uploadcare.com/
 
-## Symbiote application example
+## Symbiote widget example
 https://github.com/uploadcare/jsdk/tree/main/upload-blocks
 
 ### 🌎 Useful external links:
