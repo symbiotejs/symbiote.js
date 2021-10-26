@@ -9,7 +9,7 @@ The simplest way - is conventional naming. Use library-specific prefix or postfi
 </mylib-button>
 ```
 
-You can use automatic tag names for templates:
+You can use automatic tag names for Symbiote templates:
 ```javascript
 class Com1 extends BaseComponent {}
 Com1.template = /*html*/ `<button>Component 1</button>`;
