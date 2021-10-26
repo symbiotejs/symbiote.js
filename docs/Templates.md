@@ -91,6 +91,7 @@ class MyComponent extends BaseComponent {
 
 ## Data based rendering
 
+Efficient conditional and data based rendering is very case specific. In some cases the best solution is to use simple `innerHTML` approach. HTML parsing is very fast in modern browsers and frequntly that's the most performant and convenient way:
 ```javascript
 class MyComponent extends BaseComponent {
   init$ = {
@@ -111,3 +112,4 @@ MyComponent.template = /*html*/ `
 <div class="list-wrapper" set="innerHTML: listHtml"></div>
 `;
 ```
+Anyway, this is not a simple question what to prefer for certain case and this section will be completed in near future with more approaches.
