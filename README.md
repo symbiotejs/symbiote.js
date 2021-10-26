@@ -1,6 +1,6 @@
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and build modern web applications
+## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and libraries. Everything you need for your modern web application!
 
 ### 🔥 Core benefits
 * Minimalistic but reach
@@ -67,13 +67,14 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 * Templates
 * Lifecycle
 * Component data context
+* Attribute binding
 * Data (pub/sub)
 * Extending
 * Routing
 * Naming collisions
-* Domain specific data abstractions
+* Domain specific data
 * DOM helpers
-* Indexed DB wrapper
+* Indexed DB
 * Solution history
 * Playground
 
