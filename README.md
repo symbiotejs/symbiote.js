@@ -35,51 +35,34 @@
 * Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow)
 
 ### 🍏 Quick start
-Easiest way to try Symbiote.js is to connect its base class from CDN:
+Easiest way to try Symbiote.js is to create simple `html` file in your text editor and connect the Symbiote base class from CDN:
 
-```javascript
-import { BaseComponent } from 'https://uc-jsdk.web.app/build/symbiote.js';
-
-class MyComponent extends BaseComponent {
-  // Initial property values and handlers:
-  init$ = {
-    firstName: 'John',
-    secondName: 'Snow',
-    time: 0,
-    cssColor: '#f00',
-    onTimeClicked: () => {
-      // Dynamically change local property value:
-      this.$.time = Date.now();
-    },
-  }
-}
-
-// Component template with reactive data bindings:
-MyComponent.template = /*html*/ `
-  <div set="textContent: firstName"></div>
-  <div set="textContent: secondName; style.color: cssColor"></div>
-  <div set="textContent: time; onclick: onTimeClicked"></div>
-`;
-
-// It's possible to connect attributes to the data context directly:
-MyComponent.bindAttributes({
-  'first-name': 'firstName',
-  'second-name': 'secondName',
-});
-
-// Custom Element registration:
-MyComponent.reg('my-component');
-```
-
-This code can work directly in any modern browser, so you don't need to install anything.
-
-Then you can use the new tag in your HTML:
 ```html
-<my-component 
-  first-name="Satoshi" 
-  second-name="Nakamoto">
-</my-component>
+<script type="module">
+  import { BaseComponent } from 'https://uc-jsdk.web.app/build/symbiote.js';
+
+  class MyComponent extends BaseComponent {
+    init$ = {
+      count: 0,
+      onClick: () => {
+        this.$.count++;
+      },
+    }
+  }
+
+  MyComponent.template = /*html*/ `
+    <h2 set="textContent: count"></h2>
+    <button set="onclick: onClick">Click me!</button>
+  `;
+
+  MyComponent.reg('my-component');
+</script>
+
+<my-component></my-component>
 ```
+
+> This code can work directly in any modern browser, so you don't need to install anything.
+
 ## 🧜‍♀️ Dive deeper
 * Templates
 * Lifecycle

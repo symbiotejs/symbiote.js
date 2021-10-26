@@ -107,6 +107,7 @@ class MyComponent extends BaseComponent {
 }
 
 MyComponent.template = /*html*/ `
+<h2>Items:<h2>
 <div class="list-wrapper" set="innerHTML: listHtml"></div>
 `;
 ```
