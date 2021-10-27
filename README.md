@@ -35,11 +35,11 @@
 * Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow)
 
 ### 🍏 Quick start
-Easiest way to try Symbiote.js is to create simple `html` file in your text editor and connect the Symbiote base class from CDN:
+Easiest way to try Symbiote.js is to create simple `html` file in your text editor and connect the Symbiote base class from web:
 
 ```html
 <script type="module">
-  import { BaseComponent } from 'https://uc-jsdk.web.app/build/symbiote.js';
+  import { BaseComponent } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
 
   class MyComponent extends BaseComponent {
     init$ = {
@@ -64,12 +64,12 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 **This code can work directly in any modern browser, so you don't need to install anything to try it!**
 
 ## 🧜‍♀️ Dive deeper
-* [Templates](https://github.com/uploadcare/symbiote.js/blob/main/docs/Templates.md)
-* [Lifecycle](https://github.com/uploadcare/symbiote.js/blob/main/docs/Lifecycle.md)
-* [Component data context](https://github.com/uploadcare/symbiote.js/blob/main/docs/Component_data_context.md)
-* [Attribute binding](https://github.com/uploadcare/symbiote.js/blob/main/docs/Attribute_binding.md)
-* [Extending](https://github.com/uploadcare/symbiote.js/blob/main/docs/Extending.md)
-* [Naming collisions](https://github.com/uploadcare/symbiote.js/blob/main/docs/Naming_collisions.md)
+* [Templates](https://github.com/symbiotejs/docsite/blob/main/md/Templates.md)
+* [Lifecycle](https://github.com/symbiotejs/docsite/blob/main/md/Lifecycle.md)
+* [Component data context](https://github.com/symbiotejs/docsite/blob/main/md/Component_data_context.md)
+* [Attribute binding](https://github.com/symbiotejs/docsite/blob/main/md/Attribute_binding.md)
+* [Extending](https://github.com/symbiotejs/docsite/blob/main/md/Extending.md)
+* [Naming collisions](https://github.com/symbiotejs/docsite/blob/main/md/Naming_collisions.md)
 * Data (pub/sub)
 * Routing
 * Domain specific data
