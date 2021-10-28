@@ -20,7 +20,7 @@
 * Developer Experience on the mind: compact & convenient APIs, habitual syntax
 * Open source (MIT license)
 
-### 💎 Tech concept description
+### 💎 Tech concept keypoints
 * Native `DocumentFragment` instead of expensive Virtual DOM sync
 * Shadow DOM is optional. Use it when you need it only
 * Styling approach: total freedom, from the old classics to the cutting age platforn abilities
