@@ -1,6 +1,6 @@
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-## 🥷 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and libraries. Everything you need for your modern web application!
+## Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and libraries. Everything you need for your modern web application!
 
 ### 🔥 Core benefits
 * Minimalistic but reach
