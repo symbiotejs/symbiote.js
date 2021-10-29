@@ -98,9 +98,6 @@ Big thanks to 🟡 **Uploadcare** for supporting this project!
 
 > https://uploadcare.com/
 
-## Symbiote widget example
-https://github.com/uploadcare/jsdk/tree/main/upload-blocks
-
 ### 🌎 Useful external links:
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM
