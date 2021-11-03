@@ -1,5 +1,7 @@
 {
   "type": "module",
+  "module": "core/BaseComponent.js",
+  "main": "core/BaseComponent.js",
   "scripts": {
     "lint:types": "tsc",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
@@ -75,20 +77,20 @@
       "git add"
     ]
   },
-  "name": "@uploadcare/symbiote-js",
-  "version": "0.0.1-alpha.0",
+  "name": "@symbiotejs/symbiote.js",
+  "version": "1.0.0",
   "description": "Symbiote.js",
-  "author": "Uploadcare Inc. <hello@uploadcare.com> (https://uploadcare.com)",
+  "author": "hello@symbiotejs.org",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/uploadcare/uploadcare-uploader/issues"
+    "url": "https://github.com/symbiotejs/symbiote.js/issues"
   },
-  "homepage": "https://github.com/uploadcare/symbiote-js#readme",
+  "homepage": "https://symbiotejs.org/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uploadcare/symbiote-js.git"
+    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
   },
   "keywords": [
-    "symbiote.js, web components, custom elements, shadow dom, uploadcare"
+    "symbiote.js, web components, custom elements, shadow dom, ui framework"
   ]
 }
