@@ -300,8 +300,11 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** @param {String} propName */
-  getCssData(propName) {
+  /** 
+   * @param {String} propName 
+   * @param {Boolean} [silentCheck]
+   */
+  getCssData(propName, silentCheck = false) {
     let style = window.getComputedStyle(this);
     let val = style.getPropertyValue(propName).trim();
     // Firefox doesn't transform string values into JSON format:
@@ -311,7 +314,7 @@ export class BaseComponent extends HTMLElement {
     try {
       return JSON.parse(val);
     } catch (e) {
-      console.warn(`CSS Data error: ${propName}`);
+      !silentCheck && console.warn(`CSS Data error: ${propName}`);
       return null;
     }
   }
