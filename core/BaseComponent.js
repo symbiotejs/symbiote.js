@@ -235,6 +235,7 @@ export class BaseComponent extends HTMLElement {
   destroyCallback() {}
 
   disconnectedCallback() {
+    this.dropCssDataCache();
     if (!this.readyToDestroy) {
       return;
     }
@@ -305,18 +306,31 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [silentCheck]
    */
   getCssData(propName, silentCheck = false) {
-    let style = window.getComputedStyle(this);
-    let val = style.getPropertyValue(propName).trim();
-    // Firefox doesn't transform string values into JSON format:
-    if (val.startsWith(`'`) && val.endsWith(`'`)) {
-      val = val.replace(/\'/g, '"');
+    if (!this.__cssDataCache) {
+      this.__cssDataCache = Object.create(null);
     }
-    try {
-      return JSON.parse(val);
-    } catch (e) {
-      !silentCheck && console.warn(`CSS Data error: ${propName}`);
-      return null;
+    if (!Object.keys(this.__cssDataCache).includes(propName)) {
+      if (!this.__computedStyle) {
+        this.__computedStyle = window.getComputedStyle(this);
+      }
+      let val = this.__computedStyle.getPropertyValue(propName).trim();
+      // Firefox doesn't transform string values into JSON format:
+      if (val.startsWith(`'`) && val.endsWith(`'`)) {
+        val = val.replace(/\'/g, '"');
+      }
+      try {
+        this.__cssDataCache[propName] = JSON.parse(val);
+      } catch (e) {
+        !silentCheck && console.warn(`CSS Data error: ${propName}`);
+        this.__cssDataCache[propName] = null;
+      }
     }
+    return this.__cssDataCache[propName];
+  }
+
+  dropCssDataCache() {
+    this.__cssDataCache = null;
+    this.__computedStyle = null;
   }
 
   /**
