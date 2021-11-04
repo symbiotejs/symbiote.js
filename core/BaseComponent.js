@@ -76,8 +76,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   get cssCtxName() {
-    let style = window.getComputedStyle(this);
-    return style.getPropertyValue(DICT.CSS_CTX_PROP).trim();
+    return this.getCssData(DICT.CSS_CTX_PROP);
   }
 
   get ctxName() {
