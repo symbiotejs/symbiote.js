@@ -129,6 +129,15 @@ export class BaseComponent extends HTMLElement {
     this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
+  /**
+   * 
+   * @param {String} prop 
+   */
+  notify(prop) {
+    let parsed = BaseComponent.__parseProp(prop, this);
+    parsed.ctx.notify(parsed.name);
+  }
+
   /** @param {String} prop */
   has(prop) {
     let parsed = BaseComponent.__parseProp(prop, this);
