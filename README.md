@@ -64,7 +64,7 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 **This code can work directly in any modern browser, so you don't need to install anything to try it!**
 
 ## 🧜‍♀️ Dive deeper
-* Installation
+* [Installation](https://github.com/symbiotejs/docsite/blob/main/md/Installation.md)
 * [Templates](https://github.com/symbiotejs/docsite/blob/main/md/Templates.md)
 * [Lifecycle](https://github.com/symbiotejs/docsite/blob/main/md/Lifecycle.md)
 * [Component data context](https://github.com/symbiotejs/docsite/blob/main/md/Component_data_context.md)
@@ -76,7 +76,7 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 * Domain specific data
 * DOM helpers
 * Indexed DB
-* TypeScript
+* [TypeScript](https://github.com/symbiotejs/docsite/blob/main/md/TypeScript.md)
 * Solution history
 * Playground
 
