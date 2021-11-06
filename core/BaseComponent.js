@@ -70,13 +70,13 @@ export class BaseComponent extends HTMLElement {
   get autoCtxName() {
     if (!this.__autoCtxName) {
       this.__autoCtxName = UID.generate();
-      this.style.setProperty(DICT.CSS_CTX_PROP, this.__autoCtxName);
+      this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.__autoCtxName}'`);
     }
     return this.__autoCtxName;
   }
 
   get cssCtxName() {
-    return this.getCssData(DICT.CSS_CTX_PROP);
+    return this.getCssData(DICT.CSS_CTX_PROP, true);
   }
 
   get ctxName() {
@@ -225,7 +225,7 @@ export class BaseComponent extends HTMLElement {
     if (!this.connectedOnce) {
       let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
       if (ctxNameAttrVal) {
-        this.style.setProperty(DICT.CSS_CTX_PROP, ctxNameAttrVal);
+        this.style.setProperty(DICT.CSS_CTX_PROP, `'${ctxNameAttrVal}'`);
       }
       this.__initDataCtx();
       this.__initChildren = [...this.childNodes];
