@@ -80,6 +80,11 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 * Solution history
 * Playground
 
+## 🤖 Live examples
+Browser: https://symbiotejs.github.io/examples/
+
+GitHub: https://github.com/symbiotejs/examples
+
 ## ✅ Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
 * Chrome
