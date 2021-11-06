@@ -8,7 +8,7 @@
 * Ultralight (2.6kb br/gzip for featurefull CDN version)
 * Blazing fast (faster than most of the other mainstream solutions. All of them.)
 * Memory friendly (no any redux-like immutables)
-* CSP friendly - good for enterprize usage
+* CSP friendly - good for enterprise usage
 * Highly extensible
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies
 * Works in all modern browsers. As is.
