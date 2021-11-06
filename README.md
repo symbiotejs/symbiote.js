@@ -106,6 +106,4 @@ Big thanks to 🟡 **Uploadcare** for supporting this project!
 * https://custom-elements-everywhere.com
 * https://open-wc.org/
 
-## This is not a final version of the README file, work still in progress...
-
-## Issues and PRs are welcome
+## If you have questions or proposals - welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)! ❤️
