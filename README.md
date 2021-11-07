@@ -81,7 +81,8 @@ Easiest way to try Symbiote.js is to create simple `html` file in your text edit
 * Playground
 
 ## 🤖 Live examples
-Browser: https://symbiotejs.github.io/examples/
+Browser: https://symbiotejs.github.io/examples/ 
+> Use devtools to discover details 
 
 GitHub: https://github.com/symbiotejs/examples
 
