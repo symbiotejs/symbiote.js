@@ -249,6 +249,7 @@ function slotProcessor(fr, fnCtx) {
     fnCtx.innerHTML = '';
   }
 }
+
 function refProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
     let refName = el.getAttribute(DICT.EL_REF_ATTR);
@@ -256,6 +257,7 @@ function refProcessor(fr, fnCtx) {
     el.removeAttribute(DICT.EL_REF_ATTR);
   });
 }
+
 /**
  * @param {DocumentFragment} fr
  * @param {any} fnCtx
@@ -325,6 +327,7 @@ function domSetProcessor(fr, fnCtx) {
     el.removeAttribute(DICT.BIND_ATTR);
   });
 }
+
 var PROCESSORS = [slotProcessor, refProcessor, domSetProcessor];
 
 let autoTagsCount = 0;
@@ -509,6 +512,10 @@ class BaseComponent extends HTMLElement {
   initCallback() {}
 
   __initDataCtx() {
+    if (typeof this.init$ === 'function') {
+      this.init$ = this.init$();
+    }
+
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
