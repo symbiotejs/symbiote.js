@@ -36,7 +36,7 @@ function slotProcessor(fr, fnCtx) {
   } else {
     fnCtx.innerHTML = '';
   }
-};
+}
 
 function refProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
@@ -44,12 +44,11 @@ function refProcessor(fr, fnCtx) {
     fnCtx.ref[refName] = el;
     el.removeAttribute(DICT.EL_REF_ATTR);
   });
-};
+}
 
 /**
- * 
- * @param {DocumentFragment} fr 
- * @param {import('./BaseComponent.js').BaseComponent} fnCtx 
+ * @param {DocumentFragment} fr
+ * @param {any} fnCtx
  */
 function domSetProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
@@ -62,7 +61,7 @@ function domSetProcessor(fr, fnCtx) {
       let kv = keyValStr.split(':').map((str) => str.trim());
       let prop = kv[0];
       let isAttr;
-      
+
       if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
         isAttr = true;
         prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
@@ -115,10 +114,6 @@ function domSetProcessor(fr, fnCtx) {
     });
     el.removeAttribute(DICT.BIND_ATTR);
   });
-};
+}
 
-export default [
-  slotProcessor,
-  refProcessor,
-  domSetProcessor,
-];
+export default [slotProcessor, refProcessor, domSetProcessor];

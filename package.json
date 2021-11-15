@@ -9,7 +9,8 @@
     "lint:prettier": "prettier \"**/*.js\" --check --ignore-path .gitignore",
     "format:prettier": "prettier \"**/*.js\" --write --ignore-path .gitignore",
     "lint": "npm run lint:types && npm run lint:eslint && npm run lint:prettier",
-    "format": "npm run format:eslint && npm run format:prettier"
+    "format": "npm run format:eslint && npm run format:prettier",
+    "build": "mkdir -p build && rollup --config rollup.config.js"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
@@ -21,6 +22,8 @@
     "lint-staged": "^11.2.3",
     "prettier": "^2.0.5",
     "prettier-plugin-jsdoc": "0.0.17",
+    "rollup": "^2.60.0",
+    "rollup-plugin-terser": "^7.0.2",
     "typescript": "^3.9.7"
   },
   "eslintConfig": {
