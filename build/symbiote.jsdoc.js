@@ -695,4 +695,4 @@ class BaseComponent extends HTMLElement {
   }
 }
 
-export { BaseComponent };
+export { BaseComponent, Data };

@@ -6,7 +6,7 @@ import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
-export class BaseComponent extends HTMLElement {
+class BaseComponent extends HTMLElement {
   /**
    * @param {String | DocumentFragment} [template]
    * @param {Boolean} [shadow]
@@ -368,3 +368,5 @@ export class BaseComponent extends HTMLElement {
     this[propName] = this[localPropName];
   }
 }
+
+export { BaseComponent, Data };
