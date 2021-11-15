@@ -129,10 +129,7 @@ export class BaseComponent extends HTMLElement {
     this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
-  /**
-   * 
-   * @param {String} prop 
-   */
+  /** @param {String} prop */
   notify(prop) {
     let parsed = BaseComponent.__parseProp(prop, this);
     parsed.ctx.notify(parsed.name);
@@ -189,6 +186,10 @@ export class BaseComponent extends HTMLElement {
   initCallback() {}
 
   __initDataCtx() {
+    if (typeof this.init$ === 'function') {
+      this.init$ = this.init$();
+    }
+
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
@@ -309,8 +310,8 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** 
-   * @param {String} propName 
+  /**
+   * @param {String} propName
    * @param {Boolean} [silentCheck]
    */
   getCssData(propName, silentCheck = false) {
