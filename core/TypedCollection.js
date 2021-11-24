@@ -5,13 +5,13 @@ import { TypedData } from './TypedData.js';
 export class TypedCollection {
   /**
    * @param {Object} options
-   * @param {Object<string, {type: any, value: any}>} options.typedSchema 
-   * @param {String[]} [options.watchList] 
-   * @param {(list:string[]) => void} [options.handler] 
-   * @param {String} [options.ctxName] 
+   * @param {Object<string, { type: any; value: any }>} options.typedSchema
+   * @param {String[]} [options.watchList]
+   * @param {(list: string[]) => void} [options.handler]
+   * @param {String} [options.ctxName]
    */
   constructor(options) {
-    /** @type {Object<string, {type: any, value: any}>} */
+    /** @type {Object<string, { type: any; value: any }>} */
     this.__typedSchema = options.typedSchema;
     /** @type {String} */
     this.__ctxId = options.ctxName || UID.generate();
@@ -19,7 +19,7 @@ export class TypedCollection {
     this.__state = Data.registerNamedCtx(this.__ctxId, {});
     /** @type {string[]} */
     this.__watchList = options.watchList || [];
-    /** @type {(list:string[]) => void} */
+    /** @type {(list: string[]) => void} */
     this.__handler = options.handler || null;
     this.__subsMap = Object.create(null);
     /** @type {Set} */
@@ -39,7 +39,7 @@ export class TypedCollection {
       changeMap[propName].add(ctxId);
       this.__observeTimeout = window.setTimeout(() => {
         this.__observers.forEach((handler) => {
-          handler({...changeMap});
+          handler({ ...changeMap });
         });
         changeMap = Object.create(null);
       });
@@ -65,9 +65,11 @@ export class TypedCollection {
       if (!this.__subsMap[item.__ctxId]) {
         this.__subsMap[item.__ctxId] = [];
       }
-      this.__subsMap[item.__ctxId].push(item.subscribe(propName, () => {
-        this.__notifyObservers(propName, item.__ctxId);
-      }));
+      this.__subsMap[item.__ctxId].push(
+        item.subscribe(propName, () => {
+          this.__notifyObservers(propName, item.__ctxId);
+        })
+      );
     });
     this.__items.add(item.__ctxId);
     this.notify();
@@ -75,8 +77,7 @@ export class TypedCollection {
   }
 
   /**
-   * 
-   * @param {String} id 
+   * @param {String} id
    * @returns {TypedData}
    */
   read(id) {
@@ -106,25 +107,18 @@ export class TypedCollection {
     });
   }
 
-  /**
-   * 
-   * @param {Function} handler 
-   */
+  /** @param {Function} handler */
   observe(handler) {
     this.__observers.add(handler);
-  } 
+  }
 
-  /**
-   * 
-   * @param {Function} handler 
-   */
+  /** @param {Function} handler */
   unobserve(handler) {
     this.__observers.delete(handler);
   }
 
   /**
-   * 
-   * @param {(item: TypedData) => Boolean} checkFn 
+   * @param {(item: TypedData) => Boolean} checkFn
    * @returns {String[]}
    */
   findItems(checkFn) {

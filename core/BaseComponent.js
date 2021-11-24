@@ -6,7 +6,7 @@ import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
-class BaseComponent extends HTMLElement {
+export class BaseComponent extends HTMLElement {
   /**
    * @param {String | DocumentFragment} [template]
    * @param {Boolean} [shadow]
@@ -186,10 +186,6 @@ class BaseComponent extends HTMLElement {
   initCallback() {}
 
   __initDataCtx() {
-    if (typeof this.init$ === 'function') {
-      this.init$ = this.init$();
-    }
-
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
@@ -368,5 +364,3 @@ class BaseComponent extends HTMLElement {
     this[propName] = this[localPropName];
   }
 }
-
-export { BaseComponent, Data };

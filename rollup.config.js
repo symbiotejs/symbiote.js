@@ -2,7 +2,7 @@ import { terser } from 'rollup-plugin-terser';
 
 export default [
   {
-    input: 'core/BaseComponent.js',
+    input: 'core/symbiote.js',
     output: [
       {
         file: 'build/symbiote.min.js',
