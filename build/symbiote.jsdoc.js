@@ -36,7 +36,7 @@ class Data {
    * @param {String} prop
    */
   static warn(actionName, prop) {
-    console.warn(`State: cannot ${actionName}. Prop name: ` + prop);
+    console.warn(`Symbiote Data: cannot ${actionName}. Prop name: ` + prop);
   }
 
   /** @param {String} prop */
