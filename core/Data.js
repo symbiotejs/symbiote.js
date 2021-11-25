@@ -36,7 +36,7 @@ export class Data {
    * @param {String} prop
    */
   static warn(actionName, prop) {
-    console.warn(`State: cannot ${actionName}. Prop name: ` + prop);
+    console.warn(`Symbiote Data: cannot ${actionName}. Prop name: ` + prop);
   }
 
   /** @param {String} prop */
@@ -82,11 +82,8 @@ export class Data {
     this.add(prop, val);
   }
 
-  /**
-   * 
-   * @param {Object<string, *>} updObj 
-   */
-   multiPub(updObj) {
+  /** @param {Object<string, any>} updObj */
+  multiPub(updObj) {
     for (let prop in updObj) {
       this.pub(prop, updObj[prop]);
     }
