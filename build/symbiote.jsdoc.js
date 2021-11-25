@@ -512,10 +512,6 @@ class BaseComponent extends HTMLElement {
   initCallback() {}
 
   __initDataCtx() {
-    if (typeof this.init$ === 'function') {
-      this.init$ = this.init$();
-    }
-
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
