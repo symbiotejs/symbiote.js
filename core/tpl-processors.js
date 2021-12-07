@@ -24,6 +24,7 @@ function slotProcessor(fr, fnCtx) {
     fnCtx.__initChildren.forEach((/** @type {Element} */ child) => {
       let slotName = child.getAttribute?.('slot');
       if (slotName) {
+        child.removeAttribute('slot');
         slotMap[slotName].fr.appendChild(child);
       } else if (slotMap.__default__) {
         slotMap.__default__.fr.appendChild(child);
