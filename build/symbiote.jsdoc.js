@@ -236,6 +236,7 @@ function slotProcessor(fr, fnCtx) {
     fnCtx.__initChildren.forEach((/** @type {Element} */ child) => {
       let slotName = child.getAttribute?.('slot');
       if (slotName) {
+        child.removeAttribute('slot');
         slotMap[slotName].fr.appendChild(child);
       } else if (slotMap.__default__) {
         slotMap.__default__.fr.appendChild(child);
@@ -1210,11 +1211,11 @@ class DbInstance {
         });
       }
     };
-    this._localUpdateHanler = (e) => {
+    this._localUpdateHandler = (e) => {
       this._updateHandler(e.detail);
     };
     window.addEventListener('storage', this._updateHandler);
-    window.addEventListener(this._updEventName, this._localUpdateHanler);
+    window.addEventListener(this._updEventName, this._localUpdateHandler);
   }
 
   /** @param {String} key */
