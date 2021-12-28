@@ -19,6 +19,9 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
