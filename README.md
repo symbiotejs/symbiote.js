@@ -5,7 +5,7 @@
 ### 🔥 Core benefits
 * Minimalistic but reach
 * No additional dependencies
-* Ultralight (2.7kb br/gzip for featurefull CDN version)
+* Ultralight (~3kb br/gzip for featurefull CDN version)
 * Blazing fast (faster than most of the other mainstream solutions. All of them.)
 * Memory friendly (no any redux-like immutables)
 * CSP friendly - good for enterprise usage

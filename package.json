@@ -22,6 +22,21 @@
   "publishConfig": {
     "access": "public"
   },
+  "version": "1.1.2",
+  "description": "Symbiote.js",
+  "author": "hello@symbiotejs.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/symbiotejs/symbiote.js/issues"
+  },
+  "homepage": "https://symbiotejs.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
+  },
+  "keywords": [
+    "symbiote.js, web components, custom elements, shadow dom, ui framework"
+  ],
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
@@ -89,20 +104,5 @@
       "prettier --write",
       "git add"
     ]
-  },
-  "version": "1.1.1",
-  "description": "Symbiote.js",
-  "author": "hello@symbiotejs.org",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/symbiotejs/symbiote.js/issues"
-  },
-  "homepage": "https://symbiotejs.org/",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
-  },
-  "keywords": [
-    "symbiote.js, web components, custom elements, shadow dom, ui framework"
-  ]
+  }
 }
