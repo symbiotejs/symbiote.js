@@ -1,7 +1,6 @@
 {
   "type": "module",
-  "module": "core/BaseComponent.js",
-  "main": "core/BaseComponent.js",
+  "name": "@symbiotejs/symbiote",
   "scripts": {
     "lint:types": "tsc",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
@@ -10,11 +9,20 @@
     "format:prettier": "prettier \"**/*.js\" --write --ignore-path .gitignore",
     "lint": "npm run lint:types && npm run lint:eslint && npm run lint:prettier",
     "format": "npm run format:eslint && npm run format:prettier",
-    "build": "mkdir -p build && rollup --config rollup.config.js"
+    "build": "node esbuild.js && rollup --config rollup.config.js"
   },
+  "files": [
+    "build/symbiote.min.js",
+    "build/symbiote.jsdoc.js",
+    "build/symbiote.base.min.js",
+    "build/symbiote.base.jsdoc.js",
+    "README.md",
+    "LICENSE"
+  ],
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
+    "esbuild": "^0.14.8",
     "eslint": "^8.0.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
@@ -23,7 +31,6 @@
     "prettier": "^2.0.5",
     "prettier-plugin-jsdoc": "0.0.17",
     "rollup": "^2.60.0",
-    "rollup-plugin-terser": "^7.0.2",
     "typescript": "^3.9.7"
   },
   "eslintConfig": {
@@ -80,8 +87,7 @@
       "git add"
     ]
   },
-  "name": "@symbiotejs/symbiote.js",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",
