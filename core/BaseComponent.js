@@ -36,6 +36,13 @@ export class BaseComponent extends HTMLElement {
         fn(fr, this);
       }
     }
+    if (this.constructor['__shadowStylesUrl']) {
+      shadow = true;
+      let styleLink = document.createElement('link');
+      styleLink.rel = 'stylesheet';
+      styleLink.href = this.constructor['__shadowStylesUrl'];
+      fr.prepend(styleLink);
+    }
     if (shadow) {
       if (!this.shadowRoot) {
         this.attachShadow({
@@ -362,5 +369,13 @@ export class BaseComponent extends HTMLElement {
       },
     });
     this[propName] = this[localPropName];
+  }
+
+  /** @param {String} cssTxt */
+  static set shadowStyles(cssTxt) {
+    let styleBlob = new Blob([cssTxt], {
+      type: 'text/css',
+    });
+    this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
   }
 }
