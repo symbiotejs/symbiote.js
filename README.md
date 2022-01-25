@@ -52,7 +52,7 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
   }
 
   MyComponent.template = /*html*/ `
-    <h2 set="textContent: count"></h2>
+    <h2>{{count}}</h2>
     <button set="onclick: increment">Click me!</button>
   `;
 
