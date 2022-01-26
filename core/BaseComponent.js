@@ -7,6 +7,16 @@ import PROCESSORS from './tpl-processors.js';
 let autoTagsCount = 0;
 
 export class BaseComponent extends HTMLElement {
+  initCallback() {}
+
+  __initCallback() {
+    if (this.__initialized) {
+      return;
+    }
+    this.__initialized = true;
+    this.initCallback?.();
+  }
+
   /**
    * @param {String | DocumentFragment} [template]
    * @param {Boolean} [shadow]
@@ -36,25 +46,16 @@ export class BaseComponent extends HTMLElement {
         fn(fr, this);
       }
     }
-    if (shadow || this.constructor['__shadowStylesUrl']) {
-      if (!this.shadowRoot) {
-        this.attachShadow({
-          mode: 'open',
-        });
-      }
+    if ((shadow || this.constructor['__shadowStylesUrl']) && !this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open',
+      });
     }
 
     // for the possible asynchronous call:
     let addFr = () => {
-      if (!fr) {
-        return;
-      }
-      if (shadow) {
-        this.shadowRoot.appendChild(fr);
-      } else {
-        this.appendChild(fr);
-      }
-      this.initCallback?.();
+      fr && ((shadow && this.shadowRoot.appendChild(fr)) || this.appendChild(fr));
+      this.__initCallback();
     };
 
     if (this.constructor['__shadowStylesUrl']) {
@@ -203,8 +204,6 @@ export class BaseComponent extends HTMLElement {
       this.$[key] = kvObj[key];
     }
   }
-
-  initCallback() {}
 
   __initDataCtx() {
     let attrDesc = this.constructor['__attrDesc'];
