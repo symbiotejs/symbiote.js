@@ -36,22 +36,36 @@ export class BaseComponent extends HTMLElement {
         fn(fr, this);
       }
     }
-    if (this.constructor['__shadowStylesUrl']) {
-      shadow = true;
-      let styleLink = document.createElement('link');
-      styleLink.rel = 'stylesheet';
-      styleLink.href = this.constructor['__shadowStylesUrl'];
-      fr.prepend(styleLink);
-    }
-    if (shadow) {
+    if (shadow || this.constructor['__shadowStylesUrl']) {
       if (!this.shadowRoot) {
         this.attachShadow({
           mode: 'open',
         });
       }
-      fr && this.shadowRoot.appendChild(fr);
+    }
+
+    // for the possible asynchronous call:
+    let addFr = () => {
+      if (!fr) {
+        return;
+      }
+      if (shadow) {
+        this.shadowRoot.appendChild(fr);
+      } else {
+        this.appendChild(fr);
+      }
+      this.initCallback?.();
+    };
+
+    if (this.constructor['__shadowStylesUrl']) {
+      shadow = true; // is needed for cases when Shadow DOM was created manually for some other purposes
+      let styleLink = document.createElement('link');
+      styleLink.rel = 'stylesheet';
+      styleLink.href = this.constructor['__shadowStylesUrl'];
+      styleLink.onload = addFr;
+      this.shadowRoot.prepend(styleLink); // the link shoud be added before the other template elements
     } else {
-      fr && this.appendChild(fr);
+      addFr();
     }
   }
 
@@ -239,7 +253,6 @@ export class BaseComponent extends HTMLElement {
       if (!this.pauseRender) {
         this.render();
       }
-      this.initCallback?.();
     }
     this.connectedOnce = true;
   }
