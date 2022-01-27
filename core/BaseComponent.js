@@ -352,6 +352,17 @@ export class BaseComponent extends HTMLElement {
     return this.__cssDataCache[propName];
   }
 
+  /**
+   * @param {String} propName
+   * @param {Boolean} [external]
+   * @returns {String}
+   */
+  bindCssData(propName, external = true) {
+    let stateName = (external ? DICT.EXT_DATA_CTX_PRFX : '') + propName;
+    this.add(stateName, this.getCssData(propName, true));
+    return stateName;
+  }
+
   dropCssDataCache() {
     this.__cssDataCache = null;
     this.__computedStyle = null;
