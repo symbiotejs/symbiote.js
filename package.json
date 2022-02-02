@@ -15,18 +15,17 @@
   "files": [
     "build/symbiote.js",
     "build/symbiote.min.js",
-    "build/symbiote.base.js",
-    "build/symbiote.base.min.js",
-    "build/types.d.ts",
+    "build/BaseComponent.min.js",
+    "build/symbiote.d.ts",
     "README.md",
     "LICENSE"
   ],
   "module": "./build/symbiote.js",
-  "types": "./build/types.d.ts",
+  "types": "./build/symbiote.d.ts",
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",

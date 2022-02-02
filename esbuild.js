@@ -13,13 +13,8 @@ const buildSequence = [
   },
   {
     in: './core/BaseComponent.js',
-    out: './build/symbiote.base.min.js',
+    out: './build/BaseComponent.min.js',
     minify: true,
-  },
-  {
-    in: './core/BaseComponent.js',
-    out: './build/symbiote.base.js',
-    minify: false,
   },
 ];
 

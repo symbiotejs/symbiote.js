@@ -5,7 +5,7 @@
   "entries": [
     {
       "filePath": "./core/symbiote.js",
-      "outFile": "./build/types.d.ts",
+      "outFile": "./build/symbiote.d.ts",
       "noCheck": true,
       "output": {
         "noBanner": true
