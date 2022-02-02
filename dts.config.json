@@ -1,0 +1,15 @@
+{
+  "compilationOptions": {
+    "preferredConfigPath": "./tsconfig.json"
+  },
+  "entries": [
+    {
+      "filePath": "./core/symbiote.js",
+      "outFile": "./build/types.d.ts",
+      "noCheck": true,
+      "output": {
+        "noBanner": true
+      }
+    }
+  ]
+}
