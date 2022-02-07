@@ -24,6 +24,7 @@ export class Data {
       this.store = cloneObj(src.schema);
     } else {
       // For Proxy support:
+      /** @private */
       this._storeIsProxy = true;
       this.store = src.schema;
     }
@@ -55,7 +56,7 @@ export class Data {
 
   /**
    * @param {String} prop
-   * @param {any} val
+   * @param {unknown} val
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = true) {
@@ -71,8 +72,9 @@ export class Data {
   }
 
   /**
+   * @template T
    * @param {String} prop
-   * @param {any} val
+   * @param {T} val
    */
   pub(prop, val) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {

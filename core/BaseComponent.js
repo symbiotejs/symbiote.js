@@ -9,13 +9,18 @@ let autoTagsCount = 0;
 export class BaseComponent extends HTMLElement {
   initCallback() {}
 
+  /** @private */
   __initCallback() {
     if (this.__initialized) {
       return;
     }
+    /** @private */
     this.__initialized = true;
     this.initCallback?.();
   }
+
+  /** @type {String} */
+  static template;
 
   /**
    * @param {String | DocumentFragment} [template]
@@ -70,55 +75,71 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** @param {(fr: DocumentFragment, fnCtx: any) => any} processorFn */
+  /**
+   * @template {BaseComponent} T
+   * @param {(fr: DocumentFragment, fnCtx: T) => void} processorFn
+   */
   addTemplateProcessor(processorFn) {
     this.tplProcessors.add(processorFn);
   }
 
   constructor() {
     super();
-    /** @type {Object<string, any>} */
+    /** @type {Object<string, unknown>} */
     this.init$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment, fnCtx: any) => any>} */
+
+    /** @type {Set<(fr: DocumentFragment, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
-    /** @type {Object<string, HTMLElement>} */
+    /** @type {Object<string, unknown>} */
     this.ref = Object.create(null);
     this.allSubs = new Set();
+    /** @type {Boolean} */
     this.pauseRender = false;
+    /** @type {Boolean} */
     this.renderShadow = false;
+    /** @type {Boolean} */
     this.readyToDestroy = true;
   }
 
+  /** @returns {String} */
   get autoCtxName() {
     if (!this.__autoCtxName) {
+      /** @private */
       this.__autoCtxName = UID.generate();
       this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.__autoCtxName}'`);
     }
     return this.__autoCtxName;
   }
 
+  /** @returns {String} */
   get cssCtxName() {
     return this.getCssData(DICT.CSS_CTX_PROP, true);
   }
 
+  /** @returns {String} */
   get ctxName() {
     return this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.autoCtxName;
   }
 
+  /** @returns {Data} */
   get localCtx() {
     if (!this.__localCtx) {
+      /** @private */
       this.__localCtx = Data.registerLocalCtx({});
     }
     return this.__localCtx;
   }
 
+  /** @returns {Data} */
   get nodeCtx() {
     return Data.getNamedCtx(this.ctxName, false) || Data.registerNamedCtx(this.ctxName, {});
   }
 
   /**
+   * @private
+   * @template {BaseComponent} T
    * @param {String} prop
-   * @param {any} fnCtx
+   * @param {T} fnCtx
    */
   static __parseProp(prop, fnCtx) {
     /** @type {Data} */
@@ -143,8 +164,9 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
+   * @template T
    * @param {String} prop
-   * @param {(value: any) => void} handler
+   * @param {(value: T) => void} handler
    */
   sub(prop, handler) {
     let parsed = BaseComponent.__parseProp(prop, this);
@@ -164,15 +186,19 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
+   * @template T
    * @param {String} prop
-   * @param {any} val
+   * @param {T} val
    */
   add(prop, val) {
     let parsed = BaseComponent.__parseProp(prop, this);
     parsed.ctx.add(parsed.name, val, false);
   }
 
-  /** @param {Object<string, any>} obj */
+  /**
+   * @template T
+   * @param {Object<string, T>} obj
+   */
   add$(obj) {
     for (let prop in obj) {
       this.add(prop, obj[prop]);
@@ -183,6 +209,7 @@ export class BaseComponent extends HTMLElement {
     if (!this.__stateProxy) {
       /** @type {Object<string, any>} */
       let o = Object.create(null);
+      /** @private */
       this.__stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
           let parsed = BaseComponent.__parseProp(prop, this);
@@ -205,6 +232,7 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
+  /** @private */
   __initDataCtx() {
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
@@ -245,7 +273,6 @@ export class BaseComponent extends HTMLElement {
         this.style.setProperty(DICT.CSS_CTX_PROP, `'${ctxNameAttrVal}'`);
       }
       this.__initDataCtx();
-      this.__initChildren = [...this.childNodes];
       for (let proc of PROCESSORS) {
         this.addTemplateProcessor(proc);
       }
@@ -266,6 +293,7 @@ export class BaseComponent extends HTMLElement {
     if (this.__disconnectTimeout) {
       window.clearTimeout(this.__disconnectTimeout);
     }
+    /** @private */
     this.__disconnectTimeout = window.setTimeout(() => {
       this.destroyCallback();
       for (let sub of this.allSubs) {
@@ -287,6 +315,7 @@ export class BaseComponent extends HTMLElement {
       autoTagsCount++;
       tagName = `${DICT.AUTO_TAG_PRFX}-${autoTagsCount}`;
     }
+    /** @private */
     this.__tag = tagName;
     if (window.customElements.get(tagName)) {
       console.warn(`${tagName} - is already in "customElements" registry`);
@@ -305,6 +334,7 @@ export class BaseComponent extends HTMLElement {
   /** @param {Object<string, string>} desc */
   static bindAttributes(desc) {
     this.observedAttributes = Object.keys(desc);
+    /** @private */
     this.__attrDesc = desc;
   }
 
@@ -331,10 +361,12 @@ export class BaseComponent extends HTMLElement {
    */
   getCssData(propName, silentCheck = false) {
     if (!this.__cssDataCache) {
+      /** @private */
       this.__cssDataCache = Object.create(null);
     }
     if (!Object.keys(this.__cssDataCache).includes(propName)) {
       if (!this.__computedStyle) {
+        /** @private */
         this.__computedStyle = window.getComputedStyle(this);
       }
       let val = this.__computedStyle.getPropertyValue(propName).trim();
@@ -399,6 +431,7 @@ export class BaseComponent extends HTMLElement {
     let styleBlob = new Blob([cssTxt], {
       type: 'text/css',
     });
+    /** @private */
     this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
   }
 }

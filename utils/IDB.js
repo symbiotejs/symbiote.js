@@ -4,6 +4,11 @@ const DEFAULT_DB_NAME = `symbiote-db`;
 const UPD_EVENT_PREFIX = `symbiote-idb-update_`;
 
 class DbInstance {
+  /**
+   * @private
+   * @template {Event} T
+   * @param {T} [event]
+   */
   _notifyWhenReady(event = null) {
     window.dispatchEvent(
       new CustomEvent(READY_EVENT_NAME, {
@@ -16,11 +21,18 @@ class DbInstance {
     );
   }
 
+  /**
+   * @private
+   * @returns {String}
+   */
   get _updEventName() {
     return UPD_EVENT_PREFIX + this.name;
   }
 
-  /** @param {any} key */
+  /**
+   * @private
+   * @param {String} key
+   */
   _getUpdateEvent(key) {
     return new CustomEvent(this._updEventName, {
       detail: {
@@ -30,6 +42,10 @@ class DbInstance {
     });
   }
 
+  /**
+   * @private
+   * @param {String} key
+   */
   _notifySubscribers(key) {
     window.localStorage.removeItem(this.name);
     window.localStorage.setItem(this.name, key);
@@ -41,9 +57,13 @@ class DbInstance {
    * @param {String} storeName
    */
   constructor(dbName, storeName) {
+    /** @type {String} */
     this.name = dbName;
+    /** @type {String} */
     this.storeName = storeName;
+    /** @type {Number} */
     this.version = 1;
+    /** @type {IDBOpenDBRequest} */
     this.request = window.indexedDB.open(this.name, this.version);
     this.request.onupgradeneeded = (e) => {
       this.db = e.target['result'];
@@ -54,7 +74,7 @@ class DbInstance {
         this._notifyWhenReady(ev);
       };
     };
-    this.request.onsuccess = (e) => {
+    this.request.onsuccess = (/** @type {StorageEvent} */ e) => {
       // @ts-ignore
       this.db = e.target.result;
       this._notifyWhenReady(e);
@@ -62,7 +82,9 @@ class DbInstance {
     this.request.onerror = (e) => {
       console.error(e);
     };
+    /** @private */
     this._subscribtionsMap = {};
+    /** @private */
     this._updateHandler = (/** @type {StorageEvent} */ e) => {
       if (e.key === this.name && this._subscribtionsMap[e.newValue]) {
         /** @type {Set<Function>} */
@@ -72,6 +94,7 @@ class DbInstance {
         });
       }
     };
+    /** @private */
     this._localUpdateHandler = (e) => {
       this._updateHandler(e.detail);
     };
@@ -163,7 +186,7 @@ class DbInstance {
 
   /**
    * @param {String} key
-   * @param {Function} callback
+   * @param {(val: any) => void} callback
    */
   subscribe(key, callback) {
     if (!this._subscribtionsMap[key]) {
@@ -190,17 +213,18 @@ class DbInstance {
 }
 
 export class IDB {
+  /** @returns {String} */
   static get readyEventName() {
     return READY_EVENT_NAME;
   }
 
   /**
    * @param {String} dbName
-   * @param {String} storeName
+   * @param {String} [storeName]
    * @returns {DbInstance}
    */
   static open(dbName = DEFAULT_DB_NAME, storeName = 'store') {
-    let key = `${dbName}/${storeName}`;
+    let key = dbName + '/' + storeName;
     if (!this._reg[key]) {
       this._reg[key] = new DbInstance(dbName, storeName);
     }

@@ -5,30 +5,60 @@ import { TypedData } from './TypedData.js';
 export class TypedCollection {
   /**
    * @param {Object} options
-   * @param {Object<string, { type: any; value: any }>} options.typedSchema
+   * @param {Object<string, { type: any; value: * }>} options.typedSchema
    * @param {String[]} [options.watchList]
    * @param {(list: string[]) => void} [options.handler]
    * @param {String} [options.ctxName]
    */
   constructor(options) {
-    /** @type {Object<string, { type: any; value: any }>} */
+    /**
+     * @private
+     * @type {Object<string, { type: any; value: * }>}
+     */
     this.__typedSchema = options.typedSchema;
-    /** @type {String} */
+    /**
+     * @private
+     * @type {String}
+     */
     this.__ctxId = options.ctxName || UID.generate();
-    /** @type {Data} */
+    /**
+     * @private
+     * @type {Data}
+     */
     this.__state = Data.registerNamedCtx(this.__ctxId, {});
-    /** @type {string[]} */
+    /**
+     * @private
+     * @type {string[]}
+     */
     this.__watchList = options.watchList || [];
-    /** @type {(list: string[]) => void} */
+    /**
+     * @private
+     * @type {(list: string[]) => void}
+     */
     this.__handler = options.handler || null;
+    /**
+     * @private
+     * @type {Object<string, any>}
+     */
     this.__subsMap = Object.create(null);
-    /** @type {Set} */
+    /**
+     * @private
+     * @type {Set}
+     */
     this.__observers = new Set();
-    /** @type {Set<string>} */
+    /**
+     * @private
+     * @type {Set<string>}
+     */
     this.__items = new Set();
 
     let changeMap = Object.create(null);
 
+    /**
+     * @private
+     * @param {String} propName
+     * @param {String} ctxId
+     */
     this.__notifyObservers = (propName, ctxId) => {
       if (this.__observeTimeout) {
         window.clearTimeout(this.__observeTimeout);
@@ -37,6 +67,7 @@ export class TypedCollection {
         changeMap[propName] = new Set();
       }
       changeMap[propName].add(ctxId);
+      /** @private */
       this.__observeTimeout = window.setTimeout(() => {
         this.__observers.forEach((handler) => {
           handler({ ...changeMap });
@@ -50,11 +81,16 @@ export class TypedCollection {
     if (this.__notifyTimeout) {
       window.clearTimeout(this.__notifyTimeout);
     }
+    /** @private */
     this.__notifyTimeout = window.setTimeout(() => {
       this.__handler?.([...this.__items]);
     });
   }
 
+  /**
+   * @param {Object<string, any>} init
+   * @returns {any}
+   */
   add(init) {
     let item = new TypedData(this.__typedSchema);
     for (let prop in init) {
@@ -84,16 +120,28 @@ export class TypedCollection {
     return this.__state.read(id);
   }
 
+  /**
+   * @param {String} id
+   * @param {String} propName
+   * @returns {any}
+   */
   readProp(id, propName) {
     let item = this.read(id);
     return item.getValue(propName);
   }
 
+  /**
+   * @template T
+   * @param {String} id
+   * @param {String} propName
+   * @param {T} value
+   */
   publishProp(id, propName, value) {
     let item = this.read(id);
     item.setValue(propName, value);
   }
 
+  /** @param {String} id */
   remove(id) {
     this.__items.delete(id);
     this.notify();

@@ -13,10 +13,9 @@
     "build": "node esbuild.js && npm run types"
   },
   "files": [
-    "build/symbiote.js",
-    "build/symbiote.min.js",
-    "build/BaseComponent.min.js",
-    "build/symbiote.d.ts",
+    "build/*",
+    "core/*",
+    "utils/*",
     "README.md",
     "LICENSE"
   ],
@@ -25,7 +24,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",

@@ -1,23 +1,17 @@
- import { Data } from './Data.js';
- 
- export class AppRouter {
+import { Data } from './Data.js';
 
+export class AppRouter {
+  /** @private */
   static _print(msg) {
     console.warn(msg);
   }
 
-  /**
-   *
-   * @param {String} title
-   */
+  /** @param {String} title */
   static setDefaultTitle(title) {
     this.defaultTitle = title;
   }
 
-  /**
-   *
-   * @param {Object<string, {}>} map
-   */
+  /** @param {Object<string, {}>} map */
   static setRoutingMap(map) {
     Object.assign(this.appMap, map);
     for (let route in this.appMap) {
@@ -29,10 +23,13 @@
     }
   }
 
+  /** @param {String} name */
   static set routingEventName(name) {
+    /** @private */
     this.__routingEventName = name;
   }
 
+  /** @returns {String} */
   static get routingEventName() {
     return this.__routingEventName || 'sym-on-route';
   }
@@ -85,9 +82,8 @@
   }
 
   /**
-   *
    * @param {String} route
-   * @param {Object<string, *>} [options]
+   * @param {Object<string, any>} [options]
    */
   static reflect(route, options = {}) {
     let routeScheme = this.appMap[route];
@@ -109,31 +105,28 @@
   }
 
   /**
-  *
-  * @param {String} route
-  * @param {Object<string, *>} [options]
-  */
+   * @param {String} route
+   * @param {Object<string, any>} [options]
+   */
   static applyRoute(route, options = {}) {
     this.reflect(route, options);
     this.notify();
   }
 
-  /**
-   * 
-   * @param {String} char 
-   */
+  /** @param {String} char */
   static setSeparator(char) {
+    /** @private */
     this._separator = char;
   }
 
+  /** @returns {String} */
   static get separator() {
     return this._separator || '&';
   }
 
   /**
-   * 
-   * @param {String} ctxName 
-   * @param {Object<string, {}>} routingMap 
+   * @param {String} ctxName
+   * @param {Object<string, {}>} routingMap
    * @returns {Data}
    */
   static createRouterData(ctxName, routingMap) {
@@ -153,7 +146,6 @@
     AppRouter.notify();
     return routeData;
   }
-
 }
 
 AppRouter.appMap = Object.create(null);

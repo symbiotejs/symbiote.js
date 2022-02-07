@@ -6,9 +6,8 @@ const MSG_TYPE = '[Typed State] Wrong property type: ';
 
 export class TypedData {
   /**
-   * 
-   * @param {Object<string, {type: any, value: any}>} typedSchema 
-   * @param {String} [ctxName] 
+   * @param {Object<string, { type: any; value: * }>} typedSchema
+   * @param {String} [ctxName]
    */
   constructor(typedSchema, ctxName) {
     this.__typedSchema = typedSchema;
@@ -21,9 +20,8 @@ export class TypedData {
   }
 
   /**
-   * 
-   * @param {String} prop 
-   * @param {*} value 
+   * @param {String} prop
+   * @param {any} value
    */
   setValue(prop, value) {
     if (!this.__typedSchema.hasOwnProperty(prop)) {
@@ -37,20 +35,14 @@ export class TypedData {
     this.__state.pub(prop, value);
   }
 
-  /**
-   * 
-   * @param {Object<string, *>} updObj 
-   */
+  /** @param {Object<string, any>} updObj */
   setMultipleValues(updObj) {
     for (let prop in updObj) {
       this.setValue(prop, updObj[prop]);
     }
   }
 
-  /**
-   * 
-   * @param {String} prop 
-   */
+  /** @param {String} prop */
   getValue(prop) {
     if (!this.__typedSchema.hasOwnProperty(prop)) {
       console.warn(MSG_NAME + prop);
@@ -60,9 +52,8 @@ export class TypedData {
   }
 
   /**
-   * 
-   * @param {String} prop 
-   * @param {(newVal: any) => void} handler 
+   * @param {String} prop
+   * @param {(newVal: any) => void} handler
    */
   subscribe(prop, handler) {
     return this.__state.sub(prop, handler);

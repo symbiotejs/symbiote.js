@@ -1,11 +1,18 @@
 import { DICT } from './dictionary.js';
 
+/**
+ * @template {import('./BaseComponent.js').BaseComponent} T
+ * @param {DocumentFragment} fr
+ * @param {T} fnCtx
+ * @returns {any}
+ */
 function slotProcessor(fr, fnCtx) {
   if (fnCtx.renderShadow) {
     return;
   }
+  let initChildren = [...fnCtx.childNodes];
   let slots = [...fr.querySelectorAll('slot')];
-  if (fnCtx.__initChildren.length && slots.length) {
+  if (initChildren.length && slots.length) {
     let slotMap = {};
     slots.forEach((slot) => {
       let slotName = slot.getAttribute('name');
@@ -21,7 +28,7 @@ function slotProcessor(fr, fnCtx) {
         };
       }
     });
-    fnCtx.__initChildren.forEach((/** @type {Element} */ child) => {
+    initChildren.forEach((/** @type {Element} */ child) => {
       let slotName = child.getAttribute?.('slot');
       if (slotName) {
         child.removeAttribute('slot');
@@ -39,6 +46,11 @@ function slotProcessor(fr, fnCtx) {
   }
 }
 
+/**
+ * @template {import('./BaseComponent.js').BaseComponent} T
+ * @param {DocumentFragment} fr
+ * @param {T} fnCtx
+ */
 function refProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
     let refName = el.getAttribute(DICT.EL_REF_ATTR);
@@ -48,8 +60,9 @@ function refProcessor(fr, fnCtx) {
 }
 
 /**
+ * @template {import('./BaseComponent.js').BaseComponent} T
  * @param {DocumentFragment} fr
- * @param {any} fnCtx
+ * @param {T} fnCtx
  */
 function domSetProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
@@ -136,8 +149,9 @@ function getTextNodesWithTokens(el) {
 }
 
 /**
+ * @template {import('./BaseComponent.js').BaseComponent} T
  * @param {DocumentFragment} fr
- * @param {any} fnCtx
+ * @param {T} fnCtx
  */
 const txtNodesProcessor = function (fr, fnCtx) {
   let txtNodes = getTextNodesWithTokens(fr);
