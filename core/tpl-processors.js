@@ -10,9 +10,8 @@ function slotProcessor(fr, fnCtx) {
   if (fnCtx.renderShadow) {
     return;
   }
-  let initChildren = [...fnCtx.childNodes];
   let slots = [...fr.querySelectorAll('slot')];
-  if (initChildren.length && slots.length) {
+  if (fnCtx.initChildren.length && slots.length) {
     let slotMap = {};
     slots.forEach((slot) => {
       let slotName = slot.getAttribute('name');
@@ -28,7 +27,7 @@ function slotProcessor(fr, fnCtx) {
         };
       }
     });
-    initChildren.forEach((/** @type {Element} */ child) => {
+    fnCtx.initChildren.forEach((/** @type {Element} */ child) => {
       let slotName = child.getAttribute?.('slot');
       if (slotName) {
         child.removeAttribute('slot');

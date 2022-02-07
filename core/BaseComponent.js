@@ -273,6 +273,7 @@ export class BaseComponent extends HTMLElement {
         this.style.setProperty(DICT.CSS_CTX_PROP, `'${ctxNameAttrVal}'`);
       }
       this.__initDataCtx();
+      this.initChildren = [...this.childNodes];
       for (let proc of PROCESSORS) {
         this.addTemplateProcessor(proc);
       }
