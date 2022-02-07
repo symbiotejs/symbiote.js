@@ -1,6 +1,6 @@
 /**
  * @typedef {any} StyleMap
- * @type {Object<string, string | number>}
+ * @type {Object<string, string | number | boolean>}
  */
 
 /**

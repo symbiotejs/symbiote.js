@@ -87,10 +87,9 @@ export class BaseComponent extends HTMLElement {
     super();
     /** @type {Object<string, unknown>} */
     this.init$ = Object.create(null);
-
     /** @type {Set<(fr: DocumentFragment, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
-    /** @type {Object<string, unknown>} */
+    /** @type {Object<string, any>} */
     this.ref = Object.create(null);
     this.allSubs = new Set();
     /** @type {Boolean} */
