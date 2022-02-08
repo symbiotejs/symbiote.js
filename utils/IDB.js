@@ -190,6 +190,7 @@ class DbInstance {
    */
   subscribe(key, callback) {
     if (!this._subscribtionsMap[key]) {
+      /** @private */
       this._subscribtionsMap[key] = new Set();
     }
     /** @type {Set} */
@@ -207,7 +208,7 @@ class DbInstance {
 
   stop() {
     window.removeEventListener('storage', this._updateHandler);
-    this.__subscribtionsMap = null;
+    this._subscribtionsMap = null;
     IDB.clear(this.name);
   }
 }
@@ -231,6 +232,9 @@ export class IDB {
     return this._reg[key];
   }
 
+  /** @private */
+  static _reg = Object.create(null);
+
   /** @param {String} dbName */
   static clear(dbName) {
     window.indexedDB.deleteDatabase(dbName);
@@ -241,5 +245,3 @@ export class IDB {
     }
   }
 }
-
-IDB._reg = Object.create(null);

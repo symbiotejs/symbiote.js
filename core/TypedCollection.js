@@ -5,7 +5,7 @@ import { TypedData } from './TypedData.js';
 export class TypedCollection {
   /**
    * @param {Object} options
-   * @param {Object<string, { type: any; value: * }>} options.typedSchema
+   * @param {Object<string, { type: any; value: any }>} options.typedSchema
    * @param {String[]} [options.watchList]
    * @param {(list: string[]) => void} [options.handler]
    * @param {String} [options.ctxName]
@@ -13,7 +13,7 @@ export class TypedCollection {
   constructor(options) {
     /**
      * @private
-     * @type {Object<string, { type: any; value: * }>}
+     * @type {Object<string, { type: any; value: any }>}
      */
     this.__typedSchema = options.typedSchema;
     /**
@@ -25,7 +25,7 @@ export class TypedCollection {
      * @private
      * @type {Data}
      */
-    this.__state = Data.registerNamedCtx(this.__ctxId, {});
+    this.__data = Data.registerNamedCtx(this.__ctxId, {});
     /**
      * @private
      * @type {string[]}
@@ -96,18 +96,18 @@ export class TypedCollection {
     for (let prop in init) {
       item.setValue(prop, init[prop]);
     }
-    this.__state.add(item.__ctxId, item);
+    this.__data.add(item.uid, item);
     this.__watchList.forEach((propName) => {
-      if (!this.__subsMap[item.__ctxId]) {
-        this.__subsMap[item.__ctxId] = [];
+      if (!this.__subsMap[item.uid]) {
+        this.__subsMap[item.uid] = [];
       }
-      this.__subsMap[item.__ctxId].push(
+      this.__subsMap[item.uid].push(
         item.subscribe(propName, () => {
-          this.__notifyObservers(propName, item.__ctxId);
+          this.__notifyObservers(propName, item.uid);
         })
       );
     });
-    this.__items.add(item.__ctxId);
+    this.__items.add(item.uid);
     this.notify();
     return item;
   }
@@ -117,7 +117,7 @@ export class TypedCollection {
    * @returns {TypedData}
    */
   read(id) {
-    return this.__state.read(id);
+    return this.__data.read(id);
   }
 
   /**
@@ -145,7 +145,7 @@ export class TypedCollection {
   remove(id) {
     this.__items.delete(id);
     this.notify();
-    this.__state.pub(id, null);
+    this.__data.pub(id, null);
     delete this.__subsMap[id];
   }
 
@@ -185,7 +185,7 @@ export class TypedCollection {
   }
 
   destroy() {
-    this.__state.remove();
+    this.__data.remove();
     this.__observers = null;
     for (let id in this.__subsMap) {
       this.__subsMap[id].forEach((sub) => {

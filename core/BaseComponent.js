@@ -194,10 +194,7 @@ export class BaseComponent extends HTMLElement {
     parsed.ctx.add(parsed.name, val, false);
   }
 
-  /**
-   * @template T
-   * @param {Object<string, T>} obj
-   */
+  /** @param {Object<string, any>} obj */
   add$(obj) {
     for (let prop in obj) {
       this.add(prop, obj[prop]);

@@ -10,6 +10,7 @@
     "lint": "npm run lint:types && npm run lint:eslint && npm run lint:prettier",
     "format": "npm run format:eslint && npm run format:prettier",
     "types": "dts-bundle-generator --config ./dts.config.json",
+    "dts_native": "tsc -p dts-native.cfg.json",
     "build": "node esbuild.js && npm run types"
   },
   "files": [
@@ -24,7 +25,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",

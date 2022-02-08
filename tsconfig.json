@@ -24,9 +24,11 @@
     "removeComments": true
   },
   "include": [
-    "**/*.js"
+    "core",
+    "utils"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "TMP"
   ]
 }

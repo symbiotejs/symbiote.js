@@ -1,17 +1,8 @@
-/**
- * @typedef {any} StyleMap
- * @type {Object<string, string | number | boolean>}
- */
+/** @typedef {Object<string, string | number | boolean>} StyleMap */
 
-/**
- * @typedef {any} AttrMap
- * @type {Object<string, string | number | boolean>}
- */
+/** @typedef {Object<string, string | number | boolean>} AttrMap */
 
-/**
- * @typedef {any} PropMap
- * @type {Object<string, any>}
- */
+/** @typedef {Object<string, any>} PropMap */
 
 /**
  * @template {HTMLElement} T
@@ -50,15 +41,14 @@ export function applyAttributes(el, attrMap) {
 }
 
 /**
- * @typedef {any} ElementDescriptor
- * @type {{
+ * @typedef {{
  *   tag?: String;
  *   attributes?: AttrMap;
  *   styles?: StyleMap;
  *   properties?: PropMap;
  *   processors?: Function[];
  *   children?: ElementDescriptor[];
- * }}
+ * }} ElementDescriptor
  */
 
 /**
