@@ -256,6 +256,7 @@ export class BaseComponent extends HTMLElement {
         this.localCtx.add(prop, this.init$[prop]);
       }
     }
+    /** @private */
     this.__dataCtxInitialized = true;
   }
 
