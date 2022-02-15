@@ -83,12 +83,12 @@ class DbInstance {
       console.error(e);
     };
     /** @private */
-    this._subscribtionsMap = {};
+    this._subscriptionsMap = {};
     /** @private */
     this._updateHandler = (/** @type {StorageEvent} */ e) => {
-      if (e.key === this.name && this._subscribtionsMap[e.newValue]) {
+      if (e.key === this.name && this._subscriptionsMap[e.newValue]) {
         /** @type {Set<Function>} */
-        let set = this._subscribtionsMap[e.newValue];
+        let set = this._subscriptionsMap[e.newValue];
         set.forEach(async (callback) => {
           callback(await this.read(e.newValue));
         });
@@ -189,18 +189,18 @@ class DbInstance {
    * @param {(val: any) => void} callback
    */
   subscribe(key, callback) {
-    if (!this._subscribtionsMap[key]) {
+    if (!this._subscriptionsMap[key]) {
       /** @private */
-      this._subscribtionsMap[key] = new Set();
+      this._subscriptionsMap[key] = new Set();
     }
     /** @type {Set} */
-    let set = this._subscribtionsMap[key];
+    let set = this._subscriptionsMap[key];
     set.add(callback);
     return {
       remove: () => {
         set.delete(callback);
         if (!set.size) {
-          delete this._subscribtionsMap[key];
+          delete this._subscriptionsMap[key];
         }
       },
     };
@@ -208,7 +208,7 @@ class DbInstance {
 
   stop() {
     window.removeEventListener('storage', this._updateHandler);
-    this._subscribtionsMap = null;
+    this._subscriptionsMap = null;
     IDB.clear(this.name);
   }
 }

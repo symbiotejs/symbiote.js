@@ -69,7 +69,7 @@ export class BaseComponent extends HTMLElement {
       styleLink.rel = 'stylesheet';
       styleLink.href = this.constructor['__shadowStylesUrl'];
       styleLink.onload = addFr;
-      this.shadowRoot.prepend(styleLink); // the link shoud be added before the other template elements
+      this.shadowRoot.prepend(styleLink); // the link should be added before the other template elements
     } else {
       addFr();
     }

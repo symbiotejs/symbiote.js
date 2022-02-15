@@ -3,14 +3,16 @@
 Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and libraries. 
 Everything you need for your modern web application!
 
+Symbiote.js is designed to give the level of freedom, as you got with Vanilla JS and to give the convenience level, as you got from modern frameworks at the same time.
+
 ## 🔥 Core benefits
 * Minimalistic but reach.
 * No additional dependencies.
-* Ultralight (~3kb br/gzip for featureful CDN version).
-* Blazing fast (faster than most of the other mainstream solutions; all of them).
+* Ultralight (~3kb br/gzip for the all BaseComponent features, including data flow).
+* Blazing fast.
 * Memory friendly (no any redux-like immutables).
 * CSP friendly - good for enterprise usage.
-* Highly extensible.
+* Highly extensible - you can add new custom features with ease.
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies.
 * Works in all modern browsers. As is.
 * Easy to test.
@@ -70,6 +72,8 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 * [Lifecycle](https://github.com/symbiotejs/docsite/blob/main/md/Lifecycle.md)
 * [Component data context](https://github.com/symbiotejs/docsite/blob/main/md/Component_data_context.md)
 * [Attribute binding](https://github.com/symbiotejs/docsite/blob/main/md/Attribute_binding.md)
+* [Styling](https://github.com/symbiotejs/docsite/blob/main/md/Styling.md)
+* [Delayed rendering](https://github.com/symbiotejs/docsite/blob/main/md/Delayed_rendering.md)
 * [Extending](https://github.com/symbiotejs/docsite/blob/main/md/Extending.md)
 * [Naming collisions](https://github.com/symbiotejs/docsite/blob/main/md/Naming_collisions.md)
 * Data (pub/sub)
