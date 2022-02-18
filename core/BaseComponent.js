@@ -29,12 +29,22 @@ export class BaseComponent extends HTMLElement {
   render(template, shadow = this.renderShadow) {
     /** @type {DocumentFragment} */
     let fr;
+    if ((shadow || this.constructor['__shadowStylesUrl']) && !this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open',
+      });
+    }
+    if (this.processInnerHtml) {
+      for (let fn of this.tplProcessors) {
+        fn(this, this);
+      }
+    }
     if (template || this.constructor['template']) {
       if (this.constructor['template'] && !this.constructor['__tpl']) {
         this.constructor['__tpl'] = document.createElement('template');
         this.constructor['__tpl'].innerHTML = this.constructor['template'];
       }
-      while (this.firstChild) {
+      while (!this.processInnerHtml && this.firstChild) {
         this.firstChild.remove();
       }
       if (template?.constructor === DocumentFragment) {
@@ -50,11 +60,6 @@ export class BaseComponent extends HTMLElement {
       for (let fn of this.tplProcessors) {
         fn(fr, this);
       }
-    }
-    if ((shadow || this.constructor['__shadowStylesUrl']) && !this.shadowRoot) {
-      this.attachShadow({
-        mode: 'open',
-      });
     }
 
     // for the possible asynchronous call:
@@ -77,7 +82,7 @@ export class BaseComponent extends HTMLElement {
 
   /**
    * @template {BaseComponent} T
-   * @param {(fr: DocumentFragment, fnCtx: T) => void} processorFn
+   * @param {(fr: DocumentFragment | T, fnCtx: T) => void} processorFn
    */
   addTemplateProcessor(processorFn) {
     this.tplProcessors.add(processorFn);
@@ -87,7 +92,7 @@ export class BaseComponent extends HTMLElement {
     super();
     /** @type {Object<string, unknown>} */
     this.init$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment, fnCtx: unknown) => void>} */
+    /** @type {Set<(fr: DocumentFragment | BaseComponent, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, any>} */
     this.ref = Object.create(null);
@@ -98,6 +103,8 @@ export class BaseComponent extends HTMLElement {
     this.renderShadow = false;
     /** @type {Boolean} */
     this.readyToDestroy = true;
+    /** @type {Boolean} */
+    this.processInnerHtml = false;
   }
 
   /** @returns {String} */

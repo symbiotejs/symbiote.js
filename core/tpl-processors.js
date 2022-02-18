@@ -4,7 +4,6 @@ import { DICT } from './dictionary.js';
  * @template {import('./BaseComponent.js').BaseComponent} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
- * @returns {any}
  */
 function slotProcessor(fr, fnCtx) {
   if (fnCtx.renderShadow) {
@@ -41,7 +40,7 @@ function slotProcessor(fr, fnCtx) {
       mapObj.slot.remove();
     });
   } else {
-    fnCtx.innerHTML = '';
+    !fnCtx.processInnerHtml && (fnCtx.innerHTML = '');
   }
 }
 
@@ -66,8 +65,8 @@ function refProcessor(fr, fnCtx) {
 function domSetProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
-    let keyValsArr = subStr.split(';');
-    keyValsArr.forEach((keyValStr) => {
+    let keyValArr = subStr.split(';');
+    keyValArr.forEach((keyValStr) => {
       if (!keyValStr) {
         return;
       }
@@ -160,7 +159,7 @@ const txtNodesProcessor = function (fr, fnCtx) {
     // Splitting of the text node:
     while (txtNode.textContent.includes(CLOSE_TOKEN)) {
       if (txtNode.textContent.startsWith(OPEN_TOKEN)) {
-        offset = txtNode.textContent.indexOf(CLOSE_TOKEN) + 2;
+        offset = txtNode.textContent.indexOf(CLOSE_TOKEN) + CLOSE_TOKEN.length;
         txtNode.splitText(offset);
         tokenNodes.push(txtNode);
       } else {
