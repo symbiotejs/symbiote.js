@@ -67,23 +67,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 **This code can work directly in any modern browser, so you don't need to install anything to try it!**
 
 ## 🧜‍♀️ Dive deeper
-* [Installation](https://github.com/symbiotejs/docsite/blob/main/md/Installation.md)
-* [Templates](https://github.com/symbiotejs/docsite/blob/main/md/Templates.md)
-* [Lifecycle](https://github.com/symbiotejs/docsite/blob/main/md/Lifecycle.md)
-* [Component data context](https://github.com/symbiotejs/docsite/blob/main/md/Component_data_context.md)
-* [Attribute binding](https://github.com/symbiotejs/docsite/blob/main/md/Attribute_binding.md)
-* [Styling](https://github.com/symbiotejs/docsite/blob/main/md/Styling.md)
-* [Delayed rendering](https://github.com/symbiotejs/docsite/blob/main/md/Delayed_rendering.md)
-* [Extending](https://github.com/symbiotejs/docsite/blob/main/md/Extending.md)
-* [Naming collisions](https://github.com/symbiotejs/docsite/blob/main/md/Naming_collisions.md)
-* Data (pub/sub)
-* Routing
-* Domain specific data
-* DOM helpers
-* Indexed DB
-* [TypeScript](https://github.com/symbiotejs/docsite/blob/main/md/TypeScript.md)
-* Solution history
-* Playground
+Check the project documentation for details:
+* [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
+* [symbiotejs.org](https://symbiotejs.org/)
 
 ## 🤖 Live examples
 Browser: https://symbiotejs.github.io/examples/ 
