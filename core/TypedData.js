@@ -6,7 +6,7 @@ const MSG_TYPE = '[Typed State] Wrong property type: ';
 
 export class TypedData {
   /**
-   * @param {Object<string, { type: any; value: any }>} typedSchema
+   * @param {Object<string, { type: any; value: any; nullable?: Boolean }>} typedSchema
    * @param {String} [ctxName]
    */
   constructor(typedSchema, ctxName) {
@@ -40,11 +40,12 @@ export class TypedData {
       console.warn(MSG_NAME + prop);
       return;
     }
-    if (value?.constructor !== this.__typedSchema[prop].type) {
-      console.warn(MSG_TYPE + prop);
+    let pDesc = this.__typedSchema[prop];
+    if (value?.constructor === pDesc.type || (pDesc.nullable && value === null)) {
+      this.__data.pub(prop, value);
       return;
     }
-    this.__data.pub(prop, value);
+    console.warn(MSG_TYPE + prop);
   }
 
   /** @param {Object<string, any>} updObj */
