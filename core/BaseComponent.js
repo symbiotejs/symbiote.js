@@ -281,7 +281,9 @@ export class BaseComponent extends HTMLElement {
       for (let proc of PROCESSORS) {
         this.addTemplateProcessor(proc);
       }
-      if (!this.pauseRender) {
+      if (this.pauseRender) {
+        this.__initCallback();
+      } else {
         this.render();
       }
     }
