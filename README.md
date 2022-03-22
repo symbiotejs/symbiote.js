@@ -1,16 +1,22 @@
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-Ultralight and ultrapowerful library to create widgets, organize micro-frontends, build reusable embeddable components and libraries. 
-Everything you need for your modern web application!
+Simple, light and very powerful library to create embedded components and data channels between them.
 
-Symbiote.js is designed to give the level of freedom, as you got with Vanilla JS and to give the convenience level, as you got from modern frameworks at the same time.
+Best for:
+* Widgets
+* Micro-frontends
+* Reusable component libraries
+* Fast and reliable web applications
+* Framework agnostic solutions
+
+> Symbiote.js is designed to give the level of freedom, as you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
 ## 🔥 Core benefits
 * Minimalistic but reach.
 * No additional dependencies.
-* Ultralight (~3kb br/gzip for the all BaseComponent features, including data flow).
+* Ultralight (~3kb br/gzip for the all BaseComponent features, including data management).
 * Blazing fast.
-* Memory friendly (no any redux-like immutables).
+* Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
 * Highly extensible - you can add new custom features with ease.
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies.
@@ -24,10 +30,10 @@ Symbiote.js is designed to give the level of freedom, as you got with Vanilla JS
 * Open source (MIT license).
 
 ## 💎 Tech concept keypoints
-* Native `DocumentFragment` instead of expensive Virtual DOM sync.
+* Native modern APIs instead of expensive libraries.
 * Shadow DOM is optional. Use it when you need it only.
-* Styling approach: total freedom, from the old classics to the cutting edge platform abilities.
-* Native HTML and DOM API instead of expensive custom template syntax processing.
+* Total styling freedom: from the old classics to the cutting edge platform abilities.
+* Native HTML instead of custom template syntax processing.
 * Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want.
 * No logical operators in templates. Logic and presentation are strictly separated.
 * Fast synchronous UI updates.
@@ -35,7 +41,6 @@ Symbiote.js is designed to give the level of freedom, as you got with Vanilla JS
 * Full data context availability for template bindings.
 * DOM API friendly approach for the most performant solutions.
 * Convenient object model access instead of opaque abstractions.
-* Custom Elements work strange sometimes. Don’t worry about that, we do (construction flow).
 
 ## 🍏 Quick start
 The easiest way to try Symbiote.js is to create a simple `html` file in your text editor and connect the Symbiote base class from web:
