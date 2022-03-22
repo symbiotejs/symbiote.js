@@ -74,8 +74,8 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 
 ## 🧜‍♀️ Dive deeper
 Check the project documentation for details:
-* [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
 * [symbiotejs.org](https://symbiotejs.org/)
+* [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
 
 ## 🤖 Live examples
 Browser: https://symbiotejs.github.io/examples/ 
