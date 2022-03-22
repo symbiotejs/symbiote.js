@@ -8,7 +8,7 @@ Best for:
 * Reusable component libraries
 * Fast and reliable web applications
 * Framework agnostic solutions
-* [JamStack](https://jamstack.org/) solutions
+* JamStack solutions
 
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
