@@ -13,7 +13,7 @@ Best for:
 
 ## 🔥 Core benefits
 * Minimalistic but reach.
-* No additional dependencies.
+* No extra dependencies.
 * Ultralight (~3kb br/gzip for the all BaseComponent features, including data management).
 * Blazing fast.
 * Memory friendly (no immutables).
