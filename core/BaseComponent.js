@@ -44,9 +44,6 @@ export class BaseComponent extends HTMLElement {
         this.constructor['__tpl'] = document.createElement('template');
         this.constructor['__tpl'].innerHTML = this.constructor['template'];
       }
-      while (!this.processInnerHtml && this.firstChild) {
-        this.firstChild.remove();
-      }
       if (template?.constructor === DocumentFragment) {
         fr = template;
       } else if (template?.constructor === String) {

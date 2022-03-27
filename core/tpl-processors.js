@@ -6,7 +6,7 @@ import { DICT } from './dictionary.js';
  * @param {T} fnCtx
  */
 function slotProcessor(fr, fnCtx) {
-  if (fnCtx.renderShadow) {
+  if (fnCtx.shadowRoot) {
     return;
   }
   let slots = [...fr.querySelectorAll('slot')];
@@ -39,8 +39,6 @@ function slotProcessor(fr, fnCtx) {
       mapObj.slot.parentNode.insertBefore(mapObj.fr, mapObj.slot);
       mapObj.slot.remove();
     });
-  } else {
-    !fnCtx.processInnerHtml && (fnCtx.innerHTML = '');
   }
 }
 
