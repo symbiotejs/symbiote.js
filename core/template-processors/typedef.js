@@ -9,7 +9,7 @@
 /**
  * @template {Subscribable} [T=Subscribable] Default is `Subscribable`
  * @function
- * @typedef {(fr: DocumentFragment, fnCtx: T) => void} TplProcessor
+ * @typedef {(fr: DocumentFragment, fnCtx: T) => (() => void) | void} TplProcessor
  */
 
 export {};

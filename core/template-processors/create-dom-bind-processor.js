@@ -4,8 +4,10 @@ import { DICT } from '../dictionary.js';
  * @param {String} bindAttr
  * @returns {import('./typedef.js').TplProcessor}
  */
-export function createDomBindProcessor(bindAttr) {
+export function createDomBindProcessor(bindAttr, createSub, removeSub) {
   return (fr, fnCtx) => {
+    let sub = createSub(fnCtx);
+
     [...fr.querySelectorAll(`[${bindAttr}]`)].forEach((el) => {
       let subStr = el.getAttribute(bindAttr);
       let keyValArr = subStr.split(';');
@@ -43,7 +45,7 @@ export function createDomBindProcessor(bindAttr) {
           dive();
         }
         for (let valKey of valKeysArr) {
-          fnCtx.sub(valKey, (val) => {
+          sub(valKey, (val) => {
             if (isAttr) {
               if (val?.constructor === Boolean) {
                 val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
@@ -69,5 +71,7 @@ export function createDomBindProcessor(bindAttr) {
       });
       el.removeAttribute(bindAttr);
     });
+
+    return removeSub?.(fnCtx);
   };
 }

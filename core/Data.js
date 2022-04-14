@@ -119,6 +119,9 @@ export class Data {
     }
     return {
       remove: () => {
+        if (!this.callbackMap[prop]) {
+          return;
+        }
         this.callbackMap[prop].delete(callback);
         if (!this.callbackMap[prop].size) {
           delete this.callbackMap[prop];
@@ -130,6 +133,16 @@ export class Data {
 
   remove() {
     delete Data.globalStore[this.uid];
+  }
+
+  /** @param {Data} other */
+  merge(other) {
+    this.multiPub(other.store);
+  }
+
+  clone() {
+    let newData = new Data({ schema: this.store });
+    return newData;
   }
 
   /** @param {Object<string, any>} schema */

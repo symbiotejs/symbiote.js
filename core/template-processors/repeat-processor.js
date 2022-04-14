@@ -1,7 +1,7 @@
 import { DICT } from '../dictionary.js';
 import { domRepeatSetProcessor } from './dom-repeat-set-processor.js';
 import { domSetProcessor } from './dom-set-processor.js';
-import { txtNodesProcessor } from './txt-nodes-processor.js';
+import { repeatTxtNodesProcessor } from './repeat-txt-nodes-processor.js';
 
 /** @typedef {import('../Data.js').Data} Data */
 /** @typedef {import('./typedef.js').Subscribable} Subscribable */
@@ -16,7 +16,7 @@ import { txtNodesProcessor } from './txt-nodes-processor.js';
  * @param {(item: D) => string} keyFn
  * @returns {(items: D[]) => void}
  */
-function createDomFlusher(container, templateFr, fnCtx, keyFn) {
+function createKeyedDomReconciler(container, templateFr, fnCtx, keyFn) {
   let elements = new Map();
 
   return function (items) {
@@ -44,6 +44,7 @@ function createDomFlusher(container, templateFr, fnCtx, keyFn) {
     // create new elements and generate replace mapping
     let insertMapping = new Map();
     let maxInsertIdx = 0;
+    // TODO: probably this is not the fastest way to do this, investigate
     let virtualChildren = [...container.children];
     for (let i = 0; i < items.length; i++) {
       let item = items[i];
@@ -52,8 +53,9 @@ function createDomFlusher(container, templateFr, fnCtx, keyFn) {
 
       if (!elements.has(itemKey)) {
         let fr = /** @type {DocumentFragment} */ (templateFr.cloneNode(true));
+        // TODO: we need to unsubscribe when element will be removed
         domRepeatSetProcessor(fr, item);
-        txtNodesProcessor(fr, item);
+        repeatTxtNodesProcessor(fr, item);
         domSetProcessor(fr, fnCtx);
         element = fr.firstElementChild;
         elements.set(itemKey, element);
@@ -84,6 +86,65 @@ function createDomFlusher(container, templateFr, fnCtx, keyFn) {
   };
 }
 
+/**
+ * @template {BaseComponent} [T=BaseComponent] Default is `BaseComponent`
+ * @param {Element} container
+ * @param {DocumentFragment} templateFr
+ * @param {T} fnCtx
+ * @returns {(items: Data[]) => void}
+ */
+function createNonKeyedDomReconciler(container, templateFr, fnCtx) {
+  /** @type {Data[]} */
+  let dataList = [];
+  let unsubscribers = new WeakMap();
+
+  return function (items) {
+    if (items.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    let children = container.children;
+    let itemsCount = items.length;
+    let renderedCount = children.length;
+    let appendFr = document.createDocumentFragment();
+
+    if (itemsCount > renderedCount) {
+      for (let i = renderedCount; i < itemsCount; i++) {
+        let item = items[i].clone();
+        let fr = /** @type {DocumentFragment} */ (templateFr.cloneNode(true));
+        let removeRepeatSetProcessor = domRepeatSetProcessor(fr, item);
+        let removeRepeatTxtProcessor = repeatTxtNodesProcessor(fr, item);
+        domSetProcessor(fr, fnCtx);
+        let element = fr.firstElementChild;
+        appendFr.appendChild(element);
+        dataList[i] = item;
+
+        let unsubElement = () => {
+          removeRepeatSetProcessor && removeRepeatSetProcessor();
+          removeRepeatTxtProcessor && removeRepeatTxtProcessor();
+        };
+        unsubscribers.set(element, unsubElement);
+      }
+      container.appendChild(appendFr);
+    } else if (itemsCount < renderedCount) {
+      for (let i = itemsCount; i < renderedCount; i++) {
+        unsubscribers.get(children[i])();
+        unsubscribers.delete(children[i]);
+        children[i].remove();
+        dataList[i] = undefined;
+      }
+    }
+
+    for (let i = 0; i < itemsCount; i++) {
+      let nextItem = items[i];
+      let currentItem = dataList[i];
+
+      currentItem.merge(nextItem);
+    }
+  };
+}
+
 /** @type {import('./typedef.js').TplProcessor<import('../BaseComponent.js').BaseComponent>} */
 export function repeatProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.REPEAT_ITEMS_ATTR}]`)].forEach((el) => {
@@ -99,11 +160,18 @@ export function repeatProcessor(fr, fnCtx) {
     templateFr.appendChild(el.firstElementChild);
     el.innerHTML = '';
 
-    let keyFn = fnCtx.$[keyStr];
-    let flush = createDomFlusher(el, templateFr, fnCtx, keyFn);
+    let reconcile;
+    if (keyStr) {
+      let keyFn = fnCtx.$[keyStr];
+      reconcile = createKeyedDomReconciler(el, templateFr, fnCtx, keyFn);
+    } else {
+      reconcile = createNonKeyedDomReconciler(el, templateFr, fnCtx);
+    }
 
     fnCtx.sub(itemsStr, (items) => {
-      flush(items);
+      reconcile(items);
     });
   });
+
+  return;
 }

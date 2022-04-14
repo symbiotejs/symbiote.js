@@ -1,5 +1,4 @@
-import { createDomBindProcessor } from './create-dom-bind-processor.js';
-import { DICT } from '../dictionary.js';
+import { createTxtNodesProcessor } from './create-txt-nodes-processor.js';
 
 const removers = new WeakMap();
 
@@ -24,4 +23,5 @@ const removeSub = (fnCtx) => {
   };
 };
 
-export const domRepeatSetProcessor = createDomBindProcessor(DICT.REPEAT_BIND_ATTR, createSub, removeSub);
+// TODO: skip repeat- attributes
+export const repeatTxtNodesProcessor = createTxtNodesProcessor(createSub, removeSub);
