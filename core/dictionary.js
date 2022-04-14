@@ -1,8 +1,8 @@
 /** @enum {String} */
 export const DICT = Object.freeze({
-  //  Template data binding attribute:
+  // Template data binding attribute:
   BIND_ATTR: 'set',
-  //  Local state binding attribute name:
+  // Local state binding attribute name:
   ATTR_BIND_PRFX: '@',
   // External prop prefix:
   EXT_DATA_CTX_PRFX: '*',
@@ -16,4 +16,8 @@ export const DICT = Object.freeze({
   EL_REF_ATTR: 'ref',
   // Prefix for auto generated tag names:
   AUTO_TAG_PRFX: 'sym',
+
+  REPEAT_ITEMS_ATTR: 'repeat-items',
+  REPEAT_KEY_ATTR: 'repeat-key',
+  REPEAT_BIND_ATTR: 'repeat-set',
 });
