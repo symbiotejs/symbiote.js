@@ -38,7 +38,7 @@ export const txtNodesProcessor = (fr, fnCtx) => {
     tokenNodes.forEach((tNode) => {
       let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');
       fnCtx.sub(prop, (val) => {
-        tNode.textContent = val;
+        tNode.textContent = /** @type {String} */ (val);
       });
     });
   });

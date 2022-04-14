@@ -48,7 +48,7 @@ export function createDomBindProcessor(bindAttr) {
               if (val?.constructor === Boolean) {
                 val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
               } else {
-                el.setAttribute(prop, val);
+                el.setAttribute(prop, /** @type {String} */ (val));
               }
             } else if (isDeep) {
               if (parent) {

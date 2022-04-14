@@ -1,4 +1,4 @@
-/** @type {import('./typedef.js').TplProcessor} */
+/** @type {import('./typedef.js').TplProcessor<import('../BaseComponent.js').BaseComponent>} */
 export function slotProcessor(fr, fnCtx) {
   if (fnCtx.shadowRoot) {
     return;

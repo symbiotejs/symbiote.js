@@ -3,14 +3,20 @@ import { domRepeatSetProcessor } from './dom-repeat-set-processor.js';
 import { domSetProcessor } from './dom-set-processor.js';
 import { txtNodesProcessor } from './txt-nodes-processor.js';
 
+/** @typedef {import('../Data.js').Data} Data */
+/** @typedef {import('./typedef.js').Subscribable} Subscribable */
+/** @typedef {import('../BaseComponent.js').BaseComponent} BaseComponent */
+
 /**
+ * @template {BaseComponent} [T=BaseComponent] Default is `BaseComponent`
+ * @template {Subscribable} [D=Data] Default is `Data`
  * @param {Element} container
  * @param {DocumentFragment} templateFr
- * @param {<T = import('../Data.js').Data>(item: T[]) => string} keyFn
- * @param {any} fnCtx
- * @returns {any}
+ * @param {T} fnCtx
+ * @param {(item: D) => string} keyFn
+ * @returns {(items: D[]) => void}
  */
-function domFlusher(container, templateFr, keyFn, fnCtx) {
+function createDomFlusher(container, templateFr, fnCtx, keyFn) {
   let elements = new Map();
 
   return function (items) {
@@ -78,7 +84,7 @@ function domFlusher(container, templateFr, keyFn, fnCtx) {
   };
 }
 
-/** @type {import('./typedef.js').TplProcessor} */
+/** @type {import('./typedef.js').TplProcessor<import('../BaseComponent.js').BaseComponent>} */
 export function repeatProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.REPEAT_ITEMS_ATTR}]`)].forEach((el) => {
     let keyStr = el.getAttribute(DICT.REPEAT_KEY_ATTR);
@@ -94,7 +100,7 @@ export function repeatProcessor(fr, fnCtx) {
     el.innerHTML = '';
 
     let keyFn = fnCtx.$[keyStr];
-    let flush = domFlusher(el, templateFr, keyFn, fnCtx);
+    let flush = createDomFlusher(el, templateFr, fnCtx, keyFn);
 
     fnCtx.sub(itemsStr, (items) => {
       flush(items);
