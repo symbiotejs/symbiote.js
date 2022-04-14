@@ -1,7 +1,7 @@
-import { BaseComponent } from "../../core/BaseComponent.js";
-import { Data } from "../../core/core/Data.js";
-import { adjectives, colours, nouns } from "./dict";
-import { random } from "./util";
+import { BaseComponent } from '../../core/BaseComponent.js';
+import { Data } from '../../core/Data.js';
+import { adjectives, colours, nouns } from './dict.js';
+import { random } from './util.js';
 
 const schema = {
   id: String,
@@ -30,7 +30,7 @@ export class MainElement extends BaseComponent {
     },
     update: () => {
       for (let i = 0; i < this.$.listItems.length; i += 10) {
-        this.$.listItems[i].pub('label', this.$.listItems[i].read('label') + " !!!");
+        this.$.listItems[i].pub('label', this.$.listItems[i].read('label') + ' !!!');
       }
     },
     clear: () => {
@@ -55,9 +55,9 @@ export class MainElement extends BaseComponent {
     select: (id) => {
       id = parseInt(id, 10);
       for (let item of this.$.listItems) {
-        let selected = item.read('id') == id
-        let className = selected ? "danger" : ""
-        item.read('selected') !== selected && item.pub('selected', selected)
+        let selected = item.read('id') == id;
+        let className = selected ? 'danger' : '';
+        item.read('selected') !== selected && item.pub('selected', selected);
         item.read('class') !== className && item.pub('class', className);
       }
     },
@@ -73,20 +73,15 @@ export class MainElement extends BaseComponent {
     let data = [];
     for (let i = 0; i < count; i++) {
       let id = this.$.id++;
-      let label =
-        adjectives[random(adjectives.length)] +
-        " " +
-        colours[random(colours.length)] +
-        " " +
-        nouns[random(nouns.length)];
+      let label = adjectives[random(adjectives.length)] + ' ' + colours[random(colours.length)] + ' ' + nouns[random(nouns.length)];
       let item = new Data({ schema });
       item.multiPub({
         id,
         label,
         selected: false,
-        class: "",
+        class: '',
       });
-      data.push(item)
+      data.push(item);
     }
     return data;
   }

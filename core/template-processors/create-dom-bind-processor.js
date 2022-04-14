@@ -1,14 +1,11 @@
-import { DICT } from './dictionary.js';
-
-/** @typedef {<T = import('./BaseComponent.js').BaseComponent>(fr: DocumentFragment, fnCtx: T) => void} TplProcessor */
+import { DICT } from '../dictionary.js';
 
 /**
  * @param {String} bindAttr
- * @param {Function} subscribeToUpdates
- * @returns {TplProcessor}
+ * @returns {import('./typedef.js').TplProcessor}
  */
- export function createDomSetProcessor(bindAttr, subscribeToUpdates) {
-   return (fr, fnCtx) => {
+export function createDomBindProcessor(bindAttr) {
+  return (fr, fnCtx) => {
     [...fr.querySelectorAll(`[${bindAttr}]`)].forEach((el) => {
       let subStr = el.getAttribute(bindAttr);
       let keyValArr = subStr.split(';');
@@ -46,7 +43,7 @@ import { DICT } from './dictionary.js';
           dive();
         }
         for (let valKey of valKeysArr) {
-          subscribeToUpdates(valKey, fnCtx, (val) => {
+          fnCtx.sub(valKey, (val) => {
             if (isAttr) {
               if (val?.constructor === Boolean) {
                 val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
@@ -72,5 +69,5 @@ import { DICT } from './dictionary.js';
       });
       el.removeAttribute(bindAttr);
     });
-  }
- }
+  };
+}

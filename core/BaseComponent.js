@@ -1,8 +1,7 @@
 import { Data } from './Data.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../utils/UID.js';
-
-import PROCESSORS from './tpl-processors.js';
+import { DEFAULT_PROCESSORS } from './template-processors/default-processors.js';
 
 let autoTagsCount = 0;
 
@@ -275,7 +274,7 @@ export class BaseComponent extends HTMLElement {
       }
       this.__initDataCtx();
       this.initChildren = [...this.childNodes];
-      for (let proc of PROCESSORS) {
+      for (let proc of DEFAULT_PROCESSORS) {
         this.addTemplateProcessor(proc);
       }
       if (this.pauseRender) {

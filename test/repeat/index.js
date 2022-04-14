@@ -1,3 +1,3 @@
-import { MainElement } from "./MainElement.js";
+import { MainElement } from './MainElement.js';
 
 MainElement.reg('main-element');
