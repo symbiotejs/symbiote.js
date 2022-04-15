@@ -35,7 +35,10 @@ export class BaseComponent extends HTMLElement {
     }
     if (this.processInnerHtml) {
       for (let fn of this.tplProcessors) {
-        fn(this, this);
+        let destroy = fn(this, this);
+        if (destroy) {
+          this.tplProcessorsDestoyers.add(destroy);
+        }
       }
     }
     if (template || this.constructor['template']) {
@@ -54,7 +57,10 @@ export class BaseComponent extends HTMLElement {
         fr = this.constructor['__tpl'].content.cloneNode(true);
       }
       for (let fn of this.tplProcessors) {
-        fn(fr, this);
+        let destroy = fn(fr, this);
+        if (destroy) {
+          this.tplProcessorsDestoyers.add(destroy);
+        }
       }
     }
 
@@ -76,10 +82,7 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /**
-   * @template {BaseComponent} T
-   * @param {(fr: DocumentFragment | T, fnCtx: T) => void} processorFn
-   */
+  /** @param {import('./template-processors/typedef.js').TplProcessor} processorFn */
   addTemplateProcessor(processorFn) {
     this.tplProcessors.add(processorFn);
   }
@@ -88,11 +91,12 @@ export class BaseComponent extends HTMLElement {
     super();
     /** @type {Object<string, unknown>} */
     this.init$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment | BaseComponent, fnCtx: unknown) => void>} */
+    /** @type {Set<import('./template-processors/typedef.js').TplProcessor>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, any>} */
     this.ref = Object.create(null);
     this.allSubs = new Set();
+    this.tplProcessorsDestoyers = new Set();
     /** @type {Boolean} */
     this.pauseRender = false;
     /** @type {Boolean} */
@@ -172,7 +176,14 @@ export class BaseComponent extends HTMLElement {
    */
   sub(prop, handler) {
     let parsed = BaseComponent.__parseProp(prop, this);
-    this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+    let sub = parsed.ctx.sub(parsed.name, handler);
+
+    return {
+      remove: () => {
+        sub.remove();
+        this.allSubs.delete(sub);
+      },
+    };
   }
 
   /** @param {String} prop */
@@ -301,11 +312,13 @@ export class BaseComponent extends HTMLElement {
       this.destroyCallback();
       for (let sub of this.allSubs) {
         sub.remove();
-        this.allSubs.delete(sub);
       }
-      for (let proc of this.tplProcessors) {
-        this.tplProcessors.delete(proc);
+      this.allSubs.clear();
+      for (let destroy of this.tplProcessorsDestoyers) {
+        destroy();
       }
+      this.tplProcessorsDestoyers.clear();
+      this.tplProcessors.clear();
     }, 100);
   }
 

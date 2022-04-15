@@ -124,7 +124,7 @@ export class Data {
         }
         this.callbackMap[prop].delete(callback);
         if (!this.callbackMap[prop].size) {
-          delete this.callbackMap[prop];
+          this.callbackMap[prop] = undefined;
         }
       },
       callback,

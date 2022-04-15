@@ -1,10 +1,6 @@
 import { createTxtNodesProcessor } from './create-txt-nodes-processor.js';
+import { staticSubManager } from './sub-managers.js';
 
-const createSub = (fnCtx) => {
-  return (key, fn) => {
-    fnCtx.sub(key, fn);
-  };
-};
+const { createSub, removeSub } = staticSubManager();
 
-// TODO: skip repeat- attributes
-export const txtNodesProcessor = createTxtNodesProcessor(createSub);
+export const txtNodesProcessor = createTxtNodesProcessor(createSub, removeSub);

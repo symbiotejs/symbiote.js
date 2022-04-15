@@ -1,11 +1,7 @@
 import { createDomBindProcessor } from './create-dom-bind-processor.js';
 import { DICT } from '../dictionary.js';
+import { repeatSubManager } from './sub-managers.js';
 
-const createSub = (fnCtx) => {
-  return (key, fn) => {
-    fnCtx.sub(key, fn);
-  };
-};
+const { createSub, removeSub } = repeatSubManager();
 
-// TODO: skip repeat- attributes
-export const domSetProcessor = createDomBindProcessor(DICT.BIND_ATTR, createSub);
+export const domSetProcessor = createDomBindProcessor(DICT.BIND_ATTR, createSub, removeSub);

@@ -22,15 +22,15 @@ export const createTxtNodesProcessor = (createSub, removeSub) => {
     let sub = createSub(fnCtx);
 
     let txtNodes = getTextNodesWithTokens(fr);
+    let tokenNodes = new Set();
     txtNodes.forEach((/** @type {Text} */ txtNode) => {
-      let tokenNodes = [];
       let offset;
       // Splitting of the text node:
       while (txtNode.textContent.includes(CLOSE_TOKEN)) {
         if (txtNode.textContent.startsWith(OPEN_TOKEN)) {
           offset = txtNode.textContent.indexOf(CLOSE_TOKEN) + CLOSE_TOKEN.length;
           txtNode.splitText(offset);
-          tokenNodes.push(txtNode);
+          tokenNodes.add(txtNode);
         } else {
           offset = txtNode.textContent.indexOf(OPEN_TOKEN);
           txtNode.splitText(offset);
@@ -38,14 +38,15 @@ export const createTxtNodesProcessor = (createSub, removeSub) => {
         // @ts-ignore
         txtNode = txtNode.nextSibling;
       }
-      tokenNodes.forEach((tNode) => {
-        let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');
-        sub(prop, (val) => {
-          tNode.textContent = /** @type {String} */ (val);
-        });
-      });
     });
 
-    return removeSub?.(fnCtx);
+    for (let tNode of tokenNodes) {
+      let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');
+      sub(prop, (val) => {
+        tNode.textContent = /** @type {String} */ (val);
+      });
+    }
+
+    return removeSub(fnCtx);
   };
 };

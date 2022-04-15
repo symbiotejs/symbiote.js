@@ -2,6 +2,8 @@ import { DICT } from '../dictionary.js';
 
 /**
  * @param {String} bindAttr
+ * @param {Function} createSub
+ * @param {Function} removeSub
  * @returns {import('./typedef.js').TplProcessor}
  */
 export function createDomBindProcessor(bindAttr, createSub, removeSub) {
@@ -72,6 +74,6 @@ export function createDomBindProcessor(bindAttr, createSub, removeSub) {
       el.removeAttribute(bindAttr);
     });
 
-    return removeSub?.(fnCtx);
+    return removeSub(fnCtx);
   };
 }
