@@ -9,13 +9,14 @@ import { DICT } from '../dictionary.js';
 export function createDomBindProcessor(bindAttr, createSub, removeSub) {
   return (fr, fnCtx) => {
     let sub = createSub(fnCtx);
-
-    [...fr.querySelectorAll(`[${bindAttr}]`)].forEach((el) => {
+    let elementList = fr.querySelectorAll(`[${bindAttr}]`);
+    for (let i = 0; i < elementList.length; i++) {
+      let el = elementList[i];
       let subStr = el.getAttribute(bindAttr);
       let keyValArr = subStr.split(';');
-      keyValArr.forEach((keyValStr) => {
+      for (let keyValStr of keyValArr) {
         if (!keyValStr) {
-          return;
+          continue;
         }
         let kv = keyValStr.split(':').map((str) => str.trim());
         let prop = kv[0];
@@ -36,13 +37,14 @@ export function createDomBindProcessor(bindAttr, createSub, removeSub) {
           let propPath = prop.split('.');
           dive = () => {
             parent = el;
-            propPath.forEach((step, idx) => {
+            for (let idx = 0; idx < propPath.length; idx++) {
+              let step = propPath[idx];
               if (idx < propPath.length - 1) {
                 parent = parent[step];
               } else {
                 lastStep = step;
               }
-            });
+            }
           };
           dive();
         }
@@ -70,9 +72,9 @@ export function createDomBindProcessor(bindAttr, createSub, removeSub) {
             }
           });
         }
-      });
+      }
       el.removeAttribute(bindAttr);
-    });
+    }
 
     return removeSub(fnCtx);
   };

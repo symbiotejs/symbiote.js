@@ -2,6 +2,10 @@ const OPEN_TOKEN = '{{';
 const CLOSE_TOKEN = '}}';
 const SKIP_ATTR = 'skip-text';
 
+/**
+ * @param {Element | DocumentFragment} el
+ * @returns {Text[]}
+ */
 function getTextNodesWithTokens(el) {
   let node;
   let result = [];
@@ -11,7 +15,7 @@ function getTextNodesWithTokens(el) {
     },
   });
   while ((node = walk.nextNode())) {
-    result.push(node);
+    result.push(/** @type {Text} */ (node));
   }
   return result;
 }
@@ -23,7 +27,7 @@ export const createTxtNodesProcessor = (createSub, removeSub) => {
 
     let txtNodes = getTextNodesWithTokens(fr);
     let tokenNodes = new Set();
-    txtNodes.forEach((/** @type {Text} */ txtNode) => {
+    for (let txtNode of txtNodes) {
       let offset;
       // Splitting of the text node:
       while (txtNode.textContent.includes(CLOSE_TOKEN)) {
@@ -38,7 +42,7 @@ export const createTxtNodesProcessor = (createSub, removeSub) => {
         // @ts-ignore
         txtNode = txtNode.nextSibling;
       }
-    });
+    }
 
     for (let tNode of tokenNodes) {
       let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');

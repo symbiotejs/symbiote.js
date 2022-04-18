@@ -52,8 +52,10 @@ function createElementFactory(templateFr, fnCtx, processors = DEFAULT_PROCESSORS
     },
     /** @param {Element} element */
     recycle(element) {
-      unsubscribers.get(element)();
-      unsubscribers.delete(element);
+      if (unsubscribers.has(element)) {
+        unsubscribers.get(element)();
+        unsubscribers.delete(element);
+      }
     },
     recycleAll() {
       for (let [, unsub] of unsubscribers) {

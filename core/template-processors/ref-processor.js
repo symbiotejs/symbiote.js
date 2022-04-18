@@ -7,4 +7,6 @@ export function refProcessor(fr, fnCtx) {
     fnCtx.ref[refName] = el;
     el.removeAttribute(DICT.EL_REF_ATTR);
   });
+
+  return;
 }

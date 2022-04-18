@@ -65,9 +65,9 @@ export class Data {
     }
     this.store[prop] = val;
     if (this.callbackMap[prop]) {
-      this.callbackMap[prop].forEach((callback) => {
+      for (let callback of this.callbackMap[prop]) {
         callback(this.store[prop]);
-      });
+      }
     }
   }
 
@@ -94,9 +94,9 @@ export class Data {
   /** @param {String} prop */
   notify(prop) {
     if (this.callbackMap[prop]) {
-      this.callbackMap[prop].forEach((callback) => {
+      for (let callback of this.callbackMap[prop]) {
         callback(this.store[prop]);
-      });
+      }
     }
   }
 
