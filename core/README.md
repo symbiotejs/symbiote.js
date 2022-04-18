@@ -1,5 +1,8 @@
 ## Folder contents
 
+### template-processors
+Template processing functions. Implements basic template processing flow.
+
 ### BaseComponent.js
 Base component class. Major utility for web-component creation and template data binding. Unlike many other libraries, such as React, component instance is not abstract and exists as a certain DOM element with a standard DOM API methods available.
 
@@ -14,6 +17,3 @@ Normalized typed collection for dedicated domain specific data entities. Useful 
 
 ### AppRouter.js
 SPA routing utility. Based on native History API.
-
-### tpl-rpcessors.js
-Template processing functions. Implements basic template processing flow.
