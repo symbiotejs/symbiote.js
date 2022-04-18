@@ -87,6 +87,11 @@ export class BaseComponent extends HTMLElement {
     this.tplProcessors.add(processorFn);
   }
 
+  /** @param {import('./template-processors/typedef.js').TplProcessor[]} processorFns */
+  setTemplateProcessors(processorFns) {
+    this.tplProcessors = new Set(processorFns);
+  }
+
   constructor() {
     super();
     /** @type {Object<string, unknown>} */
