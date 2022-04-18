@@ -283,7 +283,11 @@ function createNonKeyedDomReconciler(container, templateFr, fnCtx) {
   return { reconcile, destroy };
 }
 
-/** @type {import('./typedef.js').TplProcessor<import('../BaseComponent.js').BaseComponent>} */
+/**
+ * It's better to add `repeatProcessor` before other processors to prevent their execution on the repeated template.
+ *
+ * @type {import('./typedef.js').TplProcessor<import('../BaseComponent.js').BaseComponent>}
+ */
 export function repeatProcessor(fr, fnCtx) {
   let destroyers = new Set();
   let subs = new Set();
