@@ -1,10 +1,3 @@
-import { domSetProcessor, refProcessor, repeatProcessor, slotProcessor, txtNodesProcessor } from './index.js';
+import { domSetProcessor, refProcessor, slotProcessor, txtNodesProcessor } from './index.js';
 
-export const DEFAULT_PROCESSORS = [
-  /** It's better to add `repeatProcessor` before other processors to prevent their execution on the repeated template. */
-  repeatProcessor,
-  slotProcessor,
-  refProcessor,
-  domSetProcessor,
-  txtNodesProcessor,
-];
+export const defaultProcessors = [slotProcessor, refProcessor, domSetProcessor, txtNodesProcessor];

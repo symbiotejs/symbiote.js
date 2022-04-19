@@ -8,7 +8,7 @@ import { txtNodesProcessor } from './txt-nodes-processor.js';
 /** @typedef {import('./typedef.js').TplProcessor} TplProcessor */
 /** @typedef {import('../BaseComponent.js').BaseComponent} BaseComponent */
 
-const DEFAULT_PROCESSORS = {
+const DEFAULT_REPEAT_PROCESSORS = {
   contextRepeat: [domRepeatSetProcessor, txtNodesProcessor],
   contextComponent: [domSetProcessor],
 };
@@ -16,10 +16,10 @@ const DEFAULT_PROCESSORS = {
 /**
  * @param {DocumentFragment} templateFr
  * @param {Subscribable} fnCtx
- * @param {{ contextRepeat: TplProcessor[]; contextComponent: TplProcessor[] }} [processors=DEFAULT_PROCESSORS] Default is `DEFAULT_PROCESSORS`
+ * @param {{ contextRepeat: TplProcessor[]; contextComponent: TplProcessor[] }} [processors=DEFAULT_REPEAT_PROCESSORS] Default is `DEFAULT_REPEAT_PROCESSORS`
  * @returns
  */
-function createElementFactory(templateFr, fnCtx, processors = DEFAULT_PROCESSORS) {
+function createElementFactory(templateFr, fnCtx, processors = DEFAULT_REPEAT_PROCESSORS) {
   let unsubscribers = new Map();
   let { contextRepeat, contextComponent } = processors;
 
