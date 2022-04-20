@@ -182,6 +182,7 @@ export class BaseComponent extends HTMLElement {
   sub(prop, handler) {
     let parsed = BaseComponent.__parseProp(prop, this);
     let sub = parsed.ctx.sub(parsed.name, handler);
+    this.allSubs.add(sub);
 
     return {
       remove: () => {
