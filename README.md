@@ -13,7 +13,7 @@ Best for:
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
 ## 🔥 Core benefits
-* Minimalistic but reach.
+* Minimal but rich.
 * No extra dependencies.
 * Ultralight (~3kb br/gzip for the all BaseComponent features, including data management).
 * Blazing fast.
