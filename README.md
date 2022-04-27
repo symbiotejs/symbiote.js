@@ -2,8 +2,11 @@
 
 Simple, light and very powerful library to create embedded components and data channels between them.
 
+## ⚖️ What for?
+Symbiote.js - is for symbiosis. That means, you can create complex applications, above another complex applications, built with any modern stack. 
+
 Best for:
-* Widgets
+* Complex widgets
 * Micro-frontends
 * Reusable component libraries
 * Fast and reliable web applications
