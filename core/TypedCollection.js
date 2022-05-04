@@ -184,6 +184,10 @@ export class TypedCollection {
     return [...this.__items];
   }
 
+  get size() {
+    return this.__items.size;
+  }
+
   destroy() {
     this.__data.remove();
     this.__observers = null;
