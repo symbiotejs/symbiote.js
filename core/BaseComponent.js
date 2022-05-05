@@ -166,6 +166,32 @@ export class BaseComponent extends HTMLElement {
     };
   }
 
+  /** @param {String[]} updated Updated props name list */
+  onUpdates(...updated) {}
+
+  /**
+   * @private
+   * @param {String} prop
+   */
+  __collectUpdate(prop) {
+    if (this.__updatesTimeout) {
+      window.clearTimeout(this.__updatesTimeout);
+    }
+    if (!this.__changedProps) {
+      /**
+       * @private
+       * @type {Set<String>}
+       */
+      this.__changedProps = new Set();
+    }
+    this.__changedProps.add(prop);
+    /** @private */
+    this.__updatesTimeout = window.setTimeout(() => {
+      this.onUpdates(...this.__changedProps);
+      this.__changedProps.clear();
+    });
+  }
+
   /**
    * @template T
    * @param {String} prop
@@ -259,6 +285,9 @@ export class BaseComponent extends HTMLElement {
       } else {
         this.localCtx.add(prop, this.init$[prop]);
       }
+      this.sub(prop, () => {
+        this.__collectUpdate(prop);
+      });
     }
     /** @private */
     this.__dataCtxInitialized = true;
