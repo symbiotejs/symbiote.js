@@ -98,7 +98,21 @@ function domSetProcessor(fr, fnCtx) {
         dive();
       }
       for (let valKey of valKeysArr) {
+        /** @type {'single' | 'double'} */
+        let castType;
+        if (valKey.startsWith('!!')) {
+          castType = 'double';
+          valKey = valKey.replace('!!', '');
+        } else if (valKey.startsWith('!')) {
+          castType = 'single';
+          valKey = valKey.replace('!', '');
+        }
         fnCtx.sub(valKey, (val) => {
+          if (castType === 'double') {
+            val = !!val;
+          } else if (castType === 'single') {
+            val = !val;
+          }
           if (isAttr) {
             if (val?.constructor === Boolean) {
               val ? el.setAttribute(prop, '') : el.removeAttribute(prop);
