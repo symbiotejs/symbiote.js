@@ -102,6 +102,8 @@ export class BaseComponent extends HTMLElement {
     this.readyToDestroy = true;
     /** @type {Boolean} */
     this.processInnerHtml = false;
+    /** @type {Boolean} */
+    this.collectUpdates = true;
   }
 
   /** @returns {String} */
@@ -285,9 +287,10 @@ export class BaseComponent extends HTMLElement {
       } else {
         this.localCtx.add(prop, this.init$[prop]);
       }
-      this.sub(prop, () => {
-        this.__collectUpdate(prop);
-      });
+      this.collectUpdates &&
+        this.sub(prop, () => {
+          this.__collectUpdate(prop);
+        });
     }
     /** @private */
     this.__dataCtxInitialized = true;
