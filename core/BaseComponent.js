@@ -169,7 +169,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   /** @param {String[]} updated Updated props name list */
-  onUpdates(...updated) {}
+  collectedCallback(...updated) {}
 
   /**
    * @private
@@ -189,7 +189,7 @@ export class BaseComponent extends HTMLElement {
     this.__changedProps.add(prop);
     /** @private */
     this.__updatesTimeout = window.setTimeout(() => {
-      this.onUpdates(...this.__changedProps);
+      this.collectedCallback(...this.__changedProps);
       this.__changedProps.clear();
     });
   }
