@@ -6,6 +6,10 @@ import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
+
+/**
+ * @template {object} S
+ */
 export class BaseComponent extends HTMLElement {
   initCallback() {}
 
@@ -87,7 +91,7 @@ export class BaseComponent extends HTMLElement {
 
   constructor() {
     super();
-    /** @type {Object<string, unknown>} */
+    /** @type {S} */
     this.init$ = Object.create(null);
     /** @type {Set<(fr: DocumentFragment | BaseComponent, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
@@ -189,25 +193,26 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @template T
-   * @param {String} prop
-   * @param {T} val
+   * @template {keyof S} T
+   * @param {T} prop
+   * @param {S[T]} val
    */
   add(prop, val) {
-    let parsed = BaseComponent.__parseProp(prop, this);
+    let parsed = BaseComponent.__parseProp(/** @type {String} */(prop), this);
     parsed.ctx.add(parsed.name, val, false);
   }
 
-  /** @param {Object<string, any>} obj */
+  /** @param {Partial<S>} obj */
   add$(obj) {
     for (let prop in obj) {
-      this.add(prop, obj[prop]);
+      this.add(prop, obj[/** @type {String} */(prop)]);
     }
   }
 
+  /**
+   * @return {S} */
   get $() {
     if (!this.__stateProxy) {
-      /** @type {Object<string, any>} */
       let o = Object.create(null);
       /** @private */
       this.__stateProxy = new Proxy(o, {
@@ -225,7 +230,7 @@ export class BaseComponent extends HTMLElement {
     return this.__stateProxy;
   }
 
-  /** @param {Object<string, any>} kvObj */
+  /** @param {Partial<S>} kvObj */
   set$(kvObj) {
     for (let key in kvObj) {
       this.$[key] = kvObj[key];
@@ -234,6 +239,7 @@ export class BaseComponent extends HTMLElement {
 
   /** @private */
   __initDataCtx() {
+    /** @type {{[key: string]: string}} */
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
@@ -391,10 +397,10 @@ export class BaseComponent extends HTMLElement {
   /**
    * @param {String} propName
    * @param {Boolean} [external]
-   * @returns {String}
+   * @returns {keyof S}
    */
   bindCssData(propName, external = true) {
-    let stateName = (external ? DICT.EXT_DATA_CTX_PRFX : '') + propName;
+    let stateName = /** @type {keyof S} */((external ? DICT.EXT_DATA_CTX_PRFX : '') + propName);
     this.add(stateName, this.getCssData(propName, true));
     return stateName;
   }
