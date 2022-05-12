@@ -8,7 +8,7 @@ let autoTagsCount = 0;
 
 
 /**
- * @template {object} S
+ * @template S
  */
 export class BaseComponent extends HTMLElement {
   initCallback() {}
