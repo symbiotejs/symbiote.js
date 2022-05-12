@@ -171,12 +171,12 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @template T
-   * @param {String} prop
-   * @param {(value: T) => void} handler
+   * @template {keyof S} T
+   * @param {T} prop
+   * @param {(value: S[T]) => void} handler
    */
   sub(prop, handler) {
-    let parsed = BaseComponent.__parseProp(prop, this);
+    let parsed = BaseComponent.__parseProp(/** @type {string} */(prop), this);
     this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
