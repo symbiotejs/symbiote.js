@@ -55,8 +55,8 @@ export function repeatProcessor(fr, fnCtx) {
             el.appendChild(repeatItem);
           }
         });
-        let over = currentList.slice(items.length, currentList.length);
-        for (let exItm of over) {
+        let oversize = currentList.slice(items.length, currentList.length);
+        for (let exItm of oversize) {
           exItm.remove();
         }
       };
