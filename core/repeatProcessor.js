@@ -66,7 +66,7 @@ export function repeatProcessor(fr, fnCtx) {
         let items = [];
         for (let itemKey in data) {
           let init = data[itemKey];
-          Object.defineProperty(init, '_KEY', {
+          Object.defineProperty(init, '_KEY_', {
             value: itemKey,
             enumerable: true,
           });
