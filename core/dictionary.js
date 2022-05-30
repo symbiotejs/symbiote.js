@@ -16,4 +16,8 @@ export const DICT = Object.freeze({
   EL_REF_ATTR: 'ref',
   // Prefix for auto generated tag names:
   AUTO_TAG_PRFX: 'sym',
+  // Template list source data attribute:
+  REPEAT_ATTR: 'repeat',
+  // List item tag name:
+  REPEAT_ITEM_TAG_ATTR: 'repeat-item-tag',
 });

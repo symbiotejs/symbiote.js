@@ -6,11 +6,12 @@ import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
-
-/**
- * @template S
- */
+/** @template S */
 export class BaseComponent extends HTMLElement {
+  get BaseComponent() {
+    return BaseComponent;
+  }
+
   initCallback() {}
 
   /** @private */
@@ -176,7 +177,7 @@ export class BaseComponent extends HTMLElement {
    * @param {(value: S[T]) => void} handler
    */
   sub(prop, handler) {
-    let parsed = BaseComponent.__parseProp(/** @type {string} */(prop), this);
+    let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
     this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
   }
 
@@ -198,19 +199,18 @@ export class BaseComponent extends HTMLElement {
    * @param {S[T]} val
    */
   add(prop, val) {
-    let parsed = BaseComponent.__parseProp(/** @type {String} */(prop), this);
+    let parsed = BaseComponent.__parseProp(/** @type {String} */ (prop), this);
     parsed.ctx.add(parsed.name, val, false);
   }
 
   /** @param {Partial<S>} obj */
   add$(obj) {
     for (let prop in obj) {
-      this.add(prop, obj[/** @type {String} */(prop)]);
+      this.add(prop, obj[/** @type {String} */ (prop)]);
     }
   }
 
-  /**
-   * @return {S} */
+  /** @returns {S} */
   get $() {
     if (!this.__stateProxy) {
       let o = Object.create(null);
@@ -230,16 +230,23 @@ export class BaseComponent extends HTMLElement {
     return this.__stateProxy;
   }
 
-  /** @param {Partial<S>} kvObj */
-  set$(kvObj) {
+  /**
+   * @param {Partial<S>} kvObj
+   * @param {Boolean} [force]
+   */
+  set$(kvObj, force = false) {
     for (let key in kvObj) {
-      this.$[key] = kvObj[key];
+      if (force) {
+        this.$[key] = kvObj[key];
+      } else {
+        this.$[key] !== kvObj[key] && (this.$[key] = kvObj[key]);
+      }
     }
   }
 
   /** @private */
   __initDataCtx() {
-    /** @type {{[key: string]: string}} */
+    /** @type {{ [key: string]: string }} */
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
@@ -400,7 +407,7 @@ export class BaseComponent extends HTMLElement {
    * @returns {keyof S}
    */
   bindCssData(propName, external = true) {
-    let stateName = /** @type {keyof S} */((external ? DICT.EXT_DATA_CTX_PRFX : '') + propName);
+    let stateName = /** @type {keyof S} */ ((external ? DICT.EXT_DATA_CTX_PRFX : '') + propName);
     this.add(stateName, this.getCssData(propName, true));
     return stateName;
   }

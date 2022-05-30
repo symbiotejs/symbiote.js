@@ -1,4 +1,6 @@
 import { DICT } from './dictionary.js';
+// Should go first among other processors:
+import { repeatProcessor } from './repeatProcessor.js';
 
 /**
  * @template {import('./BaseComponent.js').BaseComponent} T
@@ -190,4 +192,4 @@ const txtNodesProcessor = function (fr, fnCtx) {
   });
 };
 
-export default [slotProcessor, refProcessor, domSetProcessor, txtNodesProcessor];
+export default [repeatProcessor, slotProcessor, refProcessor, domSetProcessor, txtNodesProcessor];
