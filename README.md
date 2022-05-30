@@ -18,7 +18,7 @@ Best for:
 ## 🔥 Core benefits
 * Minimal but rich.
 * No extra dependencies.
-* Ultralight (~3kb br/gzip for the all BaseComponent features, including data management).
+* Ultralight (~4kb br/gzip for the all BaseComponent features, including data management).
 * Blazing fast.
 * Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
