@@ -230,10 +230,17 @@ export class BaseComponent extends HTMLElement {
     return this.__stateProxy;
   }
 
-  /** @param {Partial<S>} kvObj */
-  set$(kvObj) {
+  /**
+   * @param {Partial<S>} kvObj
+   * @param {Boolean} [force]
+   */
+  set$(kvObj, force = false) {
     for (let key in kvObj) {
-      this.$[key] = kvObj[key];
+      if (force) {
+        this.$[key] = kvObj[key];
+      } else {
+        this.$[key] !== kvObj[key] && (this.$[key] = kvObj[key]);
+      }
     }
   }
 

@@ -37,6 +37,7 @@ export function repeatProcessor(fr, fnCtx) {
         return;
       }
       let currentList = [...el.children];
+      let fragment;
       let fillItems = (/** @type {any[]} */ items) => {
         items.forEach((item, idx) => {
           if (currentList[idx]) {
@@ -50,11 +51,15 @@ export function repeatProcessor(fr, fnCtx) {
               }
             }
           } else {
+            if (!fragment) {
+              fragment = new DocumentFragment();
+            }
             let repeatItem = new itemClass();
             repeatItem.init$ = item;
-            el.appendChild(repeatItem);
+            fragment.appendChild(repeatItem);
           }
         });
+        fragment && el.appendChild(fragment);
         let oversize = currentList.slice(items.length, currentList.length);
         for (let exItm of oversize) {
           exItm.remove();
