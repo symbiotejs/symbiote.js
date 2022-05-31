@@ -55,7 +55,7 @@ export function repeatProcessor(fr, fnCtx) {
               fragment = new DocumentFragment();
             }
             let repeatItem = new itemClass();
-            repeatItem.init$ = item;
+            Object.assign(repeatItem.init$, item);
             fragment.appendChild(repeatItem);
           }
         });
