@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/@symbiotejs%2Fsymbiote.svg)](https://badge.fury.io/js/@symbiotejs%2Fsymbiote)
+
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
 Simple, light and very powerful library to create embedded components and data channels between them.
