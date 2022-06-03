@@ -7,4 +7,4 @@ IndexedDB helper with a simple promise-based API.
 Statistically unique ids generator.
 
 ### dom-helpers.js
-The set of small but helpful script to interact with DOM API.
+The set of small utility scripts to interact with the DOM API.

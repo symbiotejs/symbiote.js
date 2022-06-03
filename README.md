@@ -2,17 +2,18 @@
 
 # Symbi<span style="color:#f0f">ఠ</span>te.js
 
-Simple, light and very powerful library to create embedded components and data channels between them.
+Simple, light and very powerful library to create embedded components for any purpose, with a data flow management included.
 
 ## ⚖️ What for?
-Symbiote.js - is for symbiosis. That means, you can create complex applications, above another complex applications, built with any modern stack. 
+Symbiote.js - is for symbiosis. That means, you can create complex meta-applications, above another applications, built with any modern stack.
 
 Best for:
 * Complex widgets
-* Micro-frontends
+* Micro frontends
 * Reusable component libraries
 * Fast and reliable web applications
 * Framework agnostic solutions
+* Meta-applications
 * JamStack solutions
 
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
@@ -20,7 +21,7 @@ Best for:
 ## 🔥 Core benefits
 * Minimal but rich.
 * No extra dependencies.
-* Ultralight (~4kb br/gzip for the all BaseComponent features, including data management).
+* Ultralight (~4kb br/gzip for the all BaseComponent features).
 * Blazing fast.
 * Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
@@ -42,7 +43,7 @@ Best for:
 * Native HTML instead of custom template syntax processing.
 * Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want.
 * No logical operators in templates. Logic and presentation are strictly separated.
-* Fast synchronous UI updates.
+* Fast synchronous UI updates, no unexpected redraws.
 * Full data context access from the document structure.
 * Full data context availability for template bindings.
 * DOM API friendly approach for the most performant solutions.
