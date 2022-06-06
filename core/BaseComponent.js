@@ -239,7 +239,7 @@ export class BaseComponent extends HTMLElement {
       let val = kvObj[key];
       /** @type {unknown[]} */
       let primArr = [String, Number, Boolean];
-      if (forcePrimitives || !primArr.includes(val.constructor)) {
+      if (forcePrimitives || !primArr.includes(val?.constructor)) {
         this.$[key] = val;
       } else {
         this.$[key] !== val && (this.$[key] = val);
