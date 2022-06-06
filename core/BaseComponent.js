@@ -236,10 +236,11 @@ export class BaseComponent extends HTMLElement {
    */
   set$(kvObj, force = false) {
     for (let key in kvObj) {
-      if (force) {
-        this.$[key] = kvObj[key];
+      let val = kvObj[key];
+      if (force || val.constructor === Object || val.constructor === Array) {
+        this.$[key] = val;
       } else {
-        this.$[key] !== kvObj[key] && (this.$[key] = kvObj[key]);
+        this.$[key] !== val && (this.$[key] = val);
       }
     }
   }
