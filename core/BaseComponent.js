@@ -232,14 +232,17 @@ export class BaseComponent extends HTMLElement {
 
   /**
    * @param {Partial<S>} kvObj
-   * @param {Boolean} [force]
+   * @param {Boolean} [forcePrimitives] Force update callbacks for primitive types
    */
-  set$(kvObj, force = false) {
+  set$(kvObj, forcePrimitives = false) {
     for (let key in kvObj) {
-      if (force) {
-        this.$[key] = kvObj[key];
+      let val = kvObj[key];
+      /** @type {unknown[]} */
+      let primArr = [String, Number, Boolean];
+      if (forcePrimitives || !primArr.includes(val.constructor)) {
+        this.$[key] = val;
       } else {
-        this.$[key] !== kvObj[key] && (this.$[key] = kvObj[key]);
+        this.$[key] !== val && (this.$[key] = val);
       }
     }
   }
