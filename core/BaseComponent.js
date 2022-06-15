@@ -338,6 +338,7 @@ export class BaseComponent extends HTMLElement {
       if (!styleMutationObserverCbList.size) {
         styleMutationObserver.disconnect();
         styleMutationObserver = null;
+        styleMutationObserverCbList = null;
       }
     }, 100);
   }
