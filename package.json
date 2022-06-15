@@ -25,7 +25,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.7.4",
+  "version": "1.8.0",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",
