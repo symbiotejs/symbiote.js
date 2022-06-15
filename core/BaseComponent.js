@@ -335,8 +335,8 @@ export class BaseComponent extends HTMLElement {
         this.tplProcessors.delete(proc);
       }
       styleMutationObserverCbList?.delete(this.updateCssData);
-      if (!styleMutationObserverCbList.size) {
-        styleMutationObserver.disconnect();
+      if (!styleMutationObserverCbList?.size) {
+        styleMutationObserver?.disconnect();
         styleMutationObserver = null;
         styleMutationObserverCbList = null;
       }
