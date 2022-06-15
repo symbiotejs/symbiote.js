@@ -6,6 +6,12 @@ import PROCESSORS from './tpl-processors.js';
 
 let autoTagsCount = 0;
 
+/** @type {MutationObserver} */
+let styleMutationObserver = null;
+
+/** @type {Set<() => void>} */
+let styleMutationObserverCbList = null;
+
 /** @template S */
 export class BaseComponent extends HTMLElement {
   get BaseComponent() {
@@ -94,6 +100,8 @@ export class BaseComponent extends HTMLElement {
     super();
     /** @type {S} */
     this.init$ = Object.create(null);
+    /** @type {Object<string, any>} */
+    this.cssInit$ = Object.create(null);
     /** @type {Set<(fr: DocumentFragment | BaseComponent, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, any>} */
@@ -195,7 +203,7 @@ export class BaseComponent extends HTMLElement {
 
   /**
    * @template {keyof S} T
-   * @param {T} prop
+   * @param {String} prop
    * @param {S[T]} val
    */
   add(prop, val) {
@@ -276,6 +284,9 @@ export class BaseComponent extends HTMLElement {
         this.localCtx.add(prop, this.init$[prop]);
       }
     }
+    for (let cssProp in this.cssInit$) {
+      this.bindCssData(cssProp, this.cssInit$[cssProp]);
+    }
     /** @private */
     this.__dataCtxInitialized = true;
   }
@@ -322,6 +333,12 @@ export class BaseComponent extends HTMLElement {
       }
       for (let proc of this.tplProcessors) {
         this.tplProcessors.delete(proc);
+      }
+      styleMutationObserverCbList?.delete(this.updateCssData);
+      if (!styleMutationObserverCbList.size) {
+        styleMutationObserver.disconnect();
+        styleMutationObserver = null;
+        styleMutationObserverCbList = null;
       }
     }, 100);
   }
@@ -405,14 +422,61 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @param {String} propName
-   * @param {Boolean} [external]
-   * @returns {keyof S}
+   * @private
+   * @param {String} ctxPropName
    */
-  bindCssData(propName, external = true) {
-    let stateName = /** @type {keyof S} */ ((external ? DICT.EXT_DATA_CTX_PRFX : '') + propName);
-    this.add(stateName, this.getCssData(propName, true));
-    return stateName;
+  __extractCssName(ctxPropName) {
+    return ctxPropName
+      .split('--')
+      .map((part, idx) => {
+        return idx === 0 ? '' : part;
+      })
+      .join('--');
+  }
+
+  updateCssData = () => {
+    this.dropCssDataCache();
+    this.__boundCssProps?.forEach((ctxProp) => {
+      let val = this.getCssData(this.__extractCssName(ctxProp), true);
+      this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+    });
+  };
+
+  /** @private */
+  __initStyleAttrObserver() {
+    if (!styleMutationObserverCbList) {
+      styleMutationObserverCbList = new Set();
+    }
+    styleMutationObserverCbList.add(this.updateCssData);
+    if (!styleMutationObserver) {
+      styleMutationObserver = new MutationObserver((/** @type {MutationRecord[]} */ records) => {
+        records[0].type === 'attributes' &&
+          styleMutationObserverCbList.forEach((cb) => {
+            cb();
+          });
+      });
+      styleMutationObserver.observe(document, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style'],
+      });
+    }
+  }
+
+  /**
+   * @param {String} propName
+   * @param {any} [initValue] Uses empty string by default to make value useful in template
+   */
+  bindCssData(propName, initValue = '') {
+    if (!this.__boundCssProps) {
+      /** @private */
+      this.__boundCssProps = new Set();
+    }
+    this.__boundCssProps.add(propName);
+    let val = this.getCssData(this.__extractCssName(propName), true) || initValue;
+    this.add(propName, val);
+    this.__initStyleAttrObserver();
   }
 
   dropCssDataCache() {
