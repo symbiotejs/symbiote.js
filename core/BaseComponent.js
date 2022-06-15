@@ -469,6 +469,7 @@ export class BaseComponent extends HTMLElement {
    */
   bindCssData(propName, initValue = '') {
     if (!this.__boundCssProps) {
+      /** @private */
       this.__boundCssProps = new Set();
     }
     this.__boundCssProps.add(propName);
