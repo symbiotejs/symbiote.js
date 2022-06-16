@@ -474,7 +474,8 @@ export class BaseComponent extends HTMLElement {
       this.__boundCssProps = new Set();
     }
     this.__boundCssProps.add(propName);
-    let val = this.getCssData(this.__extractCssName(propName), true) || initValue;
+    let val = this.getCssData(this.__extractCssName(propName), true);
+    val === null && (val = initValue);
     this.add(propName, val);
     this.__initStyleAttrObserver();
   }
