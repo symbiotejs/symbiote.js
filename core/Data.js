@@ -59,16 +59,12 @@ export class Data {
    * @param {unknown} val
    * @param {Boolean} [rewrite]
    */
-  add(prop, val, rewrite = true) {
+  add(prop, val, rewrite = false) {
     if (!rewrite && Object.keys(this.store).includes(prop)) {
       return;
     }
     this.store[prop] = val;
-    if (this.callbackMap[prop]) {
-      this.callbackMap[prop].forEach((callback) => {
-        callback(this.store[prop]);
-      });
-    }
+    this.notify(prop);
   }
 
   /**
