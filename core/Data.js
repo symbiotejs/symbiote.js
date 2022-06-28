@@ -61,6 +61,9 @@ export class Data {
    */
   add(prop, val, rewrite = false) {
     if (!rewrite && Object.keys(this.store).includes(prop)) {
+      if (val !== this.store[prop]) {
+        this.notify(prop);
+      }
       return;
     }
     this.store[prop] = val;
@@ -77,7 +80,8 @@ export class Data {
       Data.warn('publish', prop);
       return;
     }
-    this.add(prop, val);
+    this.store[prop] = val;
+    this.notify(prop);
   }
 
   /** @param {Object<string, any>} updObj */
