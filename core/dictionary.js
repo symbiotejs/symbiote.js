@@ -20,4 +20,6 @@ export const DICT = Object.freeze({
   REPEAT_ATTR: 'repeat',
   // List item tag name:
   REPEAT_ITEM_TAG_ATTR: 'repeat-item-tag',
+  // Key to restore nested properties was set before component construction
+  SET_LATER_KEY: '__toSetLater__',
 });

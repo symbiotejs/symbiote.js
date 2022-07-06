@@ -1,6 +1,7 @@
 import { Data } from './Data.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../utils/UID.js';
+import { setNestedProp } from '../utils/setNestedProp.js';
 
 import PROCESSORS from './tpl-processors.js';
 
@@ -301,6 +302,12 @@ export class BaseComponent extends HTMLElement {
         this.style.setProperty(DICT.CSS_CTX_PROP, `'${ctxNameAttrVal}'`);
       }
       this.__initDataCtx();
+      if (this[DICT.SET_LATER_KEY]) {
+        for (let prop in this[DICT.SET_LATER_KEY]) {
+          setNestedProp(this, prop, this[DICT.SET_LATER_KEY][prop]);
+        }
+        delete this[DICT.SET_LATER_KEY];
+      }
       this.initChildren = [...this.childNodes];
       for (let proc of PROCESSORS) {
         this.addTemplateProcessor(proc);
