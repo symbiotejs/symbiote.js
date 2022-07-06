@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { setNestedProp } from '../utils/setNestedProp.js';
 // Should go first among other processors:
 import { repeatProcessor } from './repeatProcessor.js';
 
@@ -82,23 +83,6 @@ function domSetProcessor(fr, fnCtx) {
       let valKeysArr = kv[1].split(',').map((valKey) => {
         return valKey.trim();
       });
-      // Deep property:
-      let isDeep, parent, lastStep, dive;
-      if (prop.includes('.')) {
-        isDeep = true;
-        let propPath = prop.split('.');
-        dive = () => {
-          parent = el;
-          propPath.forEach((step, idx) => {
-            if (idx < propPath.length - 1) {
-              parent = parent[step];
-            } else {
-              lastStep = step;
-            }
-          });
-        };
-        dive();
-      }
       for (let valKey of valKeysArr) {
         /** @type {'single' | 'double'} */
         let castType;
@@ -121,19 +105,14 @@ function domSetProcessor(fr, fnCtx) {
             } else {
               el.setAttribute(prop, val);
             }
-          } else if (isDeep) {
-            if (parent) {
-              parent[lastStep] = val;
-            } else {
-              // Custom element instances are not constructed properly at this time, so:
-              window.setTimeout(() => {
-                dive();
-                parent[lastStep] = val;
-              });
-              // TODO: investigate how to do it better ^^^
-            }
           } else {
-            el[prop] = val;
+            if (!setNestedProp(el, prop, val)) {
+              // Custom element instances are not constructed properly at this time, so:
+              if (!el[DICT.SET_LATER_KEY]) {
+                el[DICT.SET_LATER_KEY] = Object.create(null);
+              }
+              el[DICT.SET_LATER_KEY][prop] = val;
+            }
           }
         });
       }
