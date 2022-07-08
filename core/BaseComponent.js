@@ -187,7 +187,15 @@ export class BaseComponent extends HTMLElement {
    */
   sub(prop, handler) {
     let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
-    this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+    // @ts-ignore
+    if (!parsed.ctx.has(prop)) {
+      // Avoid *prop binding race:
+      window.setTimeout(() => {
+        this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+      });
+    } else {
+      this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+    }
   }
 
   /** @param {String} prop */
