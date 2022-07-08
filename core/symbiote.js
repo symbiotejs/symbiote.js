@@ -12,3 +12,4 @@ export { applyStyles } from '../utils/dom-helpers.js';
 export { applyAttributes } from '../utils/dom-helpers.js';
 export { create } from '../utils/dom-helpers.js';
 export { IDB } from '../utils/IDB.js';
+export { kebabToCamel } from '../utils/kebabToCamel.js';
