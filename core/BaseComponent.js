@@ -2,9 +2,10 @@ import { Data } from './Data.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
+import { HTMLElement } from './HTMLElement';
+import { isBrowser } from './isBrowser.js';
 
 import PROCESSORS from './tpl-processors.js';
-import { isBrowser } from './isBrowser.js';
 
 let autoTagsCount = 0;
 
