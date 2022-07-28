@@ -301,6 +301,11 @@ export class BaseComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    // As `connectedCallback` calls are queued, it could be called after element being detached from DOM
+    // See example at https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-conformance
+    if (!this.isConnected) {
+      return;
+    }
     if (this.__disconnectTimeout) {
       window.clearTimeout(this.__disconnectTimeout);
     }
@@ -332,6 +337,10 @@ export class BaseComponent extends HTMLElement {
   destroyCallback() {}
 
   disconnectedCallback() {
+    // if element wasn't connected, there is no need to disconnect it
+    if (!this.connectedOnce) {
+      return;
+    }
     this.dropCssDataCache();
     if (!this.readyToDestroy) {
       return;
