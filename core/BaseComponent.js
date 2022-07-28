@@ -4,6 +4,7 @@ import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 
 import PROCESSORS from './tpl-processors.js';
+import { isBrowser } from './isBrowser.js';
 
 let autoTagsCount = 0;
 
@@ -369,6 +370,9 @@ export class BaseComponent extends HTMLElement {
     }
     /** @private */
     this.__tag = tagName;
+    if (!isBrowser()) {
+      return;
+    }
     if (window.customElements.get(tagName)) {
       console.warn(`${tagName} - is already in "customElements" registry`);
       return;

@@ -1,4 +1,5 @@
 import { Data } from './Data.js';
+import { isBrowser } from './isBrowser.js';
 
 export class AppRouter {
   /** @private */
@@ -150,6 +151,8 @@ export class AppRouter {
 
 AppRouter.appMap = Object.create(null);
 
-window.onpopstate = () => {
-  AppRouter.notify();
-};
+if (isBrowser()) {
+  window.onpopstate = () => {
+    AppRouter.notify();
+  };
+}
