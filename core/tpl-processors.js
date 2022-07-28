@@ -172,6 +172,7 @@ const txtNodesProcessor = function (fr, fnCtx) {
     }
     tokenNodes.forEach((tNode) => {
       let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');
+      tNode.textContent = '';
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;
       });
