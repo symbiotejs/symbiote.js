@@ -150,6 +150,7 @@ export class AppRouter {
 
 AppRouter.appMap = Object.create(null);
 
+// TODO: this is side-effect and we should consider to run this code inside AppRouter
 window.onpopstate = () => {
   AppRouter.notify();
 };
