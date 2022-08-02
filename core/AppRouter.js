@@ -144,6 +144,7 @@ export class AppRouter {
       });
     });
     AppRouter.notify();
+    this.initPopstateListener();
     return routeData;
   }
 
