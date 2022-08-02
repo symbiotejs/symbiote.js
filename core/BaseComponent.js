@@ -46,6 +46,21 @@ export class BaseComponent extends HTMLElement {
         mode: 'open',
       });
     }
+    if (this.allowCustomTemplate) {
+      let customTplSelector = this.getAttribute(DICT.USE_TPL);
+      if (customTplSelector) {
+        let root = this.getRootNode();
+        /** @type {HTMLTemplateElement} */
+        // @ts-ignore
+        let customTpl = root?.querySelector(customTplSelector) || document.querySelector(customTplSelector);
+        if (customTpl) {
+          // @ts-ignore
+          template = customTpl.content.cloneNode(true);
+        } else {
+          console.warn(`Symbiote template "${customTplSelector}" is not found...`);
+        }
+      }
+    }
     if (this.processInnerHtml) {
       for (let fn of this.tplProcessors) {
         fn(this, this);
@@ -116,6 +131,8 @@ export class BaseComponent extends HTMLElement {
     this.readyToDestroy = true;
     /** @type {Boolean} */
     this.processInnerHtml = false;
+    /** @type {Boolean} */
+    this.allowCustomTemplate = false;
   }
 
   /** @returns {String} */
