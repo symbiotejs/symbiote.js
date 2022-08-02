@@ -144,12 +144,25 @@ export class AppRouter {
       });
     });
     AppRouter.notify();
+    this.initPopstateListener();
     return routeData;
+  }
+
+  static initPopstateListener() {
+    if (this.__onPopstate) {
+      return;
+    }
+    /** @private */
+    this.__onPopstate = () => {
+      this.notify();
+    };
+    window.addEventListener('popstate', this.__onPopstate);
+  }
+
+  static removePopstateListener() {
+    window.removeEventListener('popstate', this.__onPopstate);
+    this.__onPopstate = null;
   }
 }
 
 AppRouter.appMap = Object.create(null);
-
-window.onpopstate = () => {
-  AppRouter.notify();
-};

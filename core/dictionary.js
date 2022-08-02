@@ -22,4 +22,6 @@ export const DICT = Object.freeze({
   REPEAT_ITEM_TAG_ATTR: 'repeat-item-tag',
   // Key to restore nested properties was set before component construction
   SET_LATER_KEY: '__toSetLater__',
+  // Attribute to provide selector of custom template
+  USE_TPL: 'use-template',
 });
