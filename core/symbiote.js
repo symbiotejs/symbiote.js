@@ -1,8 +1,6 @@
 // Core modules:
 export { BaseComponent } from './BaseComponent.js';
 export { Data } from './Data.js';
-export { TypedData } from './TypedData.js';
-export { TypedCollection } from './TypedCollection.js';
 export { AppRouter } from './AppRouter.js';
 
 // Utils:
