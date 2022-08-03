@@ -21,6 +21,7 @@
     "LICENSE"
   ],
   "module": "./build/symbiote.js",
+  "exports": "./build/symbiote.js",
   "types": "./build/symbiote.d.ts",
   "publishConfig": {
     "access": "public"
