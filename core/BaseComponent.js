@@ -201,17 +201,18 @@ export class BaseComponent extends HTMLElement {
    * @template {keyof S} T
    * @param {T} prop
    * @param {(value: S[T]) => void} handler
+   * @param {Boolean} [init]
    */
-  sub(prop, handler) {
+  sub(prop, handler, init = true) {
     let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
     // @ts-ignore
     if (!parsed.ctx.has(prop)) {
       // Avoid *prop binding race:
       window.setTimeout(() => {
-        this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+        this.allSubs.add(parsed.ctx.sub(parsed.name, handler, init));
       });
     } else {
-      this.allSubs.add(parsed.ctx.sub(parsed.name, handler));
+      this.allSubs.add(parsed.ctx.sub(parsed.name, handler, init));
     }
   }
 
