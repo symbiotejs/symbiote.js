@@ -421,7 +421,7 @@ export class BaseComponent extends HTMLElement {
       return;
     }
     /** @type {String} */
-    let $prop = this.constructor['__attrDesc'][name];
+    let $prop = this.constructor['__attrDesc']?.[name];
     if ($prop) {
       if (this.__dataCtxInitialized) {
         this.$[$prop] = newVal;
