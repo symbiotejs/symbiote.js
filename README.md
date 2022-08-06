@@ -7,6 +7,8 @@ Simple, light and very powerful library to create embedded components for any pu
 ## ⚖️ What for?
 Symbiote.js - is for symbiosis. That means, you can create complex meta-applications, above another applications, built with any modern stack.
 
+The major purpose of Symbiote.js - is to move application inner interactions from the locked space of certain frameworks implementations to the common open space based on native platform features and standards, to be closer to the HTML, CSS and simple DOM APIs, without a lack of DX.
+
 Best for:
 * Complex widgets
 * Micro frontends
