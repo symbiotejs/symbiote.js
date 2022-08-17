@@ -10,6 +10,8 @@ export const DICT = Object.freeze({
   NAMED_DATA_CTX_SPLTR: '/',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx-name',
+  // Data context owner attribute:
+  CTX_OWNER_ATTR: 'ctx-owner',
   // Data context name in CSS custom property:
   CSS_CTX_PROP: '--ctx-name',
   // Element reference attribute:

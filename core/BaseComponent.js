@@ -232,16 +232,20 @@ export class BaseComponent extends HTMLElement {
    * @template {keyof S} T
    * @param {String} prop
    * @param {S[T]} val
+   * @param {Boolean} [rewrite]
    */
-  add(prop, val) {
+  add(prop, val, rewrite = false) {
     let parsed = BaseComponent.__parseProp(/** @type {String} */ (prop), this);
-    parsed.ctx.add(parsed.name, val, false);
+    parsed.ctx.add(parsed.name, val, rewrite);
   }
 
-  /** @param {Partial<S>} obj */
-  add$(obj) {
+  /**
+   * @param {Partial<S>} obj
+   * @param {Boolean} [rewrite]
+   */
+  add$(obj, rewrite = false) {
     for (let prop in obj) {
-      this.add(prop, obj[/** @type {String} */ (prop)]);
+      this.add(prop, obj[/** @type {String} */ (prop)], rewrite);
     }
   }
 
@@ -293,9 +297,10 @@ export class BaseComponent extends HTMLElement {
         }
       }
     }
+    let rewrite = this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false';
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
-        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop]);
+        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], rewrite);
       } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
         let propArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
         let ctxName = propArr[0].trim();
