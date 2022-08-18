@@ -133,6 +133,8 @@ export class BaseComponent extends HTMLElement {
     this.processInnerHtml = false;
     /** @type {Boolean} */
     this.allowCustomTemplate = false;
+    /** @type {Boolean} */
+    this.ctxOwner = false;
   }
 
   /** @returns {String} */
@@ -159,14 +161,14 @@ export class BaseComponent extends HTMLElement {
   get localCtx() {
     if (!this.__localCtx) {
       /** @private */
-      this.__localCtx = Data.registerLocalCtx({});
+      this.__localCtx = Data.registerCtx({}, this);
     }
     return this.__localCtx;
   }
 
   /** @returns {Data} */
   get nodeCtx() {
-    return Data.getNamedCtx(this.ctxName, false) || Data.registerNamedCtx(this.ctxName, {});
+    return Data.getCtx(this.ctxName, false) || Data.registerCtx({}, this.ctxName);
   }
 
   /**
@@ -185,7 +187,7 @@ export class BaseComponent extends HTMLElement {
       name = prop.replace(DICT.EXT_DATA_CTX_PRFX, '');
     } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
       let pArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
-      ctx = Data.getNamedCtx(pArr[0]);
+      ctx = Data.getCtx(pArr[0]);
       name = pArr[1];
     } else {
       ctx = fnCtx.localCtx;
@@ -204,15 +206,21 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [init]
    */
   sub(prop, handler, init = true) {
+    let subCb = (val) => {
+      if (!this.isConnected) {
+        return;
+      }
+      handler(val);
+    };
     let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
     // @ts-ignore
     if (!parsed.ctx.has(prop)) {
       // Avoid *prop binding race:
       window.setTimeout(() => {
-        this.allSubs.add(parsed.ctx.sub(parsed.name, handler, init));
+        this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
       });
     } else {
-      this.allSubs.add(parsed.ctx.sub(parsed.name, handler, init));
+      this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
     }
   }
 
@@ -287,6 +295,11 @@ export class BaseComponent extends HTMLElement {
   }
 
   /** @private */
+  get __ctxOwner() {
+    return this.ctxOwner || (this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false');
+  }
+
+  /** @private */
   __initDataCtx() {
     /** @type {{ [key: string]: string }} */
     let attrDesc = this.constructor['__attrDesc'];
@@ -297,18 +310,17 @@ export class BaseComponent extends HTMLElement {
         }
       }
     }
-    let rewrite = this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false';
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
-        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], rewrite);
+        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], this.__ctxOwner);
       } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
         let propArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
         let ctxName = propArr[0].trim();
         let propName = propArr[1].trim();
         if (ctxName && propName) {
-          let namedCtx = Data.getNamedCtx(ctxName, false);
+          let namedCtx = Data.getCtx(ctxName, false);
           if (!namedCtx) {
-            namedCtx = Data.registerNamedCtx(ctxName, {});
+            namedCtx = Data.registerCtx({}, ctxName);
           }
           namedCtx.add(propName, this.init$[prop]);
         }

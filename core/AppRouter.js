@@ -131,11 +131,14 @@ export class AppRouter {
    */
   static createRouterData(ctxName, routingMap) {
     this.setRoutingMap(routingMap);
-    let routeData = Data.registerNamedCtx(ctxName, {
-      route: null,
-      options: null,
-      title: null,
-    });
+    let routeData = Data.registerCtx(
+      {
+        route: null,
+        options: null,
+        title: null,
+      },
+      ctxName
+    );
     window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
       routeData.multiPub({
         route: e.detail.route,

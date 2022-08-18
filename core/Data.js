@@ -12,21 +12,15 @@ function cloneObj(obj) {
 }
 
 export class Data {
-  /**
-   * @param {Object} src
-   * @param {String} [src.name]
-   * @param {Object<string, any>} src.schema
-   */
-  constructor(src) {
-    this.uid = Symbol();
-    this.name = src.name || null;
-    if (src.schema.constructor === Object) {
-      this.store = cloneObj(src.schema);
+  /** @param {Object<string, any>} schema */
+  constructor(schema) {
+    if (schema.constructor === Object) {
+      this.store = cloneObj(schema);
     } else {
       // For Proxy support:
       /** @private */
       this._storeIsProxy = true;
-      this.store = src.schema;
+      this.store = schema;
     }
     /** @type {Object<String, Set<Function>>} */
     this.callbackMap = Object.create(null);
@@ -128,52 +122,36 @@ export class Data {
     };
   }
 
-  remove() {
-    delete Data.globalStore[this.uid];
-  }
-
-  /** @param {Object<string, any>} schema */
-  static registerLocalCtx(schema) {
-    let state = new Data({
-      schema,
-    });
-    Data.globalStore[state.uid] = state;
-    return state;
-  }
-
   /**
-   * @param {String} ctxName
    * @param {Object<string, any>} schema
+   * @param {any} [uid]
    * @returns {Data}
    */
-  static registerNamedCtx(ctxName, schema) {
+  static registerCtx(schema, uid = Symbol()) {
     /** @type {Data} */
-    let state = Data.globalStore[ctxName];
-    if (state) {
-      console.warn('State: context name "' + ctxName + '" already in use');
+    let data = Data.globalStore.get(uid);
+    if (data) {
+      console.warn('State: context UID "' + uid + '" already in use');
     } else {
-      state = new Data({
-        name: ctxName,
-        schema,
-      });
-      Data.globalStore[ctxName] = state;
+      data = new Data(schema);
+      Data.globalStore.set(uid, data);
     }
-    return state;
+    return data;
   }
 
-  /** @param {String} ctxName */
-  static clearNamedCtx(ctxName) {
-    delete Data.globalStore[ctxName];
+  /** @param {any} uid */
+  static deleteCtx(uid) {
+    Data.globalStore.delete(uid);
   }
 
   /**
-   * @param {String} ctxName
+   * @param {any} uid
    * @param {Boolean} [notify]
    * @returns {Data}
    */
-  static getNamedCtx(ctxName, notify = true) {
-    return Data.globalStore[ctxName] || (notify && console.warn('State: wrong context name - "' + ctxName + '"'), null);
+  static getCtx(uid, notify = true) {
+    return Data.globalStore.get(uid) || (notify && console.warn('State: wrong context UID - "' + uid + '"'), null);
   }
 }
 
-Data.globalStore = Object.create(null);
+Data.globalStore = new Map();
