@@ -154,7 +154,14 @@ export class BaseComponent extends HTMLElement {
 
   /** @returns {String} */
   get ctxName() {
-    return this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.autoCtxName;
+    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this._cachedCtxName || this.autoCtxName;
+    /**
+     * Cache last ctx name to be able to access context when element becames disconnected
+     *
+     * @type {String}
+     */
+    this._cachedCtxName = ctxName;
+    return ctxName;
   }
 
   /** @returns {Data} */
