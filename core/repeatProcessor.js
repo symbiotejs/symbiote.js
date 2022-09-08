@@ -43,8 +43,11 @@ export function repeatProcessor(fr, fnCtx) {
           if (currentList[idx]) {
             // @ts-ignore
             if (currentList[idx].set$) {
-              // @ts-ignore
-              currentList[idx].set$(item);
+              // wait until repeated element's state will be initialized
+              setTimeout(() => {
+                // @ts-ignore
+                currentList[idx].set$(item);
+              });
             } else {
               for (let k in item) {
                 currentList[idx][k] = item[k];
