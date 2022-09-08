@@ -13,5 +13,4 @@
 TMP
 test
 build
-
-
+*.d.ts
