@@ -13,6 +13,7 @@ export function repeatProcessor(fr, fnCtx) {
       itemClass = window.customElements.get(itemTag);
     }
     if (!itemClass) {
+      // @ts-ignore - TS doesn't resolve BaseComponent via getter =(
       itemClass = class extends fnCtx.BaseComponent {
         constructor() {
           super();
