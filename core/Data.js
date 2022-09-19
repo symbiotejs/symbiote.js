@@ -55,9 +55,6 @@ export class Data {
    */
   add(prop, val, rewrite = false) {
     if (!rewrite && Object.keys(this.store).includes(prop)) {
-      if (val !== this.store[prop]) {
-        this.notify(prop);
-      }
       return;
     }
     this.store[prop] = val;
