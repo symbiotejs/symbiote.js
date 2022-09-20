@@ -388,7 +388,7 @@ export class BaseComponent extends HTMLElement {
             this.render();
           };
           // @ts-ignore
-          root.nodeType === 9 ? root.head.appendChild(rootLink) : root.prepend(rootLink);
+          root.nodeType === Node.DOCUMENT_NODE ? root.head.appendChild(rootLink) : root.prepend(rootLink);
         } else {
           this.render();
         }
