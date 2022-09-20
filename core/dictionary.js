@@ -26,4 +26,6 @@ export const DICT = Object.freeze({
   SET_LATER_KEY: '__toSetLater__',
   // Attribute to provide selector of custom template
   USE_TPL: 'use-template',
+  // Root style attribute name:
+  ROOT_STYLE_ATTR_NAME: 'sym-component',
 });

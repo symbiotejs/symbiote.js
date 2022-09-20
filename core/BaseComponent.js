@@ -370,7 +370,28 @@ export class BaseComponent extends HTMLElement {
       if (this.pauseRender) {
         this.__initCallback();
       } else {
-        this.render();
+        if (this.constructor['__rootStylesLink']) {
+          let root = this.getRootNode();
+          if (!root) {
+            return;
+          }
+          // @ts-ignore
+          let hasLink = root?.querySelector(`link[${DICT.ROOT_STYLE_ATTR_NAME}="${this.constructor.is}"]`);
+          if (hasLink) {
+            this.render();
+            return;
+          }
+          /** @type {HTMLLinkElement} */
+          let rootLink = this.constructor['__rootStylesLink'].cloneNode(true);
+          rootLink.setAttribute(DICT.ROOT_STYLE_ATTR_NAME, this.constructor['is']);
+          rootLink.onload = () => {
+            this.render();
+          };
+          // @ts-ignore
+          root.nodeType === 9 ? root.head.appendChild(rootLink) : root.prepend(rootLink);
+        } else {
+          this.render();
+        }
       }
     }
     this.connectedOnce = true;
@@ -584,5 +605,20 @@ export class BaseComponent extends HTMLElement {
     });
     /** @private */
     this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
+  }
+
+  /** @param {String} cssTxt */
+  static set rootStyles(cssTxt) {
+    if (!this.__rootStylesLink) {
+      let styleBlob = new Blob([cssTxt], {
+        type: 'text/css',
+      });
+      /** @private */
+      let url = URL.createObjectURL(styleBlob);
+      let link = document.createElement('link');
+      link.href = url;
+      link.rel = 'stylesheet';
+      this.__rootStylesLink = link;
+    }
   }
 }
