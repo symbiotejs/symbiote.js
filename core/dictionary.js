@@ -1,8 +1,8 @@
 /** @enum {String} */
 export const DICT = Object.freeze({
-  //  Template data binding attribute:
+  // Template data binding attribute:
   BIND_ATTR: 'set',
-  //  Local state binding attribute name:
+  // Local state binding attribute name:
   ATTR_BIND_PRFX: '@',
   // External prop prefix:
   EXT_DATA_CTX_PRFX: '*',
@@ -28,4 +28,7 @@ export const DICT = Object.freeze({
   USE_TPL: 'use-template',
   // Root style attribute name:
   ROOT_STYLE_ATTR_NAME: 'sym-component',
+  // CSS custom property to check wheter another custom property is defined
+  CSS_CHECK_DEFINED_PROP: '--css-check-defined-prop',
+  CSS_CHECK_DEFINED_VALUE: '__CSS_CHECK_DEFINED_PROP__',
 });

@@ -524,10 +524,25 @@ export class BaseComponent extends HTMLElement {
   updateCssData = () => {
     this.dropCssDataCache();
     this.__boundCssProps?.forEach((ctxProp) => {
-      let val = this.getCssData(this.__extractCssName(ctxProp), true);
-      this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+      let propName = this.__extractCssName(ctxProp);
+      if (this.__isCssCustomPropertyDefined(propName)) {
+        let val = this.getCssData(propName, true);
+        this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+      }
     });
   };
+
+  /**
+   * @private
+   * @param {String} propName
+   * @returns {Boolean}
+   */
+  __isCssCustomPropertyDefined(propName) {
+    this.style.setProperty(DICT.CSS_CHECK_DEFINED_PROP, `var(${propName}, '${DICT.CSS_CHECK_DEFINED_VALUE}')`);
+    let value = this.getCssData(DICT.CSS_CHECK_DEFINED_PROP, true);
+    this.style.removeProperty(DICT.CSS_CHECK_DEFINED_PROP);
+    return value !== DICT.CSS_CHECK_DEFINED_VALUE;
+  }
 
   /** @private */
   __initStyleAttrObserver() {
