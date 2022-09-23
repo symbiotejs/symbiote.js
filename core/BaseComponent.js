@@ -525,7 +525,7 @@ export class BaseComponent extends HTMLElement {
     this.dropCssDataCache();
     this.__boundCssProps?.forEach((ctxProp) => {
       let val = this.getCssData(this.__extractCssName(ctxProp), true);
-      this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+      val !== null && this.$[ctxProp] !== val && (this.$[ctxProp] = val);
     });
   };
 
