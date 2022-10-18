@@ -4,6 +4,7 @@ import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 
 import PROCESSORS from './tpl-processors.js';
+import { normalizeCssPropertyValue } from '../utils/normalizeCssPropertyValue.js';
 
 let autoTagsCount = 0;
 
@@ -494,10 +495,7 @@ export class BaseComponent extends HTMLElement {
         this.__computedStyle = window.getComputedStyle(this);
       }
       let val = this.__computedStyle.getPropertyValue(propName).trim();
-      // Firefox doesn't transform string values into JSON format:
-      if (val.startsWith(`'`) && val.endsWith(`'`)) {
-        val = val.replace(/\'/g, '"');
-      }
+      val = normalizeCssPropertyValue(val);
       try {
         this.__cssDataCache[propName] = JSON.parse(val);
       } catch (e) {
