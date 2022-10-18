@@ -50,44 +50,12 @@
     "eslint": "^8.0.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-html": "^7.1.0",
     "husky": "^1.3.1",
     "lint-staged": "^11.2.3",
     "prettier": "^2.0.5",
     "prettier-plugin-jsdoc": "0.0.17",
     "typescript": "^4.5.5"
-  },
-  "eslintConfig": {
-    "extends": [
-      "eslint-config-prettier"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2020,
-      "sourceType": "module"
-    },
-    "rules": {
-      "no-unused-vars": "off",
-      "no-console": "off",
-      "max-classes-per-file": "off",
-      "prefer-const": "off",
-      "no-param-reassign": "off",
-      "guard-for-in": "off",
-      "no-restricted-syntax": "off",
-      "class-methods-use-this": "off",
-      "dot-notation": "off",
-      "no-plusplus": "off",
-      "no-return-await": "off",
-      "no-await-in-loop": "off",
-      "one-var": "off",
-      "default-case": "warn",
-      "no-shadow": "warn",
-      "no-prototype-builtins": "off",
-      "require-jsdoc": "off",
-      "valid-jsdoc": "off"
-    },
-    "env": {
-      "node": true,
-      "browser": true
-    }
   },
   "prettier": {
     "singleQuote": true,
