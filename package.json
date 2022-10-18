@@ -11,7 +11,8 @@
     "format": "npm run format:eslint && npm run format:prettier",
     "types": "dts-bundle-generator --config ./dts.config.json",
     "dts_native": "tsc -p dts-native.cfg.json",
-    "build": "node esbuild.js && npm run types"
+    "build": "node esbuild.js && npm run types",
+    "test": "web-test-runner ./test/**/*.test.js --node-resolve"
   },
   "files": [
     "build/*",
@@ -36,7 +37,7 @@
   "homepage": "https://symbiotejs.org/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
+    "url": "https://github.com/symbiotejs/symbiote.js.git"
   },
   "keywords": [
     "symbiote.js, web components, custom elements, shadow dom, ui framework"
@@ -44,7 +45,9 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
+    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@types/node": "^17.0.14",
+    "@web/test-runner": "^0.14.0",
     "dts-bundle-generator": "^6.5.0",
     "esbuild": "^0.14.8",
     "eslint": "^8.0.1",
