@@ -5,7 +5,7 @@
 /** @typedef {Object<string, any>} PropMap */
 
 /**
- * @template {SVGElement|HTMLElement} T
+ * @template {SVGElement | HTMLElement} T
  * @param {T} el HTMLElement
  * @param {StyleMap} styleMap
  */
@@ -21,7 +21,7 @@ export function applyStyles(el, styleMap) {
 }
 
 /**
- * @template {SVGElement|HTMLElement} T
+ * @template {SVGElement | HTMLElement} T
  * @param {T} el HTMLElement
  * @param {AttrMap} attrMap
  */
