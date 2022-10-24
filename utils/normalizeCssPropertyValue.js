@@ -1,5 +1,5 @@
 const SINGLE_QUOTE = "'";
-const DOUTBLE_QUOTE = '"';
+const DOUBLE_QUOTE = '"';
 const ESCAPED_PATTERN = /\\([0-9a-fA-F]{1,6} ?)/g;
 const SINGLE_QUOTES_PATTERN = /^'|'$/g;
 
@@ -8,7 +8,7 @@ const SINGLE_QUOTES_PATTERN = /^'|'$/g;
  * @returns {Boolean}
  */
 function isStringValue(input) {
-  return (input.startsWith(SINGLE_QUOTE) && input.endsWith(SINGLE_QUOTE)) || (input.startsWith(DOUTBLE_QUOTE) && input.endsWith(DOUTBLE_QUOTE));
+  return (input.startsWith(SINGLE_QUOTE) && input.endsWith(SINGLE_QUOTE)) || (input.startsWith(DOUBLE_QUOTE) && input.endsWith(DOUBLE_QUOTE));
 }
 
 /**
