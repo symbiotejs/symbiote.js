@@ -4,7 +4,7 @@ import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 
 import PROCESSORS from './tpl-processors.js';
-import { normalizeCssPropertyValue } from '../utils/normalizeCssPropertyValue.js';
+import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 let autoTagsCount = 0;
 
@@ -495,9 +495,8 @@ export class BaseComponent extends HTMLElement {
         this.__computedStyle = window.getComputedStyle(this);
       }
       let val = this.__computedStyle.getPropertyValue(propName).trim();
-      val = normalizeCssPropertyValue(val);
       try {
-        this.__cssDataCache[propName] = JSON.parse(val);
+        this.__cssDataCache[propName] = parseCssPropertyValue(val);
       } catch (e) {
         !silentCheck && console.warn(`CSS Data error: ${propName}`);
         this.__cssDataCache[propName] = null;
