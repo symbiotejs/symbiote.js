@@ -1,7 +1,6 @@
 const SINGLE_QUOTE = "'";
 const DOUBLE_QUOTE = '"';
 const ESCAPED_PATTERN = /\\([0-9a-fA-F]{1,6} ?)/g;
-const JSON_QUOTES_PATTERN = /(?<!\\)("|\\")/g;
 
 /**
  * @param {String} str
@@ -23,6 +22,28 @@ function trimQuotes(str) {
     str = str.slice(0, -1);
   }
   return str;
+}
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+function escapeQuotes(str) {
+  let result = '';
+  let prev = '';
+  for (var i = 0; i < str.length; i++) {
+    const next = str[i + 1];
+    if (str[i] === '\\' && next === '"') {
+      result += '\\"';
+      i++;
+    } else if (str[i] === '"' && prev !== '\\') {
+      result += '\\"';
+    } else {
+      result += str[i];
+    }
+    prev = str[i];
+  }
+  return result;
 }
 
 /**
@@ -50,11 +71,15 @@ export function parseCssPropertyValue(input) {
 
     // Escape quotes
     // WebKit browsers escapes them, Firefox doesn't
-    output = output.replaceAll(JSON_QUOTES_PATTERN, '\\"');
+    output = escapeQuotes(output);
 
     // wrap output with trailing and leading double quotes to match JSON spec
     output = DOUBLE_QUOTE + output + DOUBLE_QUOTE;
   }
 
-  return JSON.parse(output);
+  try {
+    return JSON.parse(output);
+  } catch (err) {
+    throw new Error(`Failed to parse CSS property value: ${output}. Original input: ${input}`);
+  }
 }
