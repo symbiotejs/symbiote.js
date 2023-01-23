@@ -48,7 +48,7 @@ function escapeQuotes(str) {
 
 /**
  * @param {String} input
- * @returns {String}
+ * @returns {String | Number}
  */
 export function parseCssPropertyValue(input) {
   let output = input;
