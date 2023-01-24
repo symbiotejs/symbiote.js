@@ -2,6 +2,13 @@ import { expect } from '@esm-bundle/chai';
 import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 describe('parseCssPropertyValue', () => {
+  it('should convert string numbers to numbers', () => {
+    expect(parseCssPropertyValue('0')).to.equal(0);
+    expect(parseCssPropertyValue('1')).to.equal(1);
+    expect(parseCssPropertyValue('-1')).to.equal(-1);
+    expect(parseCssPropertyValue('666')).to.equal(666);
+  });
+
   it('should convert JSON string to JS strings', () => {
     expect(parseCssPropertyValue('"test"')).to.equal('test');
     expect(parseCssPropertyValue('"test with \\"quotes\\""')).to.equal('test with "quotes"');
