@@ -4,6 +4,8 @@ import { kebabToCamel } from '../utils/kebabToCamel.js';
 // Should go first among other processors:
 import { repeatProcessor } from './repeatProcessor.js';
 
+const DEFAULT_SLOT_KEY = '__default__';
+
 /**
  * @template {import('./BaseComponent.js').BaseComponent} T
  * @param {DocumentFragment} fr
@@ -14,36 +16,38 @@ function slotProcessor(fr, fnCtx) {
     return;
   }
   let slots = [...fr.querySelectorAll('slot')];
-  if (slots.length) {
-    let slotMap = {};
-    slots.forEach((slot) => {
-      let slotName = slot.getAttribute('name');
-      if (slotName) {
-        slotMap[slotName] = {
-          slot,
-          fr: document.createDocumentFragment(),
-        };
-      } else {
-        slotMap.__default__ = {
-          slot,
-          fr: document.createDocumentFragment(),
-        };
-      }
-    });
-    fnCtx.initChildren.forEach((/** @type {Element} */ child) => {
-      let slotName = child.getAttribute?.('slot');
-      if (slotName) {
-        child.removeAttribute('slot');
-        slotMap[slotName].fr.appendChild(child);
-      } else if (slotMap.__default__) {
-        slotMap.__default__.fr.appendChild(child);
-      }
-    });
-    Object.values(slotMap).forEach((mapObj) => {
-      mapObj.slot.parentNode.insertBefore(mapObj.fr, mapObj.slot);
-      mapObj.slot.remove();
-    });
+  if (!slots.length) {
+    return;
   }
+
+  /** @type {Record<string, { slot: HTMLSlotElement; fr: DocumentFragment }>} */
+  let slotMap = {};
+  slots.forEach((slot) => {
+    let slotName = slot.getAttribute('name') || DEFAULT_SLOT_KEY;
+    slotMap[slotName] = {
+      slot,
+      fr: document.createDocumentFragment(),
+    };
+  });
+  fnCtx.initChildren.forEach((child) => {
+    let slotName = DEFAULT_SLOT_KEY;
+    if (child instanceof Element && child.hasAttribute('slot')) {
+      slotName = child.getAttribute('slot');
+      child.removeAttribute('slot');
+    }
+    slotMap[slotName]?.fr.appendChild(child);
+  });
+  Object.values(slotMap).forEach((mapObj) => {
+    if (mapObj.fr.childNodes.length) {
+      mapObj.slot.parentNode.replaceChild(mapObj.fr, mapObj.slot);
+    } else if (mapObj.slot.childNodes.length) {
+      let slotFr = document.createDocumentFragment();
+      slotFr.append(...mapObj.slot.childNodes);
+      mapObj.slot.parentNode.replaceChild(slotFr, mapObj.slot);
+    } else {
+      mapObj.slot.remove();
+    }
+  });
 }
 
 /**
