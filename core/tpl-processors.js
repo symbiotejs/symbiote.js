@@ -14,7 +14,7 @@ function slotProcessor(fr, fnCtx) {
     return;
   }
   let slots = [...fr.querySelectorAll('slot')];
-  if (fnCtx.initChildren.length && slots.length) {
+  if (slots.length) {
     let slotMap = {};
     slots.forEach((slot) => {
       let slotName = slot.getAttribute('name');
