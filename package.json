@@ -1,6 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
+  "version": "1.11.4",
   "scripts": {
     "lint:types": "tsc",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
@@ -27,7 +28,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.11.3",
   "description": "Symbiote.js",
   "author": "hello@symbiotejs.org",
   "license": "MIT",
