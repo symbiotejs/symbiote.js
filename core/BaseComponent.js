@@ -221,8 +221,7 @@ export class BaseComponent extends HTMLElement {
       handler(val);
     };
     let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
-    // @ts-ignore
-    if (!parsed.ctx.has(prop)) {
+    if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
       window.setTimeout(() => {
         this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
