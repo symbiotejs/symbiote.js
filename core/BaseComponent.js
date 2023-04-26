@@ -441,8 +441,18 @@ export class BaseComponent extends HTMLElement {
     }
     /** @private */
     this.__tag = tagName;
-    if (window.customElements.get(tagName)) {
-      console.warn(`${tagName} - is already in "customElements" registry`);
+    let registeredClass = window.customElements.get(tagName);
+    if (registeredClass) {
+      if (!isAlias && registeredClass !== this) {
+        console.warn(
+          [
+            `Element with tag name "${tagName}" already registered.`,
+            `You're trying to override it with another class "${this.name}".`,
+            `This is most likely a mistake.`,
+            `New element will not be registered.`,
+          ].join('\n')
+        );
+      }
       return;
     }
     window.customElements.define(tagName, isAlias ? class extends this {} : this);
