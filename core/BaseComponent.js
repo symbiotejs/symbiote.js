@@ -16,19 +16,28 @@ let styleMutationObserverCbList = null;
 
 /** @template S */
 export class BaseComponent extends HTMLElement {
+  #initialized;
+  #autoCtxName;
+  #cachedCtxName;
+  #localCtx;
+  #stateProxy;
+  #dataCtxInitialized;
+  #disconnectTimeout;
+  #cssDataCache;
+  #computedStyle;
+  #boundCssProps;
+
   get BaseComponent() {
     return BaseComponent;
   }
 
   initCallback() {}
 
-  /** @private */
-  __initCallback() {
-    if (this.__initialized) {
+  #initCallback() {
+    if (this.#initialized) {
       return;
     }
-    /** @private */
-    this.__initialized = true;
+    this.#initialized = true;
     this.initCallback?.();
   }
 
@@ -68,9 +77,9 @@ export class BaseComponent extends HTMLElement {
       }
     }
     if (template || this.constructor['template']) {
-      if (this.constructor['template'] && !this.constructor['__tpl']) {
-        this.constructor['__tpl'] = document.createElement('template');
-        this.constructor['__tpl'].innerHTML = this.constructor['template'];
+      if (this.constructor['template'] && !this.constructor['#tpl']) {
+        this.constructor['#tpl'] = document.createElement('template');
+        this.constructor['#tpl'].innerHTML = this.constructor['template'];
       }
       if (template?.constructor === DocumentFragment) {
         fr = template;
@@ -79,8 +88,8 @@ export class BaseComponent extends HTMLElement {
         tpl.innerHTML = template;
         // @ts-ignore
         fr = tpl.content.cloneNode(true);
-      } else if (this.constructor['__tpl']) {
-        fr = this.constructor['__tpl'].content.cloneNode(true);
+      } else if (this.constructor['#tpl']) {
+        fr = this.constructor['#tpl'].content.cloneNode(true);
       }
       for (let fn of this.tplProcessors) {
         fn(fr, this);
@@ -89,8 +98,12 @@ export class BaseComponent extends HTMLElement {
 
     // for the possible asynchronous call:
     let addFr = () => {
-      fr && ((shadow && this.shadowRoot.appendChild(fr)) || this.appendChild(fr));
-      this.__initCallback();
+      if (fr && this.isVirtual) {
+        this.replaceWith(fr);
+      } else {
+        fr && ((shadow && this.shadowRoot.appendChild(fr)) || this.appendChild(fr));
+      }
+      this.#initCallback();
     };
 
     if (this.constructor['__shadowStylesUrl']) {
@@ -136,16 +149,17 @@ export class BaseComponent extends HTMLElement {
     this.allowCustomTemplate = false;
     /** @type {Boolean} */
     this.ctxOwner = false;
+    /** @type {Boolean} */
+    this.isVirtual = false;
   }
 
   /** @returns {String} */
   get autoCtxName() {
-    if (!this.__autoCtxName) {
-      /** @private */
-      this.__autoCtxName = UID.generate();
-      this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.__autoCtxName}'`);
+    if (!this.#autoCtxName) {
+      this.#autoCtxName = UID.generate();
+      this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.#autoCtxName}'`);
     }
-    return this.__autoCtxName;
+    return this.#autoCtxName;
   }
 
   /** @returns {String} */
@@ -155,23 +169,22 @@ export class BaseComponent extends HTMLElement {
 
   /** @returns {String} */
   get ctxName() {
-    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.__cachedCtxName || this.autoCtxName;
+    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName || this.autoCtxName;
     /**
      * Cache last ctx name to be able to access context when element becames disconnected
      *
      * @type {String}
      */
-    this.__cachedCtxName = ctxName;
+    this.#cachedCtxName = ctxName;
     return ctxName;
   }
 
   /** @returns {Data} */
   get localCtx() {
-    if (!this.__localCtx) {
-      /** @private */
-      this.__localCtx = Data.registerCtx({}, this);
+    if (!this.#localCtx) {
+      this.#localCtx = Data.registerCtx({}, this);
     }
-    return this.__localCtx;
+    return this.#localCtx;
   }
 
   /** @returns {Data} */
@@ -180,12 +193,11 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @private
    * @template {BaseComponent} T
    * @param {String} prop
    * @param {T} fnCtx
    */
-  static __parseProp(prop, fnCtx) {
+  static #parseProp(prop, fnCtx) {
     /** @type {Data} */
     let ctx;
     /** @type {String} */
@@ -215,12 +227,12 @@ export class BaseComponent extends HTMLElement {
    */
   sub(prop, handler, init = true) {
     let subCb = (val) => {
-      if (!this.isConnected) {
+      if (!this.isVirtual && !this.isConnected) {
         return;
       }
       handler(val);
     };
-    let parsed = BaseComponent.__parseProp(/** @type {string} */ (prop), this);
+    let parsed = BaseComponent.#parseProp(/** @type {string} */ (prop), this);
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
       window.setTimeout(() => {
@@ -233,13 +245,13 @@ export class BaseComponent extends HTMLElement {
 
   /** @param {String} prop */
   notify(prop) {
-    let parsed = BaseComponent.__parseProp(prop, this);
+    let parsed = BaseComponent.#parseProp(prop, this);
     parsed.ctx.notify(parsed.name);
   }
 
   /** @param {String} prop */
   has(prop) {
-    let parsed = BaseComponent.__parseProp(prop, this);
+    let parsed = BaseComponent.#parseProp(prop, this);
     return parsed.ctx.has(parsed.name);
   }
 
@@ -250,7 +262,7 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    let parsed = BaseComponent.__parseProp(/** @type {String} */ (prop), this);
+    let parsed = BaseComponent.#parseProp(/** @type {String} */ (prop), this);
     parsed.ctx.add(parsed.name, val, rewrite);
   }
 
@@ -266,22 +278,21 @@ export class BaseComponent extends HTMLElement {
 
   /** @returns {S} */
   get $() {
-    if (!this.__stateProxy) {
+    if (!this.#stateProxy) {
       let o = Object.create(null);
-      /** @private */
-      this.__stateProxy = new Proxy(o, {
+      this.#stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
-          let parsed = BaseComponent.__parseProp(prop, this);
+          let parsed = BaseComponent.#parseProp(prop, this);
           parsed.ctx.pub(parsed.name, val);
           return true;
         },
         get: (obj, /** @type {String} */ prop) => {
-          let parsed = BaseComponent.__parseProp(prop, this);
+          let parsed = BaseComponent.#parseProp(prop, this);
           return parsed.ctx.read(parsed.name);
         },
       });
     }
-    return this.__stateProxy;
+    return this.#stateProxy;
   }
 
   /**
@@ -301,13 +312,11 @@ export class BaseComponent extends HTMLElement {
     }
   }
 
-  /** @private */
-  get __ctxOwner() {
+  get #ctxOwner() {
     return this.ctxOwner || (this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false');
   }
 
-  /** @private */
-  __initDataCtx() {
+  #initDataCtx() {
     /** @type {{ [key: string]: string }} */
     let attrDesc = this.constructor['__attrDesc'];
     if (attrDesc) {
@@ -319,7 +328,7 @@ export class BaseComponent extends HTMLElement {
     }
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
-        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], this.__ctxOwner);
+        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], this.#ctxOwner);
       } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
         let propArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
         let ctxName = propArr[0].trim();
@@ -338,25 +347,24 @@ export class BaseComponent extends HTMLElement {
     for (let cssProp in this.cssInit$) {
       this.bindCssData(cssProp, this.cssInit$[cssProp]);
     }
-    /** @private */
-    this.__dataCtxInitialized = true;
+    this.#dataCtxInitialized = true;
   }
 
   connectedCallback() {
     // As `connectedCallback` calls are queued, it could be called after element being detached from DOM
     // See example at https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-conformance
-    if (!this.isConnected) {
+    if (!this.isVirtual && !this.isConnected) {
       return;
     }
-    if (this.__disconnectTimeout) {
-      window.clearTimeout(this.__disconnectTimeout);
+    if (this.#disconnectTimeout) {
+      window.clearTimeout(this.#disconnectTimeout);
     }
     if (!this.connectedOnce) {
       let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
       if (ctxNameAttrVal) {
         this.style.setProperty(DICT.CSS_CTX_PROP, `'${ctxNameAttrVal}'`);
       }
-      this.__initDataCtx();
+      this.#initDataCtx();
       if (this[DICT.SET_LATER_KEY]) {
         for (let prop in this[DICT.SET_LATER_KEY]) {
           setNestedProp(this, prop, this[DICT.SET_LATER_KEY][prop]);
@@ -368,7 +376,7 @@ export class BaseComponent extends HTMLElement {
         this.addTemplateProcessor(proc);
       }
       if (this.pauseRender) {
-        this.__initCallback();
+        this.#initCallback();
       } else {
         if (this.constructor['__rootStylesLink']) {
           let root = this.getRootNode();
@@ -408,11 +416,10 @@ export class BaseComponent extends HTMLElement {
     if (!this.readyToDestroy) {
       return;
     }
-    if (this.__disconnectTimeout) {
-      window.clearTimeout(this.__disconnectTimeout);
+    if (this.#disconnectTimeout) {
+      window.clearTimeout(this.#disconnectTimeout);
     }
-    /** @private */
-    this.__disconnectTimeout = window.setTimeout(() => {
+    this.#disconnectTimeout = window.setTimeout(() => {
       this.destroyCallback();
       for (let sub of this.allSubs) {
         sub.remove();
@@ -479,7 +486,7 @@ export class BaseComponent extends HTMLElement {
     /** @type {String} */
     let $prop = this.constructor['__attrDesc']?.[name];
     if ($prop) {
-      if (this.__dataCtxInitialized) {
+      if (this.#dataCtxInitialized) {
         this.$[$prop] = newVal;
       } else {
         this.init$[$prop] = newVal;
@@ -494,31 +501,26 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [silentCheck]
    */
   getCssData(propName, silentCheck = false) {
-    if (!this.__cssDataCache) {
-      /** @private */
-      this.__cssDataCache = Object.create(null);
+    if (!this.#cssDataCache) {
+      this.#cssDataCache = Object.create(null);
     }
-    if (!Object.keys(this.__cssDataCache).includes(propName)) {
-      if (!this.__computedStyle) {
-        /** @private */
-        this.__computedStyle = window.getComputedStyle(this);
+    if (!Object.keys(this.#cssDataCache).includes(propName)) {
+      if (!this.#computedStyle) {
+        this.#computedStyle = window.getComputedStyle(this);
       }
-      let val = this.__computedStyle.getPropertyValue(propName).trim();
+      let val = this.#computedStyle.getPropertyValue(propName).trim();
       try {
-        this.__cssDataCache[propName] = parseCssPropertyValue(val);
+        this.#cssDataCache[propName] = parseCssPropertyValue(val);
       } catch (e) {
         !silentCheck && console.warn(`CSS Data error: ${propName}`);
-        this.__cssDataCache[propName] = null;
+        this.#cssDataCache[propName] = null;
       }
     }
-    return this.__cssDataCache[propName];
+    return this.#cssDataCache[propName];
   }
 
-  /**
-   * @private
-   * @param {String} ctxPropName
-   */
-  __extractCssName(ctxPropName) {
+  /** @param {String} ctxPropName */
+  #extractCssName(ctxPropName) {
     return ctxPropName
       .split('--')
       .map((part, idx) => {
@@ -529,14 +531,13 @@ export class BaseComponent extends HTMLElement {
 
   updateCssData = () => {
     this.dropCssDataCache();
-    this.__boundCssProps?.forEach((ctxProp) => {
-      let val = this.getCssData(this.__extractCssName(ctxProp), true);
+    this.#boundCssProps?.forEach((ctxProp) => {
+      let val = this.getCssData(this.#extractCssName(ctxProp), true);
       val !== null && this.$[ctxProp] !== val && (this.$[ctxProp] = val);
     });
   };
 
-  /** @private */
-  __initStyleAttrObserver() {
+  #initStyleAttrObserver() {
     if (!styleMutationObserverCbList) {
       styleMutationObserverCbList = new Set();
     }
@@ -562,20 +563,19 @@ export class BaseComponent extends HTMLElement {
    * @param {any} [initValue] Uses empty string by default to make value useful in template
    */
   bindCssData(propName, initValue = '') {
-    if (!this.__boundCssProps) {
-      /** @private */
-      this.__boundCssProps = new Set();
+    if (!this.#boundCssProps) {
+      this.#boundCssProps = new Set();
     }
-    this.__boundCssProps.add(propName);
-    let val = this.getCssData(this.__extractCssName(propName), true);
+    this.#boundCssProps.add(propName);
+    let val = this.getCssData(this.#extractCssName(propName), true);
     val === null && (val = initValue);
     this.add(propName, val);
-    this.__initStyleAttrObserver();
+    this.#initStyleAttrObserver();
   }
 
   dropCssDataCache() {
-    this.__cssDataCache = null;
-    this.__computedStyle = null;
+    this.#cssDataCache = null;
+    this.#computedStyle = null;
   }
 
   /**
@@ -584,7 +584,7 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [isAsync]
    */
   defineAccessor(propName, handler, isAsync) {
-    let localPropName = '__' + propName;
+    let localPropName = '#' + propName;
     this[localPropName] = this[propName];
     Object.defineProperty(this, propName, {
       set: (val) => {
@@ -619,11 +619,11 @@ export class BaseComponent extends HTMLElement {
       let styleBlob = new Blob([cssTxt], {
         type: 'text/css',
       });
-      /** @private */
       let url = URL.createObjectURL(styleBlob);
       let link = document.createElement('link');
       link.href = url;
       link.rel = 'stylesheet';
+      /** @private */
       this.__rootStylesLink = link;
     }
   }

@@ -14,8 +14,6 @@ jobs:
       - name: Install dependencies
         working-directory: ./
         run: npm ci
-      - name: Run build
-        run: npm run build
       - name: Run lint
         run: npm run lint
       - name: Run test

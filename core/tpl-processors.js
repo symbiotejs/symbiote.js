@@ -1,6 +1,6 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
-import { kebabToCamel } from '../utils/kebabToCamel.js';
+// import { kebabToCamel } from '../utils/kebabToCamel.js';
 // Should go first among other processors:
 import { repeatProcessor } from './repeatProcessor.js';
 
@@ -72,13 +72,14 @@ function domSetProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
     let keyValArr = subStr.split(';');
-    [...el.attributes].forEach((attr) => {
-      if (attr.name.startsWith('-') && attr.value) {
-        let key = kebabToCamel(attr.name.replace('-', ''));
-        keyValArr.push(key + ':' + attr.value);
-        el.removeAttribute(attr.name);
-      }
-    });
+    // TODO: remove >
+    // [...el.attributes].forEach((attr) => {
+    //   if (attr.name.startsWith('-') && attr.value) {
+    //     let key = kebabToCamel(attr.name.replace('-', ''));
+    //     keyValArr.push(key + ':' + attr.value);
+    //     el.removeAttribute(attr.name);
+    //   }
+    // });
     keyValArr.forEach((keyValStr) => {
       if (!keyValStr) {
         return;
