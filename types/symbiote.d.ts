@@ -34,20 +34,21 @@ declare module "core/Data" {
 declare module "core/dictionary" {
     export type DICT = string;
     export const DICT: Readonly<{
-        BIND_ATTR: string;
-        ATTR_BIND_PRFX: string;
-        EXT_DATA_CTX_PRFX: string;
-        NAMED_DATA_CTX_SPLTR: string;
-        CTX_NAME_ATTR: string;
-        CTX_OWNER_ATTR: string;
-        CSS_CTX_PROP: string;
-        EL_REF_ATTR: string;
-        AUTO_TAG_PRFX: string;
-        REPEAT_ATTR: string;
-        REPEAT_ITEM_TAG_ATTR: string;
-        SET_LATER_KEY: string;
-        USE_TPL: string;
-        ROOT_STYLE_ATTR_NAME: string;
+        BIND_ATTR: "bind";
+        ATTR_BIND_PRFX: "@";
+        EXT_DATA_CTX_PRFX: "*";
+        NAMED_DATA_CTX_SPLTR: "/";
+        CTX_NAME_ATTR: "ctx";
+        CTX_OWNER_ATTR: "ctx-owner";
+        CSS_CTX_PROP: "--ctx";
+        EL_REF_ATTR: "ref";
+        AUTO_TAG_PRFX: "sym";
+        REPEAT_ATTR: "list";
+        REPEAT_ITEM_TAG_ATTR: "list-item-tag";
+        SET_LATER_KEY: "__toSetLater__";
+        USE_TPL: "use-template";
+        ROOT_STYLE_ATTR_NAME: "sym-component";
+        VIRTUAL_WC: "virtual";
     }>;
 }
 declare module "utils/UID" {
@@ -58,14 +59,11 @@ declare module "utils/UID" {
 declare module "utils/setNestedProp" {
     export function setNestedProp(parent: any, path: string, value: any): boolean;
 }
-declare module "utils/kebabToCamel" {
-    export function kebabToCamel(string: string): string;
-}
 declare module "core/repeatProcessor" {
     export function repeatProcessor<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T): void;
 }
 declare module "core/tpl-processors" {
-    var _default: (<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T) => void)[];
+    const _default: (<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T) => void)[];
     export default _default;
 }
 declare module "utils/parseCssPropertyValue" {
@@ -74,7 +72,10 @@ declare module "utils/parseCssPropertyValue" {
 declare module "core/BaseComponent" {
     export class BaseComponent<S> extends HTMLElement {
         static template: string;
-        private static __parseProp;
+        static "__#1@#parseProp"<T_3 extends BaseComponent<any>>(prop: string, fnCtx: T_3): {
+            ctx: Data;
+            name: string;
+        };
         static reg(tagName?: string, isAlias?: boolean): void;
         static get is(): string;
         static bindAttributes(desc: {
@@ -85,8 +86,6 @@ declare module "core/BaseComponent" {
         constructor();
         get BaseComponent(): typeof BaseComponent;
         initCallback(): void;
-        private __initCallback;
-        private __initialized;
         render(template?: string | DocumentFragment, shadow?: boolean): void;
         addTemplateProcessor<T extends BaseComponent<any>>(processorFn: (fr: DocumentFragment | T, fnCtx: T) => void): void;
         init$: S;
@@ -104,13 +103,11 @@ declare module "core/BaseComponent" {
         processInnerHtml: boolean;
         allowCustomTemplate: boolean;
         ctxOwner: boolean;
+        isVirtual: boolean;
         get autoCtxName(): string;
-        private __autoCtxName;
         get cssCtxName(): string;
         get ctxName(): string;
-        __cachedCtxName: string;
         get localCtx(): Data;
-        private __localCtx;
         get nodeCtx(): Data;
         sub<T_1 extends keyof S>(prop: T_1, handler: (value: S[T_1]) => void, init?: boolean): void;
         notify(prop: string): void;
@@ -118,28 +115,19 @@ declare module "core/BaseComponent" {
         add<T_2 extends keyof S>(prop: string, val: S[T_2], rewrite?: boolean): void;
         add$(obj: Partial<S>, rewrite?: boolean): void;
         get $(): S;
-        private __stateProxy;
         set$(kvObj: Partial<S>, forcePrimitives?: boolean): void;
-        private get __ctxOwner();
-        private __initDataCtx;
-        private __dataCtxInitialized;
         connectedCallback(): void;
         initChildren: ChildNode[];
         connectedOnce: boolean;
         destroyCallback(): void;
         disconnectedCallback(): void;
-        private __disconnectTimeout;
         attributeChangedCallback(name: any, oldVal: any, newVal: any): void;
         getCssData(propName: string, silentCheck?: boolean): any;
-        private __cssDataCache;
-        private __computedStyle;
-        private __extractCssName;
         updateCssData: () => void;
-        private __initStyleAttrObserver;
         bindCssData(propName: string, initValue?: any): void;
-        private __boundCssProps;
         dropCssDataCache(): void;
         defineAccessor(propName: string, handler?: Function, isAsync?: boolean): void;
+        #private;
     }
     import { Data } from "core/Data";
 }
@@ -238,13 +226,16 @@ declare module "utils/IDB" {
     }
     export {};
 }
+declare module "utils/kebabToCamel" {
+    export function kebabToCamel(string: string): string;
+}
 declare module "core/index" {
-    export { BaseComponent } from "core/BaseComponent";
-    export { Data } from "core/Data";
-    export { AppRouter } from "core/AppRouter";
-    export { UID } from "utils/UID";
-    export { setNestedProp } from "utils/setNestedProp";
-    export { IDB } from "utils/IDB";
-    export { kebabToCamel } from "utils/kebabToCamel";
-    export { applyStyles, applyAttributes, create } from "utils/dom-helpers";
+    export { BaseComponent } from "./BaseComponent.js";
+    export { Data } from "./Data.js";
+    export { AppRouter } from "./AppRouter.js";
+    export { UID } from "../utils/UID.js";
+    export { setNestedProp } from "../utils/setNestedProp.js";
+    export { IDB } from "../utils/IDB.js";
+    export { kebabToCamel } from "../utils/kebabToCamel.js";
+    export { applyStyles, applyAttributes, create } from "../utils/dom-helpers.js";
 }
