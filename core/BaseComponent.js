@@ -202,11 +202,19 @@ export class BaseComponent extends HTMLElement {
     let ctx;
     /** @type {String} */
     let name;
-    if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
+    if (prop.startsWith(DICT.EXT_CTX_PX)) {
       ctx = fnCtx.nodeCtx;
-      name = prop.replace(DICT.EXT_DATA_CTX_PRFX, '');
-    } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
-      let pArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
+      name = prop.replace(DICT.EXT_CTX_PX, '');
+    } else if (prop.startsWith(DICT.PARENT_CTX_PX)) {
+      name = prop.replace(DICT.PARENT_CTX_PX, '');
+      let found = fnCtx;
+      while (found && !found?.has?.(name)) {
+        // @ts-ignore
+        found = found.parentElement;
+      }
+      ctx = found?.localCtx || fnCtx.localCtx;
+    } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
+      let pArr = prop.split(DICT.NAMED_CTX_SPLTR);
       ctx = Data.getCtx(pArr[0]);
       name = pArr[1];
     } else {
@@ -327,10 +335,10 @@ export class BaseComponent extends HTMLElement {
       }
     }
     for (let prop in this.init$) {
-      if (prop.startsWith(DICT.EXT_DATA_CTX_PRFX)) {
-        this.nodeCtx.add(prop.replace(DICT.EXT_DATA_CTX_PRFX, ''), this.init$[prop], this.#ctxOwner);
-      } else if (prop.includes(DICT.NAMED_DATA_CTX_SPLTR)) {
-        let propArr = prop.split(DICT.NAMED_DATA_CTX_SPLTR);
+      if (prop.startsWith(DICT.EXT_CTX_PX)) {
+        this.nodeCtx.add(prop.replace(DICT.EXT_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
+      } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
+        let propArr = prop.split(DICT.NAMED_CTX_SPLTR);
         let ctxName = propArr[0].trim();
         let propName = propArr[1].trim();
         if (ctxName && propName) {
@@ -444,7 +452,7 @@ export class BaseComponent extends HTMLElement {
   static reg(tagName, isAlias = false) {
     if (!tagName) {
       autoTagsCount++;
-      tagName = `${DICT.AUTO_TAG_PRFX}-${autoTagsCount}`;
+      tagName = `${DICT.AUTO_TAG_PX}-${autoTagsCount}`;
     }
     /** @private */
     this.__tag = tagName;

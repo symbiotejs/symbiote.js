@@ -1,6 +1,6 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
-// import { kebabToCamel } from '../utils/kebabToCamel.js';
+
 // Should go first among other processors:
 import { repeatProcessor } from './repeatProcessor.js';
 
@@ -80,9 +80,9 @@ function domBindProcessor(fr, fnCtx) {
       let prop = kv[0];
       let isAttr;
 
-      if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
+      if (prop.indexOf(DICT.ATTR_BIND_PX) === 0) {
         isAttr = true;
-        prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
+        prop = prop.replace(DICT.ATTR_BIND_PX, '');
       }
       /** @type {String[]} */
       let valKeysArr = kv[1].split(',').map((valKey) => {

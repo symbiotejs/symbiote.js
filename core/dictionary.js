@@ -3,11 +3,13 @@ export const DICT = Object.freeze({
   //  Template data binding attribute:
   BIND_ATTR: 'bind',
   //  Local state binding attribute name:
-  ATTR_BIND_PRFX: '@',
+  ATTR_BIND_PX: '@',
   // External prop prefix:
-  EXT_DATA_CTX_PRFX: '*',
+  EXT_CTX_PX: '*',
+  // Inherited parent prop prefix:
+  PARENT_CTX_PX: '^',
   // Named data context property splitter:
-  NAMED_DATA_CTX_SPLTR: '/',
+  NAMED_CTX_SPLTR: '/',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx',
   // Data context owner attribute:
@@ -17,7 +19,7 @@ export const DICT = Object.freeze({
   // Element reference attribute:
   EL_REF_ATTR: 'ref',
   // Prefix for auto generated tag names:
-  AUTO_TAG_PRFX: 'sym',
+  AUTO_TAG_PX: 'sym',
   // Template list source data attribute:
   LIST_ATTR: 'list',
   // List item tag name:
