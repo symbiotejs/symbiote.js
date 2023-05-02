@@ -68,18 +68,10 @@ function refProcessor(fr, fnCtx) {
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
-function domSetProcessor(fr, fnCtx) {
+function domBindProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
     let keyValArr = subStr.split(';');
-    // TODO: remove >
-    // [...el.attributes].forEach((attr) => {
-    //   if (attr.name.startsWith('-') && attr.value) {
-    //     let key = kebabToCamel(attr.name.replace('-', ''));
-    //     keyValArr.push(key + ':' + attr.value);
-    //     el.removeAttribute(attr.name);
-    //   }
-    // });
     keyValArr.forEach((keyValStr) => {
       if (!keyValStr) {
         return;
@@ -185,4 +177,4 @@ const txtNodesProcessor = function (fr, fnCtx) {
   });
 };
 
-export default [repeatProcessor, slotProcessor, refProcessor, domSetProcessor, txtNodesProcessor];
+export default [repeatProcessor, slotProcessor, refProcessor, domBindProcessor, txtNodesProcessor];
