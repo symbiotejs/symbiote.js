@@ -2,7 +2,7 @@
 
 /**
  * @param {TemplateStringsArray} strings
- * @param {(Object<string, String> | Partial<BindDescriptor>)[]} props
+ * @param {(Object<string, String> | Partial<BindDescriptor> | String)[]} props
  * @returns {any}
  */
 export function html(strings, ...props) {
@@ -11,6 +11,7 @@ export function html(strings, ...props) {
     resultHtml += part;
     if (props[idx]?.constructor === Object) {
       let bindStr = '';
+      // @ts-ignore
       for (let key in props[idx]) {
         bindStr += `${key}:${props[idx][key]};`;
       }
