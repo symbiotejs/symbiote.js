@@ -30,21 +30,23 @@ declare module "core/Data" {
     export namespace Data {
         const globalStore: Map<any, any>;
     }
+    export default Data;
 }
 declare module "core/dictionary" {
     export type DICT = string;
     export const DICT: Readonly<{
         BIND_ATTR: "bind";
-        ATTR_BIND_PRFX: "@";
-        EXT_DATA_CTX_PRFX: "*";
-        NAMED_DATA_CTX_SPLTR: "/";
+        ATTR_BIND_PX: "@";
+        EXT_CTX_PX: "*";
+        PARENT_CTX_PX: "^";
+        NAMED_CTX_SPLTR: "/";
         CTX_NAME_ATTR: "ctx";
         CTX_OWNER_ATTR: "ctx-owner";
         CSS_CTX_PROP: "--ctx";
         EL_REF_ATTR: "ref";
-        AUTO_TAG_PRFX: "sym";
-        REPEAT_ATTR: "list";
-        REPEAT_ITEM_TAG_ATTR: "list-item-tag";
+        AUTO_TAG_PX: "sym";
+        LIST_ATTR: "list";
+        LIST_ITEM_TAG_ATTR: "list-item-tag";
         SET_LATER_KEY: "__toSetLater__";
         USE_TPL: "use-template";
         ROOT_STYLE_ATTR_NAME: "sym-component";
@@ -129,7 +131,15 @@ declare module "core/BaseComponent" {
         defineAccessor(propName: string, handler?: Function, isAsync?: boolean): void;
         #private;
     }
+    export default BaseComponent;
     import { Data } from "core/Data";
+}
+declare module "core/html" {
+    export function html(strings: TemplateStringsArray, ...props: ({
+        [x: string]: string;
+    } | Partial<BindDescriptor>)[]): string;
+    export default html;
+    export type BindDescriptor = Record<keyof import("core/BaseComponent").BaseComponent<any>, string>;
 }
 declare module "core/AppRouter" {
     export class AppRouter {
@@ -168,6 +178,7 @@ declare module "core/AppRouter" {
         function __onPopstate(): void;
         const appMap: any;
     }
+    export default AppRouter;
     import { Data } from "core/Data";
 }
 declare module "utils/dom-helpers" {
@@ -231,6 +242,7 @@ declare module "utils/kebabToCamel" {
 }
 declare module "core/index" {
     export { BaseComponent } from "./BaseComponent.js";
+    export { html } from "./html.js";
     export { Data } from "./Data.js";
     export { AppRouter } from "./AppRouter.js";
     export { UID } from "../utils/UID.js";

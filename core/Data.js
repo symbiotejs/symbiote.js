@@ -152,3 +152,5 @@ export class Data {
 }
 
 Data.globalStore = new Map();
+
+export default Data;

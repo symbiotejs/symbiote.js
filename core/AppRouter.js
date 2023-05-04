@@ -169,3 +169,5 @@ export class AppRouter {
 }
 
 AppRouter.appMap = Object.create(null);
+
+export default AppRouter;

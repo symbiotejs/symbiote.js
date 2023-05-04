@@ -1,8 +1,8 @@
 /** @enum {String} */
 export const DICT = Object.freeze({
-  //  Template data binding attribute:
+  // Template data binding attribute:
   BIND_ATTR: 'bind',
-  //  Local state binding attribute name:
+  // Local state binding attribute name:
   ATTR_BIND_PX: '@',
   // External prop prefix:
   EXT_CTX_PX: '*',
