@@ -1,13 +1,15 @@
+import { DICT } from './dictionary.js';
+
 /** @typedef {Record<keyof import('./BaseComponent.js').BaseComponent, String>} BindDescriptor */
 
 /**
- * @param {TemplateStringsArray} strings
- * @param {(Object<string, String> | Partial<BindDescriptor> | String)[]} props
- * @returns {any}
+ * @param {TemplateStringsArray} parts
+ * @param {(Object<string, String> | BindDescriptor | String)[]} props
+ * @returns {String}
  */
-export function html(strings, ...props) {
+export function html(parts, ...props) {
   let resultHtml = '';
-  strings.forEach((part, idx) => {
+  parts.forEach((part, idx) => {
     resultHtml += part;
     if (props[idx]?.constructor === Object) {
       let bindStr = '';
@@ -15,7 +17,7 @@ export function html(strings, ...props) {
       for (let key in props[idx]) {
         bindStr += `${key}:${props[idx][key]};`;
       }
-      resultHtml += ` bind="${bindStr}" `;
+      resultHtml += ` ${DICT.BIND_ATTR}="${bindStr}"`;
     } else if (props[idx]) {
       resultHtml += props[idx];
     }
