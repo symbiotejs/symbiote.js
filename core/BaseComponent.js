@@ -16,11 +16,15 @@ let styleMutationObserverCbList = null;
 
 /** @template S */
 export class BaseComponent extends HTMLElement {
+  /** @type {Boolean} */
   #initialized;
+  /** @type {String} */
   #autoCtxName;
+  /** @type {String} */
   #cachedCtxName;
   #localCtx;
   #stateProxy;
+  /** @type {Boolean} */
   #dataCtxInitialized;
   #disconnectTimeout;
   #cssDataCache;
@@ -51,7 +55,7 @@ export class BaseComponent extends HTMLElement {
   render(template, shadow = this.renderShadow) {
     /** @type {DocumentFragment} */
     let fr;
-    if ((shadow || this.constructor['__shadowStylesUrl']) && !this.shadowRoot) {
+    if ((shadow || this.constructor['shadowStyleSheet']) && !this.shadowRoot) {
       this.attachShadow({
         mode: 'open',
       });
@@ -106,16 +110,11 @@ export class BaseComponent extends HTMLElement {
       this.#initCallback();
     };
 
-    if (this.constructor['__shadowStylesUrl']) {
+    if (this.constructor['shadowStyleSheet']) {
       shadow = true; // is needed for cases when Shadow DOM was created manually for some other purposes
-      let styleLink = document.createElement('link');
-      styleLink.rel = 'stylesheet';
-      styleLink.href = this.constructor['__shadowStylesUrl'];
-      styleLink.onload = addFr;
-      this.shadowRoot.prepend(styleLink); // the link should be added before the other template elements
-    } else {
-      addFr();
+      this.shadowRoot.adoptedStyleSheets.push(this.constructor['shadowStyleSheet']);
     }
+    addFr();
   }
 
   /**
@@ -171,7 +170,7 @@ export class BaseComponent extends HTMLElement {
   get ctxName() {
     let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName || this.autoCtxName;
     /**
-     * Cache last ctx name to be able to access context when element becames disconnected
+     * Cache last ctx name to be able to access context when element becomes disconnected
      *
      * @type {String}
      */
@@ -386,28 +385,18 @@ export class BaseComponent extends HTMLElement {
       if (this.pauseRender) {
         this.#initCallback();
       } else {
-        if (this.constructor['__rootStylesLink']) {
+        if (this.constructor['rootStyleSheet']) {
+          /** @type {Document | ShadowRoot} */
+          // @ts-ignore
           let root = this.getRootNode();
           if (!root) {
             return;
           }
-          // @ts-ignore
-          let hasLink = root?.querySelector(`link[${DICT.ROOT_STYLE_ATTR_NAME}="${this.constructor.is}"]`);
-          if (hasLink) {
-            this.render();
-            return;
+          if (!root.adoptedStyleSheets.includes(this.constructor['rootStyleSheet'])) {
+            root.adoptedStyleSheets = [...root.adoptedStyleSheets, this.constructor['rootStyleSheet']];
           }
-          /** @type {HTMLLinkElement} */
-          let rootLink = this.constructor['__rootStylesLink'].cloneNode(true);
-          rootLink.setAttribute(DICT.ROOT_STYLE_ATTR_NAME, this.constructor['is']);
-          rootLink.onload = () => {
-            this.render();
-          };
-          // @ts-ignore
-          root.nodeType === Node.DOCUMENT_NODE ? root.head.appendChild(rootLink) : root.prepend(rootLink);
-        } else {
-          this.render();
         }
+        this.render();
       }
     }
     this.connectedOnce = true;
@@ -614,26 +603,34 @@ export class BaseComponent extends HTMLElement {
 
   /** @param {String} cssTxt */
   static set shadowStyles(cssTxt) {
-    let styleBlob = new Blob([cssTxt], {
-      type: 'text/css',
-    });
-    /** @private */
-    this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
+    this.shadowStyleSheet = new CSSStyleSheet();
+    this.shadowStyleSheet.replaceSync(cssTxt);
+    // let styleBlob = new Blob([cssTxt], {
+    //   type: 'text/css',
+    // });
+    // /** @private */
+    // this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
   }
 
   /** @param {String} cssTxt */
   static set rootStyles(cssTxt) {
-    if (!this.__rootStylesLink) {
-      let styleBlob = new Blob([cssTxt], {
-        type: 'text/css',
-      });
-      let url = URL.createObjectURL(styleBlob);
-      let link = document.createElement('link');
-      link.href = url;
-      link.rel = 'stylesheet';
-      /** @private */
-      this.__rootStylesLink = link;
+    if (this.rootStyleSheet) {
+      return;
     }
+    this.rootStyleSheet = new CSSStyleSheet();
+    this.rootStyleSheet.replaceSync(cssTxt);
+    
+    // if (!this.__rootStylesLink) {
+    //   let styleBlob = new Blob([cssTxt], {
+    //     type: 'text/css',
+    //   });
+    //   let url = URL.createObjectURL(styleBlob);
+    //   let link = document.createElement('link');
+    //   link.href = url;
+    //   link.rel = 'stylesheet';
+    //   /** @private */
+    //   this.__rootStylesLink = link;
+    // }
   }
 }
 
