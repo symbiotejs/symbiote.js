@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.0-alpha.7",
   "scripts": {
     "lint:types": "tsc",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
@@ -43,10 +43,7 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
-    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@types/node": "^17.0.14",
-    "@web/test-runner": "^0.16.1",
-    "@web/test-runner-playwright": "^0.10.0",
     "eslint": "^8.0.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
@@ -55,7 +52,6 @@
     "lint-staged": "^11.2.3",
     "prettier": "^2.0.5",
     "prettier-plugin-jsdoc": "0.0.17",
-    "sinon": "^15.0.4",
     "typescript": "^5.0.0"
   },
   "prettier": {

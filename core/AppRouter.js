@@ -1,4 +1,4 @@
-import { Data } from './Data.js';
+import PubSub from './PubSub.js';
 
 export class AppRouter {
   /** @private */
@@ -127,11 +127,11 @@ export class AppRouter {
   /**
    * @param {String} ctxName
    * @param {Object<string, {}>} routingMap
-   * @returns {Data}
+   * @returns {PubSub}
    */
   static createRouterData(ctxName, routingMap) {
     this.setRoutingMap(routingMap);
-    let routeData = Data.registerCtx(
+    let routeData = PubSub.registerCtx(
       {
         route: null,
         options: null,

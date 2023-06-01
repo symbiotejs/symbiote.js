@@ -1,4 +1,3 @@
-/** @returns {Object<string, any>} */
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
@@ -11,8 +10,12 @@ function cloneObj(obj) {
   return clone(obj);
 }
 
-export class Data {
-  /** @param {Object<string, any>} schema */
+/** @template {Record<string, unknown>} T */
+export class PubSub {
+
+  #proxy;
+
+  /** @param {T} schema */
   constructor(schema) {
     if (schema.constructor === Object) {
       this.store = cloneObj(schema);
@@ -22,22 +25,22 @@ export class Data {
       this._storeIsProxy = true;
       this.store = schema;
     }
-    /** @type {Object<String, Set<Function>>} */
+    /** @type {Record<keyof T, Set<Function>>} */
     this.callbackMap = Object.create(null);
   }
 
   /**
    * @param {String} actionName
-   * @param {String} prop
+   * @param {*} prop
    */
-  static warn(actionName, prop) {
-    console.warn(`Symbiote Data: cannot ${actionName}. Prop name: ` + prop);
+  static #warn(actionName, prop) {
+    console.warn(`Symbiote PubSub: cannot ${actionName}. Prop name: ` + prop);
   }
 
-  /** @param {String} prop */
+  /** @param {keyof T} prop */
   read(prop) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      Data.warn('read', prop);
+      PubSub.#warn('read', prop);
       return null;
     }
     return this.store[prop];
@@ -62,27 +65,43 @@ export class Data {
   }
 
   /**
-   * @template T
-   * @param {String} prop
-   * @param {T} val
+   * @param {keyof T} prop
+   * @param {unknown} val
    */
   pub(prop, val) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      Data.warn('publish', prop);
+      PubSub.#warn('publish', prop);
       return;
     }
     this.store[prop] = val;
     this.notify(prop);
   }
 
-  /** @param {Object<string, any>} updObj */
+  /** @returns {T} */
+  get proxy() {
+    if (!this.#proxy) {
+      let o = Object.create(null);
+      this.#proxy = new Proxy(o, {
+        set: (obj, /** @type {String} */ prop, val) => {
+          this.pub(prop, val);
+          return true;
+        },
+        get: (obj, /** @type {String} */ prop) => {
+          this.read(prop);
+        },
+      });
+    }
+    return this.#proxy;
+  }
+
+  /** @param {T} updObj */
   multiPub(updObj) {
     for (let prop in updObj) {
       this.pub(prop, updObj[prop]);
     }
   }
 
-  /** @param {String} prop */
+  /** @param {keyof T} prop */
   notify(prop) {
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
@@ -92,13 +111,13 @@ export class Data {
   }
 
   /**
-   * @param {String} prop
+   * @param {keyof T} prop
    * @param {Function} callback
    * @param {Boolean} [init]
    */
   sub(prop, callback, init = true) {
     if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      Data.warn('subscribe', prop);
+      PubSub.#warn('subscribe', prop);
       return null;
     }
     if (!this.callbackMap[prop]) {
@@ -120,37 +139,39 @@ export class Data {
   }
 
   /**
-   * @param {Object<string, any>} schema
-   * @param {any} [uid]
-   * @returns {Data}
+   * @template {Record<string, unknown>} S
+   * @param {S} schema
+   * @param {String | Symbol} [uid]
+   * @returns {PubSub<S>}
    */
   static registerCtx(schema, uid = Symbol()) {
-    /** @type {Data} */
-    let data = Data.globalStore.get(uid);
+    /** @type {PubSub} */
+    let data = PubSub.globalStore.get(uid);
     if (data) {
-      console.warn('State: context UID "' + uid + '" already in use');
+      console.warn('PubSub: context UID "' + uid + '" is already in use');
     } else {
-      data = new Data(schema);
-      Data.globalStore.set(uid, data);
+      data = new PubSub(schema);
+      PubSub.globalStore.set(uid, data);
     }
     return data;
   }
 
-  /** @param {any} uid */
+  /** @param {String | Symbol} uid */
   static deleteCtx(uid) {
-    Data.globalStore.delete(uid);
+    PubSub.globalStore.delete(uid);
   }
 
   /**
-   * @param {any} uid
+   * @param {String | Symbol} uid
    * @param {Boolean} [notify]
-   * @returns {Data}
+   * @returns {PubSub}
    */
   static getCtx(uid, notify = true) {
-    return Data.globalStore.get(uid) || (notify && console.warn('State: wrong context UID - "' + uid + '"'), null);
+    return PubSub.globalStore.get(uid) || (notify && console.warn('PubSub: wrong context UID - "' + uid + '"'), null);
   }
 }
 
-Data.globalStore = new Map();
+/** @type {Map<String | Symbol, PubSub>} */
+PubSub.globalStore = new Map();
 
-export default Data;
+export default PubSub;

@@ -1,36 +1,30 @@
-declare module "core/Data" {
-    export class Data {
-        static warn(actionName: string, prop: string): void;
-        static registerCtx(schema: {
-            [x: string]: any;
-        }, uid?: any): Data;
-        static deleteCtx(uid: any): void;
-        static getCtx(uid: any, notify?: boolean): Data;
-        constructor(schema: {
-            [x: string]: any;
-        });
-        store: {
-            [x: string]: any;
-        };
+declare module "core/PubSub" {
+    export class PubSub<T extends Record<string, unknown>> {
+        static "__#1@#warn"(actionName: string, prop: any): void;
+        static registerCtx<S extends Record<string, unknown>>(schema: S, uid?: string | Symbol): PubSub<S>;
+        static deleteCtx(uid: string | Symbol): void;
+        static getCtx(uid: string | Symbol, notify?: boolean): PubSub<any>;
+        constructor(schema: T);
+        store: any;
         private _storeIsProxy;
-        callbackMap: any;
-        read(prop: string): any;
-        has(prop: string): boolean;
+        callbackMap: Record<keyof T, Set<Function>>;
+        read(prop: keyof T): any;
+        has(prop: string): any;
         add(prop: string, val: unknown, rewrite?: boolean): void;
-        pub<T>(prop: string, val: T): void;
-        multiPub(updObj: {
-            [x: string]: any;
-        }): void;
-        notify(prop: string): void;
-        sub(prop: string, callback: Function, init?: boolean): {
+        pub(prop: keyof T, val: unknown): void;
+        get proxy(): T;
+        multiPub(updObj: T): void;
+        notify(prop: keyof T): void;
+        sub(prop: keyof T, callback: Function, init?: boolean): {
             remove: () => void;
             callback: Function;
         };
+        #private;
     }
-    export namespace Data {
-        const globalStore: Map<any, any>;
+    export namespace PubSub {
+        const globalStore: Map<string | Symbol, PubSub<any>>;
     }
-    export default Data;
+    export default PubSub;
 }
 declare module "core/dictionary" {
     export type DICT = string;
@@ -74,8 +68,8 @@ declare module "utils/parseCssPropertyValue" {
 declare module "core/BaseComponent" {
     export class BaseComponent<S> extends HTMLElement {
         static template: string;
-        static "__#1@#parseProp"<T_3 extends BaseComponent<any>>(prop: string, fnCtx: T_3): {
-            ctx: Data;
+        static "__#2@#parseProp"<T_3 extends BaseComponent<any>>(prop: string, fnCtx: T_3): {
+            ctx: PubSub<any>;
             name: string;
         };
         static reg(tagName?: string, isAlias?: boolean): void;
@@ -109,11 +103,11 @@ declare module "core/BaseComponent" {
         get autoCtxName(): string;
         get cssCtxName(): string;
         get ctxName(): string;
-        get localCtx(): Data;
-        get nodeCtx(): Data;
+        get localCtx(): PubSub<any>;
+        get nodeCtx(): PubSub<any>;
         sub<T_1 extends keyof S>(prop: T_1, handler: (value: S[T_1]) => void, init?: boolean): void;
         notify(prop: string): void;
-        has(prop: string): boolean;
+        has(prop: string): any;
         add<T_2 extends keyof S>(prop: string, val: S[T_2], rewrite?: boolean): void;
         add$(obj: Partial<S>, rewrite?: boolean): void;
         get $(): S;
@@ -132,12 +126,12 @@ declare module "core/BaseComponent" {
         #private;
     }
     export default BaseComponent;
-    import { Data } from "core/Data";
+    import PubSub from "core/PubSub";
 }
 declare module "core/html" {
-    export function html(strings: TemplateStringsArray, ...props: ({
+    export function html(parts: TemplateStringsArray, ...props: ({
         [x: string]: string;
-    } | Partial<BindDescriptor>)[]): string;
+    } | BindDescriptor | string)[]): string;
     export default html;
     export type BindDescriptor = Record<keyof import("core/BaseComponent").BaseComponent<any>, string>;
 }
@@ -165,7 +159,7 @@ declare module "core/AppRouter" {
         static get separator(): string;
         static createRouterData(ctxName: string, routingMap: {
             [x: string]: {};
-        }): Data;
+        }): PubSub<any>;
         static initPopstateListener(): void;
         static removePopstateListener(): void;
     }
@@ -179,7 +173,7 @@ declare module "core/AppRouter" {
         const appMap: any;
     }
     export default AppRouter;
-    import { Data } from "core/Data";
+    import PubSub from "core/PubSub";
 }
 declare module "utils/dom-helpers" {
     export function applyStyles<T extends HTMLElement | SVGElement>(el: T, styleMap: StyleMap): void;
@@ -243,7 +237,7 @@ declare module "utils/kebabToCamel" {
 declare module "core/index" {
     export { BaseComponent } from "./BaseComponent.js";
     export { html } from "./html.js";
-    export { Data } from "./Data.js";
+    export { PubSub } from "./PubSub.js";
     export { AppRouter } from "./AppRouter.js";
     export { UID } from "../utils/UID.js";
     export { setNestedProp } from "../utils/setNestedProp.js";

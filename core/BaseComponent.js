@@ -1,4 +1,4 @@
-import { Data } from './Data.js';
+import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
@@ -178,17 +178,17 @@ export class BaseComponent extends HTMLElement {
     return ctxName;
   }
 
-  /** @returns {Data} */
+  /** @returns {PubSub} */
   get localCtx() {
     if (!this.#localCtx) {
-      this.#localCtx = Data.registerCtx({}, this);
+      this.#localCtx = PubSub.registerCtx({});
     }
     return this.#localCtx;
   }
 
-  /** @returns {Data} */
+  /** @returns {PubSub} */
   get nodeCtx() {
-    return Data.getCtx(this.ctxName, false) || Data.registerCtx({}, this.ctxName);
+    return PubSub.getCtx(this.ctxName, false) || PubSub.registerCtx({}, this.ctxName);
   }
 
   /**
@@ -197,7 +197,7 @@ export class BaseComponent extends HTMLElement {
    * @param {T} fnCtx
    */
   static #parseProp(prop, fnCtx) {
-    /** @type {Data} */
+    /** @type {PubSub} */
     let ctx;
     /** @type {String} */
     let name;
@@ -214,7 +214,7 @@ export class BaseComponent extends HTMLElement {
       ctx = found?.localCtx || fnCtx.localCtx;
     } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
       let pArr = prop.split(DICT.NAMED_CTX_SPLTR);
-      ctx = Data.getCtx(pArr[0]);
+      ctx = PubSub.getCtx(pArr[0]);
       name = pArr[1];
     } else {
       ctx = fnCtx.localCtx;
@@ -341,9 +341,9 @@ export class BaseComponent extends HTMLElement {
         let ctxName = propArr[0].trim();
         let propName = propArr[1].trim();
         if (ctxName && propName) {
-          let namedCtx = Data.getCtx(ctxName, false);
+          let namedCtx = PubSub.getCtx(ctxName, false);
           if (!namedCtx) {
-            namedCtx = Data.registerCtx({}, ctxName);
+            namedCtx = PubSub.registerCtx({}, ctxName);
           }
           namedCtx.add(propName, this.init$[prop]);
         }
@@ -605,11 +605,6 @@ export class BaseComponent extends HTMLElement {
   static set shadowStyles(cssTxt) {
     this.shadowStyleSheet = new CSSStyleSheet();
     this.shadowStyleSheet.replaceSync(cssTxt);
-    // let styleBlob = new Blob([cssTxt], {
-    //   type: 'text/css',
-    // });
-    // /** @private */
-    // this.__shadowStylesUrl = URL.createObjectURL(styleBlob);
   }
 
   /** @param {String} cssTxt */
@@ -619,18 +614,6 @@ export class BaseComponent extends HTMLElement {
     }
     this.rootStyleSheet = new CSSStyleSheet();
     this.rootStyleSheet.replaceSync(cssTxt);
-    
-    // if (!this.__rootStylesLink) {
-    //   let styleBlob = new Blob([cssTxt], {
-    //     type: 'text/css',
-    //   });
-    //   let url = URL.createObjectURL(styleBlob);
-    //   let link = document.createElement('link');
-    //   link.href = url;
-    //   link.rel = 'stylesheet';
-    //   /** @private */
-    //   this.__rootStylesLink = link;
-    // }
   }
 }
 
