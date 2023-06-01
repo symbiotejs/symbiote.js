@@ -6,8 +6,7 @@ declare module "core/PubSub" {
         static getCtx(uid: string | Symbol, notify?: boolean): PubSub<any>;
         constructor(schema: T);
         store: any;
-        private _storeIsProxy;
-        callbackMap: Record<keyof T, Set<Function>>;
+        callbackMap: Record<keyof T, Set<(val: unknown) => void>>;
         read(prop: keyof T): any;
         has(prop: string): any;
         add(prop: string, val: unknown, rewrite?: boolean): void;
@@ -15,9 +14,9 @@ declare module "core/PubSub" {
         get proxy(): T;
         multiPub(updObj: T): void;
         notify(prop: keyof T): void;
-        sub(prop: keyof T, callback: Function, init?: boolean): {
+        sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean): {
             remove: () => void;
-            callback: Function;
+            callback: (val: unknown) => void;
         };
         #private;
     }

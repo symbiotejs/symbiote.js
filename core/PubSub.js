@@ -14,6 +14,7 @@ function cloneObj(obj) {
 export class PubSub {
 
   #proxy;
+  #storeIsProxy;
 
   /** @param {T} schema */
   constructor(schema) {
@@ -21,11 +22,10 @@ export class PubSub {
       this.store = cloneObj(schema);
     } else {
       // For Proxy support:
-      /** @private */
-      this._storeIsProxy = true;
+      this.#storeIsProxy = true;
       this.store = schema;
     }
-    /** @type {Record<keyof T, Set<Function>>} */
+    /** @type {Record<keyof T, Set<(val:unknown) => void>>} */
     this.callbackMap = Object.create(null);
   }
 
@@ -39,7 +39,7 @@ export class PubSub {
 
   /** @param {keyof T} prop */
   read(prop) {
-    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
       PubSub.#warn('read', prop);
       return null;
     }
@@ -48,7 +48,7 @@ export class PubSub {
 
   /** @param {String} prop */
   has(prop) {
-    return this._storeIsProxy ? this.store[prop] !== undefined : this.store.hasOwnProperty(prop);
+    return this.#storeIsProxy ? this.store[prop] !== undefined : this.store.hasOwnProperty(prop);
   }
 
   /**
@@ -69,7 +69,7 @@ export class PubSub {
    * @param {unknown} val
    */
   pub(prop, val) {
-    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
       PubSub.#warn('publish', prop);
       return;
     }
@@ -112,11 +112,11 @@ export class PubSub {
 
   /**
    * @param {keyof T} prop
-   * @param {Function} callback
+   * @param {(val: unknown) => void} callback
    * @param {Boolean} [init]
    */
   sub(prop, callback, init = true) {
-    if (!this._storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
       PubSub.#warn('subscribe', prop);
       return null;
     }
