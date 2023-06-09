@@ -2,6 +2,7 @@ import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
 import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
+import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
 
 import PROCESSORS from './tpl-processors.js';
 import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
@@ -31,6 +32,13 @@ export class BaseComponent extends HTMLElement {
   #computedStyle;
   #boundCssProps;
 
+  /** @type {typeof BaseComponent} */
+  // @ts-ignore
+  #super = this.constructor;
+
+  /** @type {HTMLTemplateElement} */
+  static __tpl;
+
   get BaseComponent() {
     return BaseComponent;
   }
@@ -55,7 +63,7 @@ export class BaseComponent extends HTMLElement {
   render(template, shadow = this.renderShadow) {
     /** @type {DocumentFragment} */
     let fr;
-    if ((shadow || this.constructor['shadowStyleSheet']) && !this.shadowRoot) {
+    if ((shadow || this.#super.shadowStyleSheets) && !this.shadowRoot) {
       this.attachShadow({
         mode: 'open',
       });
@@ -80,10 +88,10 @@ export class BaseComponent extends HTMLElement {
         fn(this, this);
       }
     }
-    if (template || this.constructor['template']) {
-      if (this.constructor['template'] && !this.constructor['#tpl']) {
-        this.constructor['#tpl'] = document.createElement('template');
-        this.constructor['#tpl'].innerHTML = this.constructor['template'];
+    if (template || this.#super.template) {
+      if (this.#super.template && !this.#super.__tpl) {
+        this.#super.__tpl = document.createElement('template');
+        this.#super.__tpl.innerHTML = this.#super.template;
       }
       if (template?.constructor === DocumentFragment) {
         fr = template;
@@ -92,8 +100,9 @@ export class BaseComponent extends HTMLElement {
         tpl.innerHTML = template;
         // @ts-ignore
         fr = tpl.content.cloneNode(true);
-      } else if (this.constructor['#tpl']) {
-        fr = this.constructor['#tpl'].content.cloneNode(true);
+      } else if (this.#super.__tpl) {
+        // @ts-ignore
+        fr = this.#super.__tpl.content.cloneNode(true);
       }
       for (let fn of this.tplProcessors) {
         fn(fr, this);
@@ -110,9 +119,9 @@ export class BaseComponent extends HTMLElement {
       this.#initCallback();
     };
 
-    if (this.constructor['shadowStyleSheet']) {
+    if (this.#super.shadowStyleSheets) {
       shadow = true; // is needed for cases when Shadow DOM was created manually for some other purposes
-      this.shadowRoot.adoptedStyleSheets.push(this.constructor['shadowStyleSheet']);
+      this.shadowRoot.adoptedStyleSheets = [...this.#super.shadowStyleSheets];
     }
     addFr();
   }
@@ -325,7 +334,7 @@ export class BaseComponent extends HTMLElement {
 
   #initDataCtx() {
     /** @type {{ [key: string]: string }} */
-    let attrDesc = this.constructor['__attrDesc'];
+    let attrDesc = this.#super.__attrDesc;
     if (attrDesc) {
       for (let prop of Object.values(attrDesc)) {
         if (!Object.keys(this.init$).includes(prop)) {
@@ -385,16 +394,15 @@ export class BaseComponent extends HTMLElement {
       if (this.pauseRender) {
         this.#initCallback();
       } else {
-        if (this.constructor['rootStyleSheet']) {
+        if (this.#super.rootStyleSheets) {
           /** @type {Document | ShadowRoot} */
           // @ts-ignore
           let root = this.getRootNode();
           if (!root) {
             return;
           }
-          if (!root.adoptedStyleSheets.includes(this.constructor['rootStyleSheet'])) {
-            root.adoptedStyleSheets = [...root.adoptedStyleSheets, this.constructor['rootStyleSheet']];
-          }
+          let styleSet = new Set([...root.adoptedStyleSheets, ...this.#super.rootStyleSheets]);
+          root.adoptedStyleSheets = [...styleSet];
         }
         this.render();
       }
@@ -481,7 +489,7 @@ export class BaseComponent extends HTMLElement {
       return;
     }
     /** @type {String} */
-    let $prop = this.constructor['__attrDesc']?.[name];
+    let $prop = this.#super.__attrDesc?.[name];
     if ($prop) {
       if (this.#dataCtxInitialized) {
         this.$[$prop] = newVal;
@@ -601,19 +609,32 @@ export class BaseComponent extends HTMLElement {
     this[propName] = this[localPropName];
   }
 
-  /** @param {String} cssTxt */
-  static set shadowStyles(cssTxt) {
-    this.shadowStyleSheet = new CSSStyleSheet();
-    this.shadowStyleSheet.replaceSync(cssTxt);
+  /** @param {String | CSSStyleSheet} styles */
+  static addRootStyles(styles) {
+    if (!this.rootStyleSheets) {
+      /** @type {CSSStyleSheet[]} */
+      this.rootStyleSheets = [];
+    }
+    this.rootStyleSheets.push(prepareStyleSheet(styles));
   }
 
-  /** @param {String} cssTxt */
-  static set rootStyles(cssTxt) {
-    if (this.rootStyleSheet) {
-      return;
+  /** @param {String | CSSStyleSheet} styles */
+  static addShadowStyles(styles) {
+    if (!this.shadowStyleSheets) {
+      /** @type {CSSStyleSheet[]} */
+      this.shadowStyleSheets = [];
     }
-    this.rootStyleSheet = new CSSStyleSheet();
-    this.rootStyleSheet.replaceSync(cssTxt);
+    this.shadowStyleSheets.push(prepareStyleSheet(styles));
+  }
+
+  /** @param {String | CSSStyleSheet} styles */
+  static set rootStyles(styles) {
+    this.addRootStyles(styles);
+  }
+
+  /** @param {String | CSSStyleSheet} styles */
+  static set shadowStyles(styles) {
+    this.addShadowStyles(styles);
   }
 }
 

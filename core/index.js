@@ -1,6 +1,7 @@
 // Core modules:
 export { BaseComponent } from './BaseComponent.js';
 export { html } from './html.js';
+export { css } from './css.js';
 export { PubSub } from './PubSub.js';
 export { AppRouter } from './AppRouter.js';
 
