@@ -44,6 +44,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   initCallback() {}
+  renderCallback() {}
 
   #initCallback() {
     if (this.#initialized) {
@@ -117,6 +118,7 @@ export class BaseComponent extends HTMLElement {
         fr && ((shadow && this.shadowRoot.appendChild(fr)) || this.appendChild(fr));
       }
       this.#initCallback();
+      this.renderCallback?.();
     };
 
     if (this.#super.shadowStyleSheets) {
@@ -278,7 +280,7 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    let parsed = BaseComponent.#parseProp(/** @type {String} */ (prop), this);
+    let parsed = BaseComponent.#parseProp(prop, this);
     parsed.ctx.add(parsed.name, val, rewrite);
   }
 
@@ -288,7 +290,7 @@ export class BaseComponent extends HTMLElement {
    */
   add$(obj, rewrite = false) {
     for (let prop in obj) {
-      this.add(prop, obj[/** @type {String} */ (prop)], rewrite);
+      this.add(prop, obj[prop], rewrite);
     }
   }
 
