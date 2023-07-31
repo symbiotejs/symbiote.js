@@ -75,7 +75,7 @@ export class AppRouter {
     let event = new CustomEvent(AppRouter.routingEventName, {
       detail: {
         route: routeBase.route,
-        options: Object.assign(routeScheme || {}, routeBase.options),
+        options: {...(routeScheme || {}), ...routeBase.options},
       },
     });
     window.dispatchEvent(event);
