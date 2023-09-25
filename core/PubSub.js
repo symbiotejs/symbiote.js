@@ -55,7 +55,6 @@ export class PubSub {
       if (compFn?.constructor !== Function) {
         PubSub.#warn('compute', prop);
       } else {
-        console.log(prop);
         return compFn();
       }
     } else {
