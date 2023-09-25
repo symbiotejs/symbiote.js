@@ -1,3 +1,5 @@
+import { DICT } from './dictionary.js';
+
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
@@ -43,7 +45,21 @@ export class PubSub {
       PubSub.#warn('read', prop);
       return null;
     }
-    return this.store[prop];
+    if (typeof prop === 'string' && prop.includes(DICT.COMPUTED_PX)) {
+      /** @type {Function} */
+      let compFn = this.store[prop];
+      if (!this.__computedSet) {
+        this.__computedSet = new Set();
+      }
+      this.__computedSet.add(prop);
+      if (compFn?.constructor !== Function) {
+        PubSub.#warn('compute', prop);
+      } else {
+        return compFn();
+      }
+    } else {
+      return this.store[prop];
+    }
   }
 
   /** @param {String} prop */
@@ -101,12 +117,22 @@ export class PubSub {
     }
   }
 
+  #processComputed() {
+    if (this.__computedSet) {
+      this.__computedSet.forEach((prop) => {
+        this.notify(prop);
+      });
+    }
+  }
+
   /** @param {keyof T} prop */
   notify(prop) {
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
-        callback(this.store[prop]);
+        callback(this.read(prop));
       });
+      // @ts-expect-error
+      !prop?.startsWith(DICT.COMPUTED_PX) && this.#processComputed();
     }
   }
 
@@ -125,7 +151,7 @@ export class PubSub {
     }
     this.callbackMap[prop].add(callback);
     if (init) {
-      callback(this.store[prop]);
+      callback(this.read(prop));
     }
     return {
       remove: () => {

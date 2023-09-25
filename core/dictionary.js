@@ -4,12 +4,14 @@ export const DICT = Object.freeze({
   BIND_ATTR: 'bind',
   // Local state binding attribute name:
   ATTR_BIND_PX: '@',
-  // External prop prefix:
-  EXT_CTX_PX: '*',
+  // Shared prop prefix:
+  SHARED_CTX_PX: '*',
   // Inherited parent prop prefix:
   PARENT_CTX_PX: '^',
   // Named data context property splitter:
   NAMED_CTX_SPLTR: '/',
+  // Computed property prefix:
+  COMPUTED_PX: '+',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx',
   // Data context owner attribute:
