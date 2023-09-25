@@ -55,6 +55,7 @@ export class PubSub {
       if (compFn?.constructor !== Function) {
         PubSub.#warn('compute', prop);
       } else {
+        console.log(prop);
         return compFn();
       }
     } else {
@@ -120,7 +121,12 @@ export class PubSub {
   #processComputed() {
     if (this.__computedSet) {
       this.__computedSet.forEach((prop) => {
-        this.notify(prop);
+        if (this[`__${prop}_timeout`]) {
+          window.clearTimeout(this[`__${prop}_timeout`]);
+        }
+        this[`__${prop}_timeout`] = window.setTimeout(() => {
+          this.notify(prop);
+        });
       });
     }
   }
