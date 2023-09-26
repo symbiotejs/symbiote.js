@@ -90,7 +90,7 @@ export class PubSub {
       return;
     }
     // @ts-expect-error
-    if (prop?.startsWith(DICT.COMPUTED_PX)) {
+    if (prop?.startsWith(DICT.COMPUTED_PX) && val.constructor !== Function) {
       PubSub.#warn('publish computed', prop);
       return;
     }
