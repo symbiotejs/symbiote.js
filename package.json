@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.0.0-alpha.10",
+  "version": "2.0.0-alpha.11",
   "scripts": {
     "lint:types": "tsc",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
