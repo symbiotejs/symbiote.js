@@ -94,7 +94,7 @@ export class PubSub {
       PubSub.#warn('publish computed', prop);
       return;
     }
-    if (typeof this.store[prop] !== typeof val) {
+    if (!(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
       // @ts-expect-error
       console.warn(`Symbiote PubSub: type warning for "${prop}" [${typeof this.store[prop]} -> ${typeof val}]`);
     }
