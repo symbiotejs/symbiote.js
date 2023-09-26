@@ -89,6 +89,15 @@ export class PubSub {
       PubSub.#warn('publish', prop);
       return;
     }
+    // @ts-expect-error
+    if (prop?.startsWith(DICT.COMPUTED_PX)) {
+      PubSub.#warn('publish computed', prop);
+      return;
+    }
+    if (typeof this.store[prop] !== typeof val) {
+      // @ts-expect-error
+      console.warn(`Symbiote PubSub: type warning for "${prop}" [${typeof this.store[prop]} -> ${typeof val}]`);
+    }
     this.store[prop] = val;
     this.notify(prop);
   }
