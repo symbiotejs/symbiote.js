@@ -1,10 +1,21 @@
 import { DICT } from './dictionary.js';
 
+/** @type {String[]} */
+export const RESERVED_ATTRIBUTES = [
+  DICT.LIST_ATTR,
+  DICT.LIST_ITEM_TAG_ATTR,
+  DICT.EL_REF_ATTR,
+  DICT.USE_TPL_ATTR,
+  DICT.CTX_NAME_ATTR,
+  DICT.CTX_OWNER_ATTR,
+];
+
 /** @typedef {Record<keyof import('./BaseComponent.js').BaseComponent, String>} BindDescriptor */
 
 /**
+ * @template T
  * @param {TemplateStringsArray} parts
- * @param {(Object<string, String> | BindDescriptor | String)[]} props
+ * @param {(Object<string, String> | BindDescriptor | String | T)[]} props
  * @returns {String}
  */
 export function html(parts, ...props) {
@@ -13,11 +24,15 @@ export function html(parts, ...props) {
     resultHtml += part;
     if (props[idx]?.constructor === Object) {
       let bindStr = '';
-      // @ts-ignore
+      // @ts-expect-error
       for (let key in props[idx]) {
-        bindStr += `${key}:${props[idx][key]};`;
+        if (RESERVED_ATTRIBUTES.includes(key)) {
+          resultHtml += ` ${key}="${props[idx][key]}"`;
+        } else {
+          bindStr += `${key}:${props[idx][key]};`;
+        }
       }
-      resultHtml += ` ${DICT.BIND_ATTR}="${bindStr}"`;
+      bindStr && (resultHtml += ` ${DICT.BIND_ATTR}="${bindStr}"`);
     } else if (props[idx]) {
       resultHtml += props[idx];
     }
