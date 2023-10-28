@@ -1,3 +1,24 @@
+declare module "core/dictionary" {
+    export type DICT = string;
+    export const DICT: Readonly<{
+        BIND_ATTR: "bind";
+        ATTR_BIND_PX: "@";
+        SHARED_CTX_PX: "*";
+        PARENT_CTX_PX: "^";
+        NAMED_CTX_SPLTR: "/";
+        COMPUTED_PX: "+";
+        CTX_NAME_ATTR: "ctx";
+        CTX_OWNER_ATTR: "ctx-owner";
+        CSS_CTX_PROP: "--ctx";
+        EL_REF_ATTR: "ref";
+        AUTO_TAG_PX: "sym";
+        LIST_ATTR: "list";
+        LIST_ITEM_TAG_ATTR: "list-item-tag";
+        SET_LATER_KEY: "__toSetLater__";
+        USE_TPL_ATTR: "use-template";
+        VIRTUAL_WC: "virtual";
+    }>;
+}
 declare module "core/PubSub" {
     export class PubSub<T extends Record<string, unknown>> {
         static "__#1@#warn"(actionName: string, prop: any): void;
@@ -8,6 +29,7 @@ declare module "core/PubSub" {
         store: any;
         callbackMap: Record<keyof T, Set<(val: unknown) => void>>;
         read(prop: keyof T): any;
+        __computedSet: Set<any>;
         has(prop: string): any;
         add(prop: string, val: unknown, rewrite?: boolean): void;
         pub(prop: keyof T, val: unknown): void;
@@ -25,27 +47,6 @@ declare module "core/PubSub" {
     }
     export default PubSub;
 }
-declare module "core/dictionary" {
-    export type DICT = string;
-    export const DICT: Readonly<{
-        BIND_ATTR: "bind";
-        ATTR_BIND_PX: "@";
-        EXT_CTX_PX: "*";
-        PARENT_CTX_PX: "^";
-        NAMED_CTX_SPLTR: "/";
-        CTX_NAME_ATTR: "ctx";
-        CTX_OWNER_ATTR: "ctx-owner";
-        CSS_CTX_PROP: "--ctx";
-        EL_REF_ATTR: "ref";
-        AUTO_TAG_PX: "sym";
-        LIST_ATTR: "list";
-        LIST_ITEM_TAG_ATTR: "list-item-tag";
-        SET_LATER_KEY: "__toSetLater__";
-        USE_TPL: "use-template";
-        ROOT_STYLE_ATTR_NAME: "sym-component";
-        VIRTUAL_WC: "virtual";
-    }>;
-}
 declare module "utils/UID" {
     export class UID {
         static generate(pattern?: string): string;
@@ -54,7 +55,10 @@ declare module "utils/UID" {
 declare module "utils/setNestedProp" {
     export function setNestedProp(parent: any, path: string, value: any): boolean;
 }
-declare module "core/repeatProcessor" {
+declare module "utils/prepareStyleSheet" {
+    export function prepareStyleSheet(styles: string | CSSStyleSheet): CSSStyleSheet;
+}
+declare module "core/listProcessor" {
     export function repeatProcessor<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T): void;
 }
 declare module "core/tpl-processors" {
@@ -64,8 +68,22 @@ declare module "core/tpl-processors" {
 declare module "utils/parseCssPropertyValue" {
     export function parseCssPropertyValue(input: string): string | number;
 }
+declare module "core/html" {
+    export function html<T>(parts: TemplateStringsArray, ...props: (string | Record<keyof import("core/BaseComponent").BaseComponent<any>, string> | T | {
+        [x: string]: string;
+    })[]): string;
+    export const RESERVED_ATTRIBUTES: string[];
+    export default html;
+    export type BindDescriptor = Record<keyof import("core/BaseComponent").BaseComponent<any>, string>;
+}
+declare module "core/css" {
+    export function css(parts: TemplateStringsArray, ...props: any[]): CSSStyleSheet;
+}
 declare module "core/BaseComponent" {
+    export { html } from "./html.js";
+    export { css } from "./css.js";
     export class BaseComponent<S> extends HTMLElement {
+        static __tpl: HTMLTemplateElement;
         static template: string;
         static "__#2@#parseProp"<T_3 extends BaseComponent<any>>(prop: string, fnCtx: T_3): {
             ctx: PubSub<any>;
@@ -76,11 +94,14 @@ declare module "core/BaseComponent" {
         static bindAttributes(desc: {
             [x: string]: string;
         }): void;
-        static set shadowStyles(arg: string);
-        static set rootStyles(arg: string);
+        static addRootStyles(styles: string | CSSStyleSheet): void;
+        static addShadowStyles(styles: string | CSSStyleSheet): void;
+        static set rootStyles(arg: string | CSSStyleSheet);
+        static set shadowStyles(arg: string | CSSStyleSheet);
         constructor();
         get BaseComponent(): typeof BaseComponent;
         initCallback(): void;
+        renderCallback(): void;
         render(template?: string | DocumentFragment, shadow?: boolean): void;
         addTemplateProcessor<T extends BaseComponent<any>>(processorFn: (fr: DocumentFragment | T, fnCtx: T) => void): void;
         init$: S;
@@ -127,16 +148,9 @@ declare module "core/BaseComponent" {
     export default BaseComponent;
     import PubSub from "core/PubSub";
 }
-declare module "core/html" {
-    export function html(parts: TemplateStringsArray, ...props: ({
-        [x: string]: string;
-    } | BindDescriptor | string)[]): string;
-    export default html;
-    export type BindDescriptor = Record<keyof import("core/BaseComponent").BaseComponent<any>, string>;
-}
 declare module "core/AppRouter" {
     export class AppRouter {
-        private static _print;
+        static "__#3@#print"(msg: any): void;
         static setDefaultTitle(title: string): void;
         static setRoutingMap(map: {
             [x: string]: {};
@@ -196,51 +210,17 @@ declare module "utils/dom-helpers" {
         children?: ElementDescriptor[];
     };
 }
-declare module "utils/IDB" {
-    export const READY_EVENT_NAME: "idb-store-ready";
-    export class IDB {
-        static get readyEventName(): string;
-        static open(dbName?: string, storeName?: string): DbInstance;
-        private static _reg;
-        static clear(dbName: string): void;
-    }
-    class DbInstance {
-        constructor(dbName: string, storeName: string);
-        private _notifyWhenReady;
-        private get _updEventName();
-        private _getUpdateEvent;
-        private _notifySubscribers;
-        name: string;
-        storeName: string;
-        version: number;
-        request: IDBOpenDBRequest;
-        db: any;
-        objStore: any;
-        private _subscriptionsMap;
-        private _updateHandler;
-        private _localUpdateHandler;
-        read(key: string): Promise<any>;
-        write(key: string, value: any, silent?: boolean): Promise<any>;
-        delete(key: string, silent?: boolean): Promise<any>;
-        getAll(): Promise<any>;
-        subscribe(key: string, callback: (val: any) => void): {
-            remove: () => void;
-        };
-        stop(): void;
-    }
-    export {};
-}
 declare module "utils/kebabToCamel" {
     export function kebabToCamel(string: string): string;
 }
 declare module "core/index" {
     export { BaseComponent } from "./BaseComponent.js";
     export { html } from "./html.js";
+    export { css } from "./css.js";
     export { PubSub } from "./PubSub.js";
     export { AppRouter } from "./AppRouter.js";
     export { UID } from "../utils/UID.js";
     export { setNestedProp } from "../utils/setNestedProp.js";
-    export { IDB } from "../utils/IDB.js";
     export { kebabToCamel } from "../utils/kebabToCamel.js";
     export { applyStyles, applyAttributes, create } from "../utils/dom-helpers.js";
 }

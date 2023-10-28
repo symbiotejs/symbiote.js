@@ -56,7 +56,7 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 
 ```html
 <script type="module">
-  import { BaseComponent } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
+  import { BaseComponent, html } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
 
   class MyComponent extends BaseComponent {
     init$ = {
@@ -67,9 +67,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
     }
   }
 
-  MyComponent.template = /*html*/ `
+  MyComponent.template = html`
     <h2>{{count}}</h2>
-    <button set="onclick: increment">Click me!</button>
+    <button ${{onclick: 'increment'}}>Click me!</button>
   `;
 
   MyComponent.reg('my-component');

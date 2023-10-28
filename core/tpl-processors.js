@@ -2,7 +2,7 @@ import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 
 // Should go first among other processors:
-import { repeatProcessor } from './repeatProcessor.js';
+import { repeatProcessor } from './listProcessor.js';
 
 const DEFAULT_SLOT_KEY = '__default__';
 

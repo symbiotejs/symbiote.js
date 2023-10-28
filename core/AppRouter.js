@@ -1,8 +1,8 @@
 import PubSub from './PubSub.js';
 
 export class AppRouter {
-  /** @private */
-  static _print(msg) {
+
+  static #print(msg) {
     console.warn(msg);
   }
 
@@ -69,7 +69,7 @@ export class AppRouter {
       this.applyRoute(this.defaultRoute);
       return;
     } else if (!routeScheme) {
-      this._print(`Route "${routeBase.route}" not found...`);
+      this.#print(`Route "${routeBase.route}" not found...`);
       return;
     }
     let event = new CustomEvent(AppRouter.routingEventName, {
@@ -88,7 +88,7 @@ export class AppRouter {
   static reflect(route, options = {}) {
     let routeScheme = this.appMap[route];
     if (!routeScheme) {
-      this._print('Wrong route: ' + route);
+      this.#print('Wrong route: ' + route);
       return;
     }
     let routeStr = '?' + route;
