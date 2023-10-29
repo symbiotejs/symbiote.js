@@ -112,11 +112,7 @@ Symbiote.js is supported and tested in all major modern desktop and mobile brows
 * Opera
 * etc.
 
-**Internet Explorer** - is outdated and not supported anymore:
-
-https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
-
-(But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
+**Internet Explorer** - is outdated and not supported anymore.
 
 ## 💰 General sponsor
 Big thanks to 🟡 **Uploadcare** for supporting this project!
