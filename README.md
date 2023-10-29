@@ -55,7 +55,7 @@ Best for:
 
 ## 🧠 DX
 We believe, that good Developer Experience is not just a vulgar minimum of symbols you typing.
-We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. So, we don't like an excess abstraction layers and the black-box magic compilers.
+We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. Mental models behind your work are very important for the best result achievement. So, we don't like an excess abstraction layers and the black-box magic compilers.
 
 We build our DX philosophy on these principles:
 * We keep our entities close to platform native ones
