@@ -21,7 +21,7 @@ Best for:
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
 ## 🔥 Core benefits
-* Symbiote.js - is a total agnostic. It can work with any modern toolset or in the target environment directly.
+* Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
 * Minimal but rich and powerful.
 * No extra dependencies.
 * Ultralight (~4kb br/gzip for the all BaseComponent features).
@@ -59,7 +59,7 @@ We believe, that good DX is ability to easily understand, what exactly you see i
 
 We build our DX philosophy on these principles:
 * We keep our entities close to platform native ones
-* We don't invent things, which are should be explained on a special develope conference only
+* We don't invent things, which are should be explained on a special developer conference
 * We try to keep maximum similarity between your code and what happens in your runtime
 * We keep in minimum the count of the necessary steps needed to deploy your code
 
