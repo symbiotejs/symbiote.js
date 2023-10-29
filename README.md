@@ -53,7 +53,7 @@ Best for:
 * Convenient object model access instead of opaque abstractions.
 * CDN friendly: every module is a possible endpoint for build or delivery process.
 
-## DX
+## 🧠 DX
 We believe, that good Developer Experience is not just a vulgar minimum of symbols you typing.
 We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. So, we don't like an excess abstraction layers and the black-box magic compilers.
 
