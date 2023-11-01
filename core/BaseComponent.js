@@ -23,6 +23,7 @@ export class BaseComponent extends HTMLElement {
   #autoCtxName;
   /** @type {String} */
   #cachedCtxName;
+  /** @type {PubSub} */
   #localCtx;
   #stateProxy;
   /** @type {Boolean} */
@@ -245,7 +246,7 @@ export class BaseComponent extends HTMLElement {
    */
   sub(prop, handler, init = true) {
     let subCb = (val) => {
-      if (!this.isVirtual && !this.isConnected) {
+      if (this.#noInit) {
         return;
       }
       handler(val);
@@ -368,10 +369,15 @@ export class BaseComponent extends HTMLElement {
     this.#dataCtxInitialized = true;
   }
 
-  connectedCallback() {
+  get #noInit() {
+    // return !this.performanceMode && !this.isVirtual && !this.isConnected;
+    return !this.isVirtual && !this.isConnected;
+  }
+
+  #initComponent() {
     // As `connectedCallback` calls are queued, it could be called after element being detached from DOM
     // See example at https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-conformance
-    if (!this.isVirtual && !this.isConnected) {
+    if (this.#noInit) {
       return;
     }
     if (this.#disconnectTimeout) {
@@ -410,6 +416,10 @@ export class BaseComponent extends HTMLElement {
       }
     }
     this.connectedOnce = true;
+  }
+
+  connectedCallback() {
+    this.#initComponent();
   }
 
   destroyCallback() {}

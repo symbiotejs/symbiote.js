@@ -63,7 +63,7 @@ export function repeatProcessor(fr, fnCtx) {
                 fragment = new DocumentFragment();
               }
               let repeatItem = new itemClass();
-              Object.assign(repeatItem.init$, item);
+              Object.assign((repeatItem?.init$ || repeatItem), item);
               fragment.appendChild(repeatItem);
             }
           });
@@ -87,7 +87,7 @@ export function repeatProcessor(fr, fnCtx) {
           }
           fillItems(items);
         } else {
-          console.warn('Symbiote repeat data type error:');
+          console.warn('Symbiote list data type error:');
           console.log(data);
         }
       });
