@@ -7,6 +7,9 @@ import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
 import PROCESSORS from './tpl-processors.js';
 import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
+export { html } from './html.js';
+export { css } from './css.js';
+
 let autoTagsCount = 0;
 
 /** @type {MutationObserver} */
@@ -71,7 +74,7 @@ export class BaseComponent extends HTMLElement {
       });
     }
     if (this.allowCustomTemplate) {
-      let customTplSelector = this.getAttribute(DICT.USE_TPL);
+      let customTplSelector = this.getAttribute(DICT.USE_TPL_ATTR);
       if (customTplSelector) {
         let root = this.getRootNode();
         /** @type {HTMLTemplateElement} */

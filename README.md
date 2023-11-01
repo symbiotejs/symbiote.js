@@ -21,7 +21,8 @@ Best for:
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
 ## 🔥 Core benefits
-* Minimal but rich.
+* Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
+* Minimal but rich and powerful.
 * No extra dependencies.
 * Ultralight (~4kb br/gzip for the all BaseComponent features).
 * Blazing fast.
@@ -50,13 +51,24 @@ Best for:
 * Full data context availability for template bindings.
 * DOM API friendly approach for the most performant solutions.
 * Convenient object model access instead of opaque abstractions.
+* CDN friendly: every module is a possible endpoint for build or delivery process.
+
+## 🧠 DX
+We believe, that good Developer Experience is not just a vulgar minimum of symbols you typing.
+We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. Mental models behind your work are very important for the best result achievement. So, we don't like an excess abstraction layers and the black-box magic compilers.
+
+We build our DX philosophy on these principles:
+* We keep our entities close to platform native ones
+* We don't invent things, which are should be explained on a special developer conference
+* We try to keep maximum similarity between your code and what happens in your runtime
+* We keep in minimum the count of the necessary steps needed to deploy your code
 
 ## 🍏 Quick start
 The easiest way to try Symbiote.js is to create a simple `html` file in your text editor and connect the Symbiote base class from web:
 
 ```html
 <script type="module">
-  import { BaseComponent } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
+  import { BaseComponent, html } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
 
   class MyComponent extends BaseComponent {
     init$ = {
@@ -67,9 +79,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
     }
   }
 
-  MyComponent.template = /*html*/ `
+  MyComponent.template = html`
     <h2>{{count}}</h2>
-    <button set="onclick: increment">Click me!</button>
+    <button ${{onclick: 'increment'}}>Click me!</button>
   `;
 
   MyComponent.reg('my-component');
@@ -100,11 +112,7 @@ Symbiote.js is supported and tested in all major modern desktop and mobile brows
 * Opera
 * etc.
 
-**Internet Explorer** - is outdated and not supported anymore:
-
-https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
-
-(But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
+**Internet Explorer** - is outdated and not supported anymore.
 
 ## 💰 General sponsor
 Big thanks to 🟡 **Uploadcare** for supporting this project!

@@ -3,8 +3,12 @@
  * @returns {CSSStyleSheet}
  */
 
-export function css(parts) {
+export function css(parts, ...props) {
+  let css = '';
   let sheet = new CSSStyleSheet();
-  sheet.replaceSync(parts.join(''));
+  parts.forEach((part, idx) => {
+    css += part + props[idx];
+  });
+  sheet.replaceSync(css);
   return sheet;
 }

@@ -1,5 +1,6 @@
 import { DICT } from './dictionary.js';
 
+// structuredClone() is limited by supported types, so we use custom cloning:
 function cloneObj(obj) {
   let clone = (o) => {
     for (let prop in o) {
