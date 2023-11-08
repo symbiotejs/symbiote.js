@@ -132,9 +132,9 @@ declare module "core/BaseComponent" {
         add$(obj: Partial<S>, rewrite?: boolean): void;
         get $(): S;
         set$(kvObj: Partial<S>, forcePrimitives?: boolean): void;
-        connectedCallback(): void;
         initChildren: ChildNode[];
         connectedOnce: boolean;
+        connectedCallback(): void;
         destroyCallback(): void;
         disconnectedCallback(): void;
         attributeChangedCallback(name: any, oldVal: any, newVal: any): void;
