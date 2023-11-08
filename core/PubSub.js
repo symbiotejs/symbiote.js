@@ -46,7 +46,7 @@ export class PubSub {
       PubSub.#warn('read', prop);
       return null;
     }
-    if (typeof prop === 'string' && prop.includes(DICT.COMPUTED_PX)) {
+    if (typeof prop === 'string' && prop.startsWith(DICT.COMPUTED_PX)) {
       /** @type {Function} */
       let compFn = this.store[prop];
       if (!this.__computedSet) {
@@ -146,9 +146,9 @@ export class PubSub {
       this.callbackMap[prop].forEach((callback) => {
         callback(this.read(prop));
       });
-      // @ts-expect-error
-      !prop?.startsWith(DICT.COMPUTED_PX) && this.#processComputed();
     }
+    // @ts-expect-error
+    !prop?.startsWith(DICT.COMPUTED_PX) && this.#processComputed();
   }
 
   /**
