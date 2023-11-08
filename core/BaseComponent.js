@@ -223,8 +223,8 @@ export class BaseComponent extends HTMLElement {
       name = prop.replace(DICT.PARENT_CTX_PX, '');
       let found = fnCtx;
       while (found && !found?.has?.(name)) {
-        // @ts-ignore
-        found = found.parentElement;
+        // @ts-expect-error
+        found = found.parentElement || found.parentNode || found.host;
       }
       ctx = found?.localCtx || fnCtx.localCtx;
     } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
