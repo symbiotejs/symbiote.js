@@ -24,7 +24,7 @@ Best for:
 * Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
 * Minimal but rich and powerful.
 * No extra dependencies.
-* Ultralight (~4kb br/gzip for the all BaseComponent features).
+* Ultralight (~6.4kb br/gzip).
 * Blazing fast.
 * Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
@@ -40,12 +40,11 @@ Best for:
 * Open source (MIT license).
 
 ## 💎 Tech concept keypoints
-* Native modern APIs instead of expensive libraries.
+* Native modern APIs instead of performance-expensive external libraries.
 * Shadow DOM is optional. Use it when you need it only.
 * Total styling freedom: from the old classics to the cutting edge platform abilities.
 * Native HTML instead of custom template syntax processing.
 * Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want.
-* No logical operators in templates. Logic and presentation are strictly separated.
 * Fast synchronous UI updates, no unexpected redraws.
 * Full data context access from the document structure.
 * Full data context availability for template bindings.
