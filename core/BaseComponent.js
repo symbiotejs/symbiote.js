@@ -202,7 +202,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   /** @returns {PubSub} */
-  get nodeCtx() {
+  get sharedCtx() {
     return PubSub.getCtx(this.ctxName, false) || PubSub.registerCtx({}, this.ctxName);
   }
 
@@ -217,7 +217,7 @@ export class BaseComponent extends HTMLElement {
     /** @type {String} */
     let name;
     if (prop.startsWith(DICT.SHARED_CTX_PX)) {
-      ctx = fnCtx.nodeCtx;
+      ctx = fnCtx.sharedCtx;
       name = prop.replace(DICT.SHARED_CTX_PX, '');
     } else if (prop.startsWith(DICT.PARENT_CTX_PX)) {
       name = prop.replace(DICT.PARENT_CTX_PX, '');
@@ -350,7 +350,7 @@ export class BaseComponent extends HTMLElement {
     }
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.SHARED_CTX_PX)) {
-        this.nodeCtx.add(prop.replace(DICT.SHARED_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
+        this.sharedCtx.add(prop.replace(DICT.SHARED_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
       } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
         let propArr = prop.split(DICT.NAMED_CTX_SPLTR);
         let ctxName = propArr[0].trim();
