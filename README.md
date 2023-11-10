@@ -22,9 +22,10 @@ Best for:
 
 ## 🔥 Core benefits
 * Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
-* Minimal but rich and powerful.
 * No extra dependencies.
-* Ultralight (~6.4kb br/gzip).
+* Ultralight core (~6.4kb br/gzip).
+* Global state-management already included, more powerful and flexible, than ever before.
+* Styling engine already included, based on cutting-edge platform features.
 * Blazing fast.
 * Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
@@ -32,9 +33,9 @@ Best for:
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies.
 * Works in all modern browsers. As is.
 * Easy to test.
-* TypeScript friendly - use it in TS or JS projects from the common source code.
+* TypeScript friendly - use it in TS or JS projects from the same source code.
 * Integration friendly: works with any modern development stack.
-* Lifecycle control: no need to initiate something from outside.
+* Lifecycle control: no need to initiate or to remove something from outside.
 * ESM friendly - native JavaScript modules are best!
 * Developer Experience on the mind: compact & convenient APIs, habitual syntax.
 * Open source (MIT license).
