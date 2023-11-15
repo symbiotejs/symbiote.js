@@ -9,6 +9,7 @@ import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 export { html } from './html.js';
 export { css } from './css.js';
+export { UID, PubSub }
 
 let autoTagsCount = 0;
 
@@ -37,7 +38,7 @@ export class BaseComponent extends HTMLElement {
   #boundCssProps;
 
   /** @type {typeof BaseComponent} */
-  // @ts-ignore
+  // @ts-expect-error
   #super = this.constructor;
 
   /** @type {HTMLTemplateElement} */

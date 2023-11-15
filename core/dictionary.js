@@ -23,13 +23,11 @@ export const DICT = Object.freeze({
   // Prefix for auto generated tag names:
   AUTO_TAG_PX: 'sym',
   // Template list source data attribute:
-  LIST_ATTR: 'list',
+  LIST_ATTR: 'itemize',
   // List item tag name:
-  LIST_ITEM_TAG_ATTR: 'list-item-tag',
+  LIST_ITEM_TAG_ATTR: 'item-tag',
   // Key to restore nested properties was set before component construction
   SET_LATER_KEY: '__toSetLater__',
   // Attribute to provide selector of custom template
   USE_TPL_ATTR: 'use-template',
-  // Virtual web-component token:
-  VIRTUAL_WC: 'virtual',
 });

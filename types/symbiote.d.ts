@@ -12,11 +12,10 @@ declare module "core/dictionary" {
         CSS_CTX_PROP: "--ctx";
         EL_REF_ATTR: "ref";
         AUTO_TAG_PX: "sym";
-        LIST_ATTR: "list";
-        LIST_ITEM_TAG_ATTR: "list-item-tag";
+        LIST_ATTR: "itemize";
+        LIST_ITEM_TAG_ATTR: "item-tag";
         SET_LATER_KEY: "__toSetLater__";
         USE_TPL_ATTR: "use-template";
-        VIRTUAL_WC: "virtual";
     }>;
 }
 declare module "core/PubSub" {
@@ -124,7 +123,7 @@ declare module "core/BaseComponent" {
         get cssCtxName(): string;
         get ctxName(): string;
         get localCtx(): PubSub<any>;
-        get nodeCtx(): PubSub<any>;
+        get sharedCtx(): PubSub<any>;
         sub<T_1 extends keyof S>(prop: T_1, handler: (value: S[T_1]) => void, init?: boolean): void;
         notify(prop: string): void;
         has(prop: string): any;
@@ -146,7 +145,9 @@ declare module "core/BaseComponent" {
         #private;
     }
     export default BaseComponent;
+    import { UID } from "utils/UID";
     import PubSub from "core/PubSub";
+    export { UID, PubSub };
 }
 declare module "core/AppRouter" {
     export class AppRouter {
