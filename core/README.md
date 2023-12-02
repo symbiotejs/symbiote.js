@@ -3,7 +3,7 @@
 ### index.js
 All-in-one exports.
 
-### BaseComponent.js
+### Symbiote.js
 Base component class. Major utility for the web-component creation, template data binding and data management.
 
 ### html.js

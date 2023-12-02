@@ -10,7 +10,7 @@ export const RESERVED_ATTRIBUTES = [
   DICT.CTX_OWNER_ATTR,
 ];
 
-/** @typedef {Record<keyof import('./BaseComponent.js').BaseComponent, String>} BindDescriptor */
+/** @typedef {Record<keyof import('./Symbiote.js').Symbiote, String>} BindDescriptor */
 
 /**
  * @template T

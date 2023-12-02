@@ -1,7 +1,7 @@
 import { DICT } from './dictionary.js';
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -17,8 +17,8 @@ export function repeatProcessor(fr, fnCtx) {
         itemClass = window.customElements.get(itemTag);
       }
       if (!itemClass) {
-        // @ts-ignore - TS doesn't resolve BaseComponent via getter =(
-        itemClass = class extends fnCtx.BaseComponent {
+        // @ts-ignore - TS doesn't resolve Symbiote via getter =(
+        itemClass = class extends fnCtx.Symbiote {
           constructor() {
             super();
             if (!itemTag) {

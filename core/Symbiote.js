@@ -20,7 +20,7 @@ let styleMutationObserver = null;
 let styleMutationObserverCbList = null;
 
 /** @template S */
-export class BaseComponent extends HTMLElement {
+export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
   #initialized;
   /** @type {String} */
@@ -37,15 +37,15 @@ export class BaseComponent extends HTMLElement {
   #computedStyle;
   #boundCssProps;
 
-  /** @type {typeof BaseComponent} */
+  /** @type {typeof Symbiote} */
   // @ts-expect-error
   #super = this.constructor;
 
   /** @type {HTMLTemplateElement} */
   static __tpl;
 
-  get BaseComponent() {
-    return BaseComponent;
+  get Symbiote() {
+    return Symbiote;
   }
 
   initCallback() {}
@@ -134,7 +134,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @template {BaseComponent} T
+   * @template {Symbiote} T
    * @param {(fr: DocumentFragment | T, fnCtx: T) => void} processorFn
    */
   addTemplateProcessor(processorFn) {
@@ -147,7 +147,7 @@ export class BaseComponent extends HTMLElement {
     this.init$ = Object.create(null);
     /** @type {Object<string, any>} */
     this.cssInit$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment | BaseComponent, fnCtx: unknown) => void>} */
+    /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
     /** @type {Object<string, any>} */
     this.ref = Object.create(null);
@@ -208,7 +208,7 @@ export class BaseComponent extends HTMLElement {
   }
 
   /**
-   * @template {BaseComponent} T
+   * @template {Symbiote} T
    * @param {String} prop
    * @param {T} fnCtx
    */
@@ -255,7 +255,7 @@ export class BaseComponent extends HTMLElement {
       }
       handler(val);
     };
-    let parsed = BaseComponent.#parseProp(/** @type {string} */ (prop), this);
+    let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
       window.setTimeout(() => {
@@ -268,13 +268,13 @@ export class BaseComponent extends HTMLElement {
 
   /** @param {String} prop */
   notify(prop) {
-    let parsed = BaseComponent.#parseProp(prop, this);
+    let parsed = Symbiote.#parseProp(prop, this);
     parsed.ctx.notify(parsed.name);
   }
 
   /** @param {String} prop */
   has(prop) {
-    let parsed = BaseComponent.#parseProp(prop, this);
+    let parsed = Symbiote.#parseProp(prop, this);
     return parsed.ctx.has(parsed.name);
   }
 
@@ -285,7 +285,7 @@ export class BaseComponent extends HTMLElement {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    let parsed = BaseComponent.#parseProp(prop, this);
+    let parsed = Symbiote.#parseProp(prop, this);
     parsed.ctx.add(parsed.name, val, rewrite);
   }
 
@@ -305,12 +305,12 @@ export class BaseComponent extends HTMLElement {
       let o = Object.create(null);
       this.#stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
-          let parsed = BaseComponent.#parseProp(prop, this);
+          let parsed = Symbiote.#parseProp(prop, this);
           parsed.ctx.pub(parsed.name, val);
           return true;
         },
         get: (obj, /** @type {String} */ prop) => {
-          let parsed = BaseComponent.#parseProp(prop, this);
+          let parsed = Symbiote.#parseProp(prop, this);
           return parsed.ctx.read(parsed.name);
         },
       });
@@ -654,4 +654,4 @@ export class BaseComponent extends HTMLElement {
   }
 }
 
-export default BaseComponent;
+export default Symbiote;

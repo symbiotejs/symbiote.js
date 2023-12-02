@@ -57,34 +57,34 @@ declare module "utils/setNestedProp" {
 declare module "utils/prepareStyleSheet" {
     export function prepareStyleSheet(styles: string | CSSStyleSheet): CSSStyleSheet;
 }
-declare module "core/listProcessor" {
-    export function repeatProcessor<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T): void;
+declare module "core/itemizeProcessor" {
+    export function repeatProcessor<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T): void;
 }
 declare module "core/tpl-processors" {
-    const _default: (<T extends import("core/BaseComponent").BaseComponent<any>>(fr: DocumentFragment, fnCtx: T) => void)[];
+    const _default: (<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T) => void)[];
     export default _default;
 }
 declare module "utils/parseCssPropertyValue" {
     export function parseCssPropertyValue(input: string): string | number;
 }
 declare module "core/html" {
-    export function html<T>(parts: TemplateStringsArray, ...props: (string | Record<keyof import("core/BaseComponent").BaseComponent<any>, string> | T | {
+    export function html<T>(parts: TemplateStringsArray, ...props: (string | Record<keyof import("core/Symbiote").Symbiote<any>, string> | T | {
         [x: string]: string;
     })[]): string;
     export const RESERVED_ATTRIBUTES: string[];
     export default html;
-    export type BindDescriptor = Record<keyof import("core/BaseComponent").BaseComponent<any>, string>;
+    export type BindDescriptor = Record<keyof import("core/Symbiote").Symbiote<any>, string>;
 }
 declare module "core/css" {
     export function css(parts: TemplateStringsArray, ...props: any[]): CSSStyleSheet;
 }
-declare module "core/BaseComponent" {
+declare module "core/Symbiote" {
     export { html } from "./html.js";
     export { css } from "./css.js";
-    export class BaseComponent<S> extends HTMLElement {
+    export class Symbiote<S> extends HTMLElement {
         static __tpl: HTMLTemplateElement;
         static template: string;
-        static "__#2@#parseProp"<T_3 extends BaseComponent<any>>(prop: string, fnCtx: T_3): {
+        static "__#2@#parseProp"<T_3 extends Symbiote<any>>(prop: string, fnCtx: T_3): {
             ctx: PubSub<any>;
             name: string;
         };
@@ -98,16 +98,16 @@ declare module "core/BaseComponent" {
         static set rootStyles(arg: string | CSSStyleSheet);
         static set shadowStyles(arg: string | CSSStyleSheet);
         constructor();
-        get BaseComponent(): typeof BaseComponent;
+        get Symbiote(): typeof Symbiote;
         initCallback(): void;
         renderCallback(): void;
         render(template?: string | DocumentFragment, shadow?: boolean): void;
-        addTemplateProcessor<T extends BaseComponent<any>>(processorFn: (fr: DocumentFragment | T, fnCtx: T) => void): void;
+        addTemplateProcessor<T extends Symbiote<any>>(processorFn: (fr: DocumentFragment | T, fnCtx: T) => void): void;
         init$: S;
         cssInit$: {
             [x: string]: any;
         };
-        tplProcessors: Set<(fr: DocumentFragment | BaseComponent<any>, fnCtx: unknown) => void>;
+        tplProcessors: Set<(fr: DocumentFragment | Symbiote<any>, fnCtx: unknown) => void>;
         ref: {
             [x: string]: any;
         };
@@ -144,7 +144,7 @@ declare module "core/BaseComponent" {
         defineAccessor(propName: string, handler?: Function, isAsync?: boolean): void;
         #private;
     }
-    export default BaseComponent;
+    export default Symbiote;
     import { UID } from "utils/UID";
     import PubSub from "core/PubSub";
     export { UID, PubSub };
@@ -215,7 +215,7 @@ declare module "utils/kebabToCamel" {
     export function kebabToCamel(string: string): string;
 }
 declare module "core/index" {
-    export { BaseComponent } from "./BaseComponent.js";
+    export { Symbiote } from "./Symbiote.js";
     export { html } from "./html.js";
     export { css } from "./css.js";
     export { PubSub } from "./PubSub.js";

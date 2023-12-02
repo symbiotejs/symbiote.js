@@ -2,12 +2,12 @@ import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 
 // Should go first among other processors:
-import { repeatProcessor } from './listProcessor.js';
+import { repeatProcessor } from './itemizeProcessor.js';
 
 const DEFAULT_SLOT_KEY = '__default__';
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -51,7 +51,7 @@ function slotProcessor(fr, fnCtx) {
 }
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -64,7 +64,7 @@ function refProcessor(fr, fnCtx) {
 }
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -145,7 +145,7 @@ function getTextNodesWithTokens(el) {
 }
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
