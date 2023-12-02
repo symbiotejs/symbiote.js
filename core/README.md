@@ -21,8 +21,11 @@ SPA routing utility. Based on browser-native History API.
 ### tpl-rpcessors.js
 Template processing functions. Implements basic template processing flow.
 
-### listProcessor.js
-Dynamic list rendering implementation.
+### itemizeProcessor.js
+Dynamic list items rendering implementation.
 
 ### dictionary.js
 Dictionary for the set of the basic keys.
+
+### slotProcessor.js
+Light DOM support for the template `slot`s. This processor is optional since 2.x. and excluded from default template processing pipeline.

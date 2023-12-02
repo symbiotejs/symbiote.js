@@ -26,8 +26,16 @@ export const DICT = Object.freeze({
   LIST_ATTR: 'itemize',
   // List item tag name:
   LIST_ITEM_TAG_ATTR: 'item-tag',
-  // Key to restore nested properties was set before component construction
+  // Key to restore nested properties was set before component construction:
   SET_LATER_KEY: '__toSetLater__',
-  // Attribute to provide selector of custom template
+  // Attribute to provide selector of custom template:
   USE_TPL_ATTR: 'use-template',
+  // Light DOM slots processing key:
+  DEFAULT_SLOT_KEY: '__default__',
+  // Attribute for text nodes processing skip
+  TEXT_NODE_SKIP_ATTR: 'skip-text-nodes',
+  // Text node binding token:
+  TEXT_NODE_OPEN_TOKEN: '{{',
+  // Text node binding token:
+  TEXT_NODE_CLOSE_TOKEN: '}}',
 });

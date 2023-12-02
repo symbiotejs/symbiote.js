@@ -16,6 +16,10 @@ declare module "core/dictionary" {
         LIST_ITEM_TAG_ATTR: "item-tag";
         SET_LATER_KEY: "__toSetLater__";
         USE_TPL_ATTR: "use-template";
+        DEFAULT_SLOT_KEY: "__default__";
+        TEXT_NODE_SKIP_ATTR: "skip-text-nodes";
+        TEXT_NODE_OPEN_TOKEN: "{{";
+        TEXT_NODE_CLOSE_TOKEN: "}}";
     }>;
 }
 declare module "core/PubSub" {
@@ -58,7 +62,7 @@ declare module "utils/prepareStyleSheet" {
     export function prepareStyleSheet(styles: string | CSSStyleSheet): CSSStyleSheet;
 }
 declare module "core/itemizeProcessor" {
-    export function repeatProcessor<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T): void;
+    export function itemizeProcessor<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T): void;
 }
 declare module "core/tpl-processors" {
     const _default: (<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T) => void)[];
@@ -224,4 +228,8 @@ declare module "core/index" {
     export { setNestedProp } from "../utils/setNestedProp.js";
     export { kebabToCamel } from "../utils/kebabToCamel.js";
     export { applyStyles, applyAttributes, create } from "../utils/dom-helpers.js";
+}
+declare module "core/slotProcessor" {
+    export function slotProcessor<T extends import("core/Symbiote").Symbiote<any>>(fr: DocumentFragment, fnCtx: T): void;
+    export default slotProcessor;
 }
