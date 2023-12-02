@@ -68,9 +68,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 
 ```html
 <script type="module">
-  import { BaseComponent, html } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
+  import { Symbiote, html } from 'https://symbiotejs.github.io/symbiote.js/core/Symbiote.js';
 
-  class MyComponent extends BaseComponent {
+  class MyComponent extends Symbiote {
     init$ = {
       count: 0,
       increment: () => {
