@@ -12,6 +12,8 @@ export const DICT = Object.freeze({
   NAMED_CTX_SPLTR: '/',
   // Computed property prefix:
   COMPUTED_PX: '+',
+  // CSS-data property prefix:
+  CSS_DATA_PX: '--',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx',
   // Data context owner attribute:

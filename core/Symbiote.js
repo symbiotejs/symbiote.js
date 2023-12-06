@@ -145,7 +145,7 @@ export class Symbiote extends HTMLElement {
     super();
     /** @type {S} */
     this.init$ = Object.create(null);
-    /** @type {Object<string, any>} */
+    /** @type {Object<string, *>} */
     this.cssInit$ = Object.create(null);
     /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: unknown) => void>} */
     this.tplProcessors = new Set();
@@ -232,6 +232,12 @@ export class Symbiote extends HTMLElement {
       let pArr = prop.split(DICT.NAMED_CTX_SPLTR);
       ctx = PubSub.getCtx(pArr[0]);
       name = pArr[1];
+    } else if (prop.startsWith(DICT.CSS_DATA_PX)) {
+      ctx = fnCtx.localCtx;
+      name = prop;
+      if (!ctx.has(name)) {
+        fnCtx.bindCssData(name);
+      }
     } else {
       ctx = fnCtx.localCtx;
       name = prop;
@@ -590,7 +596,10 @@ export class Symbiote extends HTMLElement {
     this.#boundCssProps.add(propName);
     let val = this.getCssData(this.#extractCssName(propName), true);
     val === null && (val = initValue);
-    this.add(propName, val);
+    propName.startsWith(DICT.CSS_DATA_PX) 
+      // To prevent prop name parsing in cycle:
+      ? this.localCtx.add(propName, val) 
+      : this.add(propName, val);
     this.#initStyleAttrObserver();
   }
 
