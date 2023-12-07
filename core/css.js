@@ -4,11 +4,31 @@
  */
 
 export function css(parts, ...props) {
-  let css = '';
+  let cssTxt = '';
   let sheet = new CSSStyleSheet();
   parts.forEach((part, idx) => {
-    css += part + props[idx];
+    cssTxt += part + props[idx];
   });
-  sheet.replaceSync(css);
+  css.processors.forEach((prFn) => {
+    cssTxt = prFn(cssTxt);
+  });
+  css.clearProcessors();
+  sheet.replaceSync(cssTxt);
   return sheet;
 }
+
+/** @type {((cssTxt: string) => String)[]} */
+css.processors = [];
+
+css.clearProcessors = function() {
+  css.processors = [];
+}
+
+/**
+ * 
+ * @param  {...(cssTxt: string) => String} args 
+ */
+css.useProcessor = function(...args) {
+  css.processors = [...css.processors, ...args];
+  return css;
+};
