@@ -7,6 +7,7 @@ declare module "core/dictionary" {
         PARENT_CTX_PX: "^";
         NAMED_CTX_SPLTR: "/";
         COMPUTED_PX: "+";
+        CSS_DATA_PX: "--";
         CTX_NAME_ATTR: "ctx";
         CTX_OWNER_ATTR: "ctx-owner";
         CSS_CTX_PROP: "--ctx";
@@ -81,6 +82,11 @@ declare module "core/html" {
 }
 declare module "core/css" {
     export function css(parts: TemplateStringsArray, ...props: any[]): CSSStyleSheet;
+    export namespace css {
+        const processors: ((cssTxt: string) => string)[];
+        function clearProcessors(): void;
+        function useProcessor(...args: ((cssTxt: string) => string)[]): typeof css;
+    }
 }
 declare module "core/Symbiote" {
     export { html } from "./html.js";

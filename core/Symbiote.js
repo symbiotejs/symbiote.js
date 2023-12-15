@@ -13,12 +13,6 @@ export { UID, PubSub }
 
 let autoTagsCount = 0;
 
-/** @type {MutationObserver} */
-let styleMutationObserver = null;
-
-/** @type {Set<() => void>} */
-let styleMutationObserverCbList = null;
-
 /** @template S */
 export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
@@ -79,10 +73,10 @@ export class Symbiote extends HTMLElement {
       if (customTplSelector) {
         let root = this.getRootNode();
         /** @type {HTMLTemplateElement} */
-        // @ts-ignore
+        // @ts-expect-error
         let customTpl = root?.querySelector(customTplSelector) || document.querySelector(customTplSelector);
         if (customTpl) {
-          // @ts-ignore
+          // @ts-expect-error
           template = customTpl.content.cloneNode(true);
         } else {
           console.warn(`Symbiote template "${customTplSelector}" is not found...`);
@@ -104,10 +98,10 @@ export class Symbiote extends HTMLElement {
       } else if (template?.constructor === String) {
         let tpl = document.createElement('template');
         tpl.innerHTML = template;
-        // @ts-ignore
+        // @ts-expect-error
         fr = tpl.content.cloneNode(true);
       } else if (this.#super.__tpl) {
-        // @ts-ignore
+        // @ts-expect-error
         fr = this.#super.__tpl.content.cloneNode(true);
       }
       for (let fn of this.tplProcessors) {
@@ -380,7 +374,6 @@ export class Symbiote extends HTMLElement {
   }
 
   get #noInit() {
-    // return !this.performanceMode && !this.isVirtual && !this.isConnected;
     return !this.isVirtual && !this.isConnected;
   }
 
@@ -414,7 +407,7 @@ export class Symbiote extends HTMLElement {
       } else {
         if (this.#super.rootStyleSheets) {
           /** @type {Document | ShadowRoot} */
-          // @ts-ignore
+          // @ts-expect-error
           let root = this.getRootNode();
           if (!root) {
             return;
@@ -454,12 +447,6 @@ export class Symbiote extends HTMLElement {
       }
       for (let proc of this.tplProcessors) {
         this.tplProcessors.delete(proc);
-      }
-      styleMutationObserverCbList?.delete(this.updateCssData);
-      if (!styleMutationObserverCbList?.size) {
-        styleMutationObserver?.disconnect();
-        styleMutationObserver = null;
-        styleMutationObserverCbList = null;
       }
     }, 100);
   }
@@ -564,27 +551,6 @@ export class Symbiote extends HTMLElement {
     });
   };
 
-  #initStyleAttrObserver() {
-    if (!styleMutationObserverCbList) {
-      styleMutationObserverCbList = new Set();
-    }
-    styleMutationObserverCbList.add(this.updateCssData);
-    if (!styleMutationObserver) {
-      styleMutationObserver = new MutationObserver((/** @type {MutationRecord[]} */ records) => {
-        records[0].type === 'attributes' &&
-          styleMutationObserverCbList.forEach((cb) => {
-            cb();
-          });
-      });
-      styleMutationObserver.observe(document, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['style'],
-      });
-    }
-  }
-
   /**
    * @param {String} propName
    * @param {any} [initValue] Uses empty string by default to make value useful in template
@@ -600,7 +566,6 @@ export class Symbiote extends HTMLElement {
       // To prevent prop name parsing in cycle:
       ? this.localCtx.add(propName, val) 
       : this.add(propName, val);
-    this.#initStyleAttrObserver();
   }
 
   dropCssDataCache() {
