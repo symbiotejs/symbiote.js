@@ -181,7 +181,7 @@ declare module "core/AppRouter" {
         }): void;
         static setSeparator(char: string): void;
         static get separator(): string;
-        static createRouterData(ctxName: string, routingMap: {
+        static initRoutingCtx(ctxName: string, routingMap: {
             [x: string]: {};
         }): PubSub<any>;
         static initPopstateListener(): void;
@@ -225,7 +225,7 @@ declare module "utils/kebabToCamel" {
     export function kebabToCamel(string: string): string;
 }
 declare module "core/index" {
-    export { Symbiote } from "./Symbiote.js";
+    export { Symbiote };
     export { html } from "./html.js";
     export { css } from "./css.js";
     export { PubSub } from "./PubSub.js";
@@ -233,6 +233,8 @@ declare module "core/index" {
     export { UID } from "../utils/UID.js";
     export { setNestedProp } from "../utils/setNestedProp.js";
     export { kebabToCamel } from "../utils/kebabToCamel.js";
+    export default Symbiote;
+    import Symbiote from "core/Symbiote";
     export { applyStyles, applyAttributes, create } from "../utils/dom-helpers.js";
 }
 declare module "core/slotProcessor" {

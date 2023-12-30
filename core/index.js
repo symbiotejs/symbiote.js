@@ -1,5 +1,7 @@
+import Symbiote from './Symbiote.js';
+
 // Core modules:
-export { Symbiote } from './Symbiote.js';
+export { Symbiote };
 export { html } from './html.js';
 export { css } from './css.js';
 export { PubSub } from './PubSub.js';
@@ -12,3 +14,5 @@ export { applyStyles } from '../utils/dom-helpers.js';
 export { applyAttributes } from '../utils/dom-helpers.js';
 export { create } from '../utils/dom-helpers.js';
 export { kebabToCamel } from '../utils/kebabToCamel.js';
+
+export default Symbiote;
