@@ -129,9 +129,9 @@ export class AppRouter {
    * @param {Object<string, {}>} routingMap
    * @returns {PubSub}
    */
-  static createRouterData(ctxName, routingMap) {
+  static initRoutingCtx(ctxName, routingMap) {
     this.setRoutingMap(routingMap);
-    let routeData = PubSub.registerCtx(
+    let routingCtx = PubSub.registerCtx(
       {
         route: null,
         options: null,
@@ -140,7 +140,7 @@ export class AppRouter {
       ctxName
     );
     window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
-      routeData.multiPub({
+      routingCtx.multiPub({
         route: e.detail.route,
         options: e.detail.options,
         title: e.detail.options?.title || this.defaultTitle || '',
@@ -148,7 +148,7 @@ export class AppRouter {
     });
     AppRouter.notify();
     this.initPopstateListener();
-    return routeData;
+    return routingCtx;
   }
 
   static initPopstateListener() {

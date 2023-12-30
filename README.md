@@ -23,7 +23,7 @@ Best for:
 ## 🔥 Core benefits
 * Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
 * No extra dependencies.
-* Ultralight core (~6kb br/gzip).
+* Ultralight (~6kb br/gzip).
 * Global state-management already included, more powerful and flexible, than ever before.
 * Styling engine already included, based on cutting-edge platform features.
 * Blazing fast.
