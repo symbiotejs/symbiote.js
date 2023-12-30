@@ -2,6 +2,19 @@ import PubSub from './PubSub.js';
 
 export class AppRouter {
 
+  /**
+   * @typedef {{title?: String, default?: Boolean, error?: Boolean}} RouteDescriptor
+   */
+
+  /** @type {() => void} */
+  static #onPopstate;
+  /** @type {String} */
+  static #separator;
+  /** @type {String} */
+  static #routingEventName;
+  /** @type {Object<string, RouteDescriptor>} */
+  static appMap = Object.create(null);
+
   static #print(msg) {
     console.warn(msg);
   }
@@ -26,12 +39,12 @@ export class AppRouter {
   /** @param {String} name */
   static set routingEventName(name) {
     /** @private */
-    this.__routingEventName = name;
+    this.#routingEventName = name;
   }
 
   /** @returns {String} */
   static get routingEventName() {
-    return this.__routingEventName || 'sym-on-route';
+    return this.#routingEventName || 'sym-on-route';
   }
 
   static readAddressBar() {
@@ -116,17 +129,17 @@ export class AppRouter {
   /** @param {String} char */
   static setSeparator(char) {
     /** @private */
-    this._separator = char;
+    this.#separator = char;
   }
 
   /** @returns {String} */
   static get separator() {
-    return this._separator || '&';
+    return this.#separator || '&';
   }
 
   /**
    * @param {String} ctxName
-   * @param {Object<string, {}>} routingMap
+   * @param {Object<string, RouteDescriptor>} routingMap
    * @returns {PubSub}
    */
   static initRoutingCtx(ctxName, routingMap) {
@@ -141,33 +154,31 @@ export class AppRouter {
     );
     window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
       routingCtx.multiPub({
-        route: e.detail.route,
         options: e.detail.options,
         title: e.detail.options?.title || this.defaultTitle || '',
+        route: e.detail.route,
       });
     });
     AppRouter.notify();
-    this.initPopstateListener();
+    this.#initPopstateListener();
     return routingCtx;
   }
 
-  static initPopstateListener() {
-    if (this.__onPopstate) {
+  static #initPopstateListener() {
+    if (this.#onPopstate) {
       return;
     }
     /** @private */
     this.__onPopstate = () => {
       this.notify();
     };
-    window.addEventListener('popstate', this.__onPopstate);
+    window.addEventListener('popstate', this.#onPopstate);
   }
 
   static removePopstateListener() {
-    window.removeEventListener('popstate', this.__onPopstate);
-    this.__onPopstate = null;
+    window.removeEventListener('popstate', this.#onPopstate);
+    this.#onPopstate = null;
   }
 }
-
-AppRouter.appMap = Object.create(null);
 
 export default AppRouter;

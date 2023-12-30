@@ -161,6 +161,16 @@ declare module "core/Symbiote" {
 }
 declare module "core/AppRouter" {
     export class AppRouter {
+        static "__#3@#onPopstate": () => void;
+        static "__#3@#separator": string;
+        static "__#3@#routingEventName": string;
+        static appMap: {
+            [x: string]: {
+                title?: string;
+                default?: boolean;
+                error?: boolean;
+            };
+        };
         static "__#3@#print"(msg: any): void;
         static setDefaultTitle(title: string): void;
         static setRoutingMap(map: {
@@ -182,19 +192,14 @@ declare module "core/AppRouter" {
         static setSeparator(char: string): void;
         static get separator(): string;
         static initRoutingCtx(ctxName: string, routingMap: {
-            [x: string]: {};
+            [x: string]: {
+                title?: string;
+                default?: boolean;
+                error?: boolean;
+            };
         }): PubSub<any>;
-        static initPopstateListener(): void;
+        static "__#3@#initPopstateListener"(): void;
         static removePopstateListener(): void;
-    }
-    export namespace AppRouter {
-        const defaultTitle: string;
-        const defaultRoute: string;
-        const errorRoute: string;
-        const __routingEventName: string;
-        const _separator: string;
-        function __onPopstate(): void;
-        const appMap: any;
     }
     export default AppRouter;
     import PubSub from "core/PubSub";
