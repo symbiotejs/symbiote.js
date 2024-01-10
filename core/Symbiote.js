@@ -83,7 +83,7 @@ export class Symbiote extends HTMLElement {
         }
       }
     }
-    if (this.processInnerHtml) {
+    if (this.processInnerHtml || this.ssrMode) {
       for (let fn of this.tplProcessors) {
         fn(this, this);
       }
