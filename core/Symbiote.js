@@ -155,6 +155,8 @@ export class Symbiote extends HTMLElement {
     /** @type {Boolean} */
     this.processInnerHtml = false;
     /** @type {Boolean} */
+    this.ssrMode = false;
+    /** @type {Boolean} */
     this.allowCustomTemplate = false;
     /** @type {Boolean} */
     this.ctxOwner = false;

@@ -73,7 +73,7 @@ function domBindProcessor(fr, fnCtx) {
               el[DICT.SET_LATER_KEY][prop] = val;
             }
           }
-        });
+        }, !(fnCtx.ssrMode && (prop === 'textContent' || isAttr)));
       }
     });
     el.removeAttribute(DICT.BIND_ATTR);
