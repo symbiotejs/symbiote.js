@@ -126,6 +126,7 @@ declare module "core/Symbiote" {
         renderShadow: boolean;
         readyToDestroy: boolean;
         processInnerHtml: boolean;
+        ssrMode: boolean;
         allowCustomTemplate: boolean;
         ctxOwner: boolean;
         isVirtual: boolean;
