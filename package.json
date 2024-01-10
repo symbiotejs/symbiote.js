@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "scripts": {
     "types": "tsc -p dts.cfg.json"
   },
