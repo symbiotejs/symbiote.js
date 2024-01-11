@@ -621,11 +621,13 @@ export class Symbiote extends HTMLElement {
 
   /** @param {String | CSSStyleSheet} styles */
   static set rootStyles(styles) {
+    this.rootStyleSheets = [];
     this.addRootStyles(styles);
   }
 
   /** @param {String | CSSStyleSheet} styles */
   static set shadowStyles(styles) {
+    this.shadowStyleSheets = [];
     this.addShadowStyles(styles);
   }
 }
