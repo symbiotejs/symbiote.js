@@ -68,7 +68,7 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 
 ```html
 <script type="module">
-  import { Symbiote, html } from 'https://symbiotejs.github.io/symbiote.js/core/Symbiote.js';
+  import Symbiote, { html } from 'https://symbiotejs.github.io/symbiote.js/core/Symbiote.js';
 
   class MyComponent extends Symbiote {
     init$ = {
@@ -96,12 +96,6 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 Check the project documentation for details:
 * [symbiotejs.org](https://symbiotejs.org/)
 * [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
-
-## 🤖 Live examples
-Browser: https://symbiotejs.github.io/examples/ 
-> Use devtools to discover details 
-
-GitHub: https://github.com/symbiotejs/examples
 
 ## ✅ Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
