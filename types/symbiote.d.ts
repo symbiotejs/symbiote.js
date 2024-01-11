@@ -33,7 +33,7 @@ declare module "core/PubSub" {
         store: any;
         callbackMap: Record<keyof T, Set<(val: unknown) => void>>;
         read(prop: keyof T): any;
-        __computedSet: Set<any>;
+        private __computedSet;
         has(prop: string): any;
         add(prop: string, val: unknown, rewrite?: boolean): void;
         pub(prop: keyof T, val: unknown): void;

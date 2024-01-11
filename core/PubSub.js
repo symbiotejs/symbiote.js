@@ -50,6 +50,10 @@ export class PubSub {
       /** @type {Function} */
       let compFn = this.store[prop];
       if (!this.__computedSet) {
+        /** 
+         * @private 
+         * @type {Set<String>} 
+         */
         this.__computedSet = new Set();
       }
       this.__computedSet.add(prop);
