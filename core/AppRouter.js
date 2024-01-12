@@ -1,8 +1,21 @@
-import { Data } from './Data.js';
+import PubSub from './PubSub.js';
 
 export class AppRouter {
-  /** @private */
-  static _print(msg) {
+
+  /**
+   * @typedef {{title?: String, default?: Boolean, error?: Boolean}} RouteDescriptor
+   */
+
+  /** @type {() => void} */
+  static #onPopstate;
+  /** @type {String} */
+  static #separator;
+  /** @type {String} */
+  static #routingEventName;
+  /** @type {Object<string, RouteDescriptor>} */
+  static appMap = Object.create(null);
+
+  static #print(msg) {
     console.warn(msg);
   }
 
@@ -26,12 +39,12 @@ export class AppRouter {
   /** @param {String} name */
   static set routingEventName(name) {
     /** @private */
-    this.__routingEventName = name;
+    this.#routingEventName = name;
   }
 
   /** @returns {String} */
   static get routingEventName() {
-    return this.__routingEventName || 'sym-on-route';
+    return this.#routingEventName || 'sym-on-route';
   }
 
   static readAddressBar() {
@@ -69,13 +82,13 @@ export class AppRouter {
       this.applyRoute(this.defaultRoute);
       return;
     } else if (!routeScheme) {
-      this._print(`Route "${routeBase.route}" not found...`);
+      this.#print(`Route "${routeBase.route}" not found...`);
       return;
     }
     let event = new CustomEvent(AppRouter.routingEventName, {
       detail: {
         route: routeBase.route,
-        options: Object.assign(routeScheme || {}, routeBase.options),
+        options: {...(routeScheme || {}), ...routeBase.options},
       },
     });
     window.dispatchEvent(event);
@@ -88,7 +101,7 @@ export class AppRouter {
   static reflect(route, options = {}) {
     let routeScheme = this.appMap[route];
     if (!routeScheme) {
-      this._print('Wrong route: ' + route);
+      this.#print('Wrong route: ' + route);
       return;
     }
     let routeStr = '?' + route;
@@ -116,22 +129,22 @@ export class AppRouter {
   /** @param {String} char */
   static setSeparator(char) {
     /** @private */
-    this._separator = char;
+    this.#separator = char;
   }
 
   /** @returns {String} */
   static get separator() {
-    return this._separator || '&';
+    return this.#separator || '&';
   }
 
   /**
    * @param {String} ctxName
-   * @param {Object<string, {}>} routingMap
-   * @returns {Data}
+   * @param {Object<string, RouteDescriptor>} routingMap
+   * @returns {PubSub}
    */
-  static createRouterData(ctxName, routingMap) {
+  static initRoutingCtx(ctxName, routingMap) {
     this.setRoutingMap(routingMap);
-    let routeData = Data.registerCtx(
+    let routingCtx = PubSub.registerCtx(
       {
         route: null,
         options: null,
@@ -140,32 +153,32 @@ export class AppRouter {
       ctxName
     );
     window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
-      routeData.multiPub({
-        route: e.detail.route,
+      routingCtx.multiPub({
         options: e.detail.options,
         title: e.detail.options?.title || this.defaultTitle || '',
+        route: e.detail.route,
       });
     });
     AppRouter.notify();
-    this.initPopstateListener();
-    return routeData;
+    this.#initPopstateListener();
+    return routingCtx;
   }
 
-  static initPopstateListener() {
-    if (this.__onPopstate) {
+  static #initPopstateListener() {
+    if (this.#onPopstate) {
       return;
     }
     /** @private */
     this.__onPopstate = () => {
       this.notify();
     };
-    window.addEventListener('popstate', this.__onPopstate);
+    window.addEventListener('popstate', this.#onPopstate);
   }
 
   static removePopstateListener() {
-    window.removeEventListener('popstate', this.__onPopstate);
-    this.__onPopstate = null;
+    window.removeEventListener('popstate', this.#onPopstate);
+    this.#onPopstate = null;
   }
 }
 
-AppRouter.appMap = Object.create(null);
+export default AppRouter;

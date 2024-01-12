@@ -21,9 +21,11 @@ Best for:
 > Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
 
 ## 🔥 Core benefits
-* Minimal but rich.
+* Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
 * No extra dependencies.
-* Ultralight (~4kb br/gzip for the all BaseComponent features).
+* Ultralight (~6kb br/gzip).
+* Global state-management already included, more powerful and flexible, than ever before.
+* Styling engine already included, based on cutting-edge platform features.
 * Blazing fast.
 * Memory friendly (no immutables).
 * CSP friendly - good for enterprise usage.
@@ -31,34 +33,44 @@ Best for:
 * Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies.
 * Works in all modern browsers. As is.
 * Easy to test.
-* TypeScript friendly - use it in TS or JS projects from the common source code.
+* TypeScript friendly - use it in TS or JS projects from the same source code.
 * Integration friendly: works with any modern development stack.
-* Lifecycle control: no need to initiate something from outside.
+* Lifecycle control: no need to initiate or to remove something from outside.
 * ESM friendly - native JavaScript modules are best!
 * Developer Experience on the mind: compact & convenient APIs, habitual syntax.
 * Open source (MIT license).
 
 ## 💎 Tech concept keypoints
-* Native modern APIs instead of expensive libraries.
+* Native modern APIs instead of performance-expensive external libraries.
 * Shadow DOM is optional. Use it when you need it only.
 * Total styling freedom: from the old classics to the cutting edge platform abilities.
 * Native HTML instead of custom template syntax processing.
 * Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want.
-* No logical operators in templates. Logic and presentation are strictly separated.
 * Fast synchronous UI updates, no unexpected redraws.
 * Full data context access from the document structure.
 * Full data context availability for template bindings.
 * DOM API friendly approach for the most performant solutions.
 * Convenient object model access instead of opaque abstractions.
+* CDN friendly: every module is a possible endpoint for build or delivery process.
+
+## 🧠 DX
+We believe, that good Developer Experience is not just a vulgar minimum of symbols you typing.
+We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. Mental models behind your work are very important for the best result achievement. So, we don't like an excess abstraction layers and the black-box magic compilers.
+
+We build our DX philosophy on these principles:
+* We keep our entities close to platform native ones
+* We don't invent things, which are should be explained on a special developer conference
+* We try to keep maximum similarity between your code and what happens in your runtime
+* We keep in minimum the count of the necessary steps needed to deploy your code
 
 ## 🍏 Quick start
 The easiest way to try Symbiote.js is to create a simple `html` file in your text editor and connect the Symbiote base class from web:
 
 ```html
 <script type="module">
-  import { BaseComponent } from 'https://symbiotejs.github.io/symbiote.js/core/BaseComponent.js';
+  import Symbiote, { html } from 'https://symbiotejs.github.io/symbiote.js/core/Symbiote.js';
 
-  class MyComponent extends BaseComponent {
+  class MyComponent extends Symbiote {
     init$ = {
       count: 0,
       increment: () => {
@@ -67,9 +79,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
     }
   }
 
-  MyComponent.template = /*html*/ `
+  MyComponent.template = html`
     <h2>{{count}}</h2>
-    <button set="onclick: increment">Click me!</button>
+    <button ${{onclick: 'increment'}}>Click me!</button>
   `;
 
   MyComponent.reg('my-component');
@@ -85,12 +97,6 @@ Check the project documentation for details:
 * [symbiotejs.org](https://symbiotejs.org/)
 * [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
 
-## 🤖 Live examples
-Browser: https://symbiotejs.github.io/examples/ 
-> Use devtools to discover details 
-
-GitHub: https://github.com/symbiotejs/examples
-
 ## ✅ Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
 * Chrome
@@ -100,11 +106,7 @@ Symbiote.js is supported and tested in all major modern desktop and mobile brows
 * Opera
 * etc.
 
-**Internet Explorer** - is outdated and not supported anymore:
-
-https://uploadcare.com/blog/uploadcare-stops-internet-explorer-support/
-
-(But it's possible with polyfills: https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs)
+**Internet Explorer** - is outdated and not supported anymore.
 
 ## 💰 General sponsor
 Big thanks to 🟡 **Uploadcare** for supporting this project!

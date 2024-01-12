@@ -1,5 +1,13 @@
+/**
+ * This method of UID generation was selected according to multiple benchmarks. 
+ * It has an optimal performance and human readability.
+ * Standard crypto.randomUUID() - is much slower.
+ * 
+ * Note, that for the global uniqueness you should consider the other format and generation methods.
+ */
+
 const CHARS = '1234567890QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm';
-const CHLENGTH = CHARS.length - 1;
+const LENGTH = CHARS.length - 1;
 
 export class UID {
   /**
@@ -9,7 +17,7 @@ export class UID {
   static generate(pattern = 'XXXXXXXXX-XXX') {
     let uid = '';
     for (let i = 0; i < pattern.length; i++) {
-      uid += pattern[i] === '-' ? pattern[i] : CHARS.charAt(Math.random() * CHLENGTH);
+      uid += pattern[i] === '-' ? pattern[i] : CHARS.charAt(Math.random() * LENGTH);
     }
     return uid;
   }

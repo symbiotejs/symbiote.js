@@ -1,57 +1,11 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
-import { kebabToCamel } from '../utils/kebabToCamel.js';
+
 // Should go first among other processors:
-import { repeatProcessor } from './repeatProcessor.js';
-
-const DEFAULT_SLOT_KEY = '__default__';
+import { itemizeProcessor } from './itemizeProcessor.js';
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
- * @param {DocumentFragment} fr
- * @param {T} fnCtx
- */
-function slotProcessor(fr, fnCtx) {
-  if (fnCtx.shadowRoot) {
-    return;
-  }
-  let slots = [...fr.querySelectorAll('slot')];
-  if (!slots.length) {
-    return;
-  }
-
-  /** @type {Record<string, { slot: HTMLSlotElement; fr: DocumentFragment }>} */
-  let slotMap = {};
-  slots.forEach((slot) => {
-    let slotName = slot.getAttribute('name') || DEFAULT_SLOT_KEY;
-    slotMap[slotName] = {
-      slot,
-      fr: document.createDocumentFragment(),
-    };
-  });
-  fnCtx.initChildren.forEach((child) => {
-    let slotName = DEFAULT_SLOT_KEY;
-    if (child instanceof Element && child.hasAttribute('slot')) {
-      slotName = child.getAttribute('slot');
-      child.removeAttribute('slot');
-    }
-    slotMap[slotName]?.fr.appendChild(child);
-  });
-  Object.values(slotMap).forEach((mapObj) => {
-    if (mapObj.fr.childNodes.length) {
-      mapObj.slot.parentNode.replaceChild(mapObj.fr, mapObj.slot);
-    } else if (mapObj.slot.childNodes.length) {
-      let slotFr = document.createDocumentFragment();
-      slotFr.append(...mapObj.slot.childNodes);
-      mapObj.slot.parentNode.replaceChild(slotFr, mapObj.slot);
-    } else {
-      mapObj.slot.remove();
-    }
-  });
-}
-
-/**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -64,21 +18,14 @@ function refProcessor(fr, fnCtx) {
 }
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
-function domSetProcessor(fr, fnCtx) {
+function domBindProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
     let keyValArr = subStr.split(';');
-    [...el.attributes].forEach((attr) => {
-      if (attr.name.startsWith('-') && attr.value) {
-        let key = kebabToCamel(attr.name.replace('-', ''));
-        keyValArr.push(key + ':' + attr.value);
-        el.removeAttribute(attr.name);
-      }
-    });
     keyValArr.forEach((keyValStr) => {
       if (!keyValStr) {
         return;
@@ -87,9 +34,9 @@ function domSetProcessor(fr, fnCtx) {
       let prop = kv[0];
       let isAttr;
 
-      if (prop.indexOf(DICT.ATTR_BIND_PRFX) === 0) {
+      if (prop.indexOf(DICT.ATTR_BIND_PX) === 0) {
         isAttr = true;
-        prop = prop.replace(DICT.ATTR_BIND_PRFX, '');
+        prop = prop.replace(DICT.ATTR_BIND_PX, '');
       }
       /** @type {String[]} */
       let valKeysArr = kv[1].split(',').map((valKey) => {
@@ -126,23 +73,22 @@ function domSetProcessor(fr, fnCtx) {
               el[DICT.SET_LATER_KEY][prop] = val;
             }
           }
-        });
+        }, !(fnCtx.ssrMode && (prop === 'textContent' || isAttr)));
       }
     });
     el.removeAttribute(DICT.BIND_ATTR);
   });
 }
 
-const OPEN_TOKEN = '{{';
-const CLOSE_TOKEN = '}}';
-const SKIP_ATTR = 'skip-text';
-
 function getTextNodesWithTokens(el) {
   let node;
   let result = [];
   let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
     acceptNode: (txt) => {
-      return !txt.parentElement?.hasAttribute(SKIP_ATTR) && txt.textContent.includes(OPEN_TOKEN) && txt.textContent.includes(CLOSE_TOKEN) && 1;
+      return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR) 
+        && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN) 
+        && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN) 
+        && 1;
     },
   });
   while ((node = walk.nextNode())) {
@@ -152,7 +98,7 @@ function getTextNodesWithTokens(el) {
 }
 
 /**
- * @template {import('./BaseComponent.js').BaseComponent} T
+ * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
@@ -162,20 +108,20 @@ const txtNodesProcessor = function (fr, fnCtx) {
     let tokenNodes = [];
     let offset;
     // Splitting of the text node:
-    while (txtNode.textContent.includes(CLOSE_TOKEN)) {
-      if (txtNode.textContent.startsWith(OPEN_TOKEN)) {
-        offset = txtNode.textContent.indexOf(CLOSE_TOKEN) + CLOSE_TOKEN.length;
+    while (txtNode.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN)) {
+      if (txtNode.textContent.startsWith(DICT.TEXT_NODE_OPEN_TOKEN)) {
+        offset = txtNode.textContent.indexOf(DICT.TEXT_NODE_CLOSE_TOKEN) + DICT.TEXT_NODE_CLOSE_TOKEN.length;
         txtNode.splitText(offset);
         tokenNodes.push(txtNode);
       } else {
-        offset = txtNode.textContent.indexOf(OPEN_TOKEN);
+        offset = txtNode.textContent.indexOf(DICT.TEXT_NODE_OPEN_TOKEN);
         txtNode.splitText(offset);
       }
-      // @ts-ignore
+      // @ts-expect-error
       txtNode = txtNode.nextSibling;
     }
     tokenNodes.forEach((tNode) => {
-      let prop = tNode.textContent.replace(OPEN_TOKEN, '').replace(CLOSE_TOKEN, '');
+      let prop = tNode.textContent.replace(DICT.TEXT_NODE_OPEN_TOKEN, '').replace(DICT.TEXT_NODE_CLOSE_TOKEN, '');
       tNode.textContent = '';
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;
@@ -184,4 +130,4 @@ const txtNodesProcessor = function (fr, fnCtx) {
   });
 };
 
-export default [repeatProcessor, slotProcessor, refProcessor, domSetProcessor, txtNodesProcessor];
+export default [itemizeProcessor, refProcessor, domBindProcessor, txtNodesProcessor];

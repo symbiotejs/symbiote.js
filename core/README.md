@@ -1,25 +1,31 @@
 ## Folder contents
 
-### symbiote.js
+### index.js
 All-in-one exports.
 
-### BaseComponent.js
+### Symbiote.js
 Base component class. Major utility for the web-component creation, template data binding and data management.
 
-### Data.js
+### html.js
+Template literal tag-function, that transforms interpolated binding descriptions into resulting html.
+
+### css.js
+Template literal tag-function, that creates the CSSStyleSheet instance.
+
+### PubSub.js
 Implements data layer for the local component context and the top level context both. The state management approach is based on simple well known pub/sub pattern.
 
-### TypedData.js
-Wrapper for the `Data` with a runtime type checking. Useful to organize domain specific data entities.
-
-### TypedColection.js
-Normalized typed collection for dedicated domain specific data entities. Useful to organize domain specific data collections.
-
 ### AppRouter.js
-SPA routing utility. Based on native History API.
+SPA routing utility. Based on browser-native History API.
 
 ### tpl-rpcessors.js
 Template processing functions. Implements basic template processing flow.
 
-### repeatProcessor.js
-Dynamic list rendering implementation.
+### itemizeProcessor.js
+Dynamic list items rendering implementation.
+
+### dictionary.js
+Dictionary for the set of the basic keys.
+
+### slotProcessor.js
+Light DOM support for the template `slot`s. This processor is optional since 2.x. and excluded from default template processing pipeline.
