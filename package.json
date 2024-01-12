@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "scripts": {
     "types": "tsc -p dts.cfg.json"
   },
@@ -19,7 +19,7 @@
     "access": "public"
   },
   "description": "Symbiote.js",
-  "author": "hello@symbiotejs.org",
+  "author": "symbiote.js@gmail.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/symbiotejs/symbiote.js/issues"
