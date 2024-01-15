@@ -447,6 +447,7 @@ export class Symbiote extends HTMLElement {
         sub.remove();
         this.allSubs.delete(sub);
       }
+      this.#localCtx && PubSub.deleteCtx(this.#localCtx.uid);
       for (let proc of this.tplProcessors) {
         this.tplProcessors.delete(proc);
       }
