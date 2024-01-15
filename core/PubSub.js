@@ -16,7 +16,10 @@ function cloneObj(obj) {
 /** @template {Record<string, unknown>} T */
 export class PubSub {
 
+  /** @type {String | Symbol} */
+  #uid;
   #proxy;
+  /** @type {Boolean} */
   #storeIsProxy;
 
   /** @param {T} schema */
@@ -183,6 +186,17 @@ export class PubSub {
     };
   }
 
+  /** 
+   * @param {String | Symbol} uid 
+   */
+  set uid(uid) {
+    !this.#uid && (this.#uid = uid);
+  }
+
+  get uid() {
+    return this.#uid;
+  }
+
   /**
    * @template {Record<string, unknown>} S
    * @param {S} schema
@@ -196,6 +210,7 @@ export class PubSub {
       console.warn('PubSub: context UID "' + uid + '" is already in use');
     } else {
       data = new PubSub(schema);
+      data.uid = uid;
       PubSub.globalStore.set(uid, data);
     }
     return data;

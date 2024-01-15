@@ -44,6 +44,8 @@ declare module "core/PubSub" {
             remove: () => void;
             callback: (val: unknown) => void;
         };
+        set uid(arg: string | Symbol);
+        get uid(): string | Symbol;
         #private;
     }
     export namespace PubSub {
