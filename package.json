@@ -15,8 +15,14 @@
   "module": "./core/index.js",
   "types": "./types/core/index.d.ts",
   "exports": {
-    "types": "./types/core/index.d.ts",
-    "default": "./core/index.js"
+    ".": {
+      "types": "./types/core/index.d.ts",
+      "default": "./core/index.js"
+    },
+    "./core/slotProcessor.js": {
+      "types": "./types/core/slotProcessor.d.ts",
+      "default": "./core/slotProcessor.js"
+    }
   },
   "publishConfig": {
     "access": "public"
