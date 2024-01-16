@@ -7,6 +7,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "removeComments": true,
-    "outFile": "types/symbiote.d.ts"
+    "outDir": "types",
+    "declarationMap": true
   }
 }

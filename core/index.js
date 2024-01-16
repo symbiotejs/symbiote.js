@@ -6,6 +6,7 @@ export { html } from './html.js';
 export { css } from './css.js';
 export { PubSub } from './PubSub.js';
 export { AppRouter } from './AppRouter.js';
+export { DICT } from './dictionary.js';
 
 // Utils:
 export { UID } from '../utils/UID.js';

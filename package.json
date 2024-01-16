@@ -3,7 +3,7 @@
   "name": "@symbiotejs/symbiote",
   "version": "2.0.4",
   "scripts": {
-    "types": "tsc -p dts.cfg.json"
+    "types": "rm -rf types && tsc -p dts.cfg.json"
   },
   "files": [
     "core/*",
@@ -13,8 +13,17 @@
     "LICENSE"
   ],
   "module": "./core/index.js",
-  "exports": "./core/index.js",
-  "types": "./types/symbiote.d.ts",
+  "types": "./types/core/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/core/index.d.ts",
+      "default": "./core/index.js"
+    },
+    "./core/slotProcessor.js": {
+      "types": "./types/core/slotProcessor.d.ts",
+      "default": "./core/slotProcessor.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },

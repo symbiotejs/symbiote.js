@@ -1,4 +1,3 @@
-/** @enum {String} */
 export const DICT = Object.freeze({
   // Template data binding attribute:
   BIND_ATTR: 'bind',

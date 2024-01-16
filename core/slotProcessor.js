@@ -2,7 +2,7 @@ import { DICT } from './dictionary.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
- * @param {DocumentFragment} fr
+ * @param {DocumentFragment | T} fr
  * @param {T} fnCtx
  */
 export function slotProcessor(fr, fnCtx) {
