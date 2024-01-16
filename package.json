@@ -13,8 +13,11 @@
     "LICENSE"
   ],
   "module": "./core/index.js",
-  "exports": "./core/index.js",
-  "types": "./types/symbiote.d.ts",
+  "types": "./types/core/index.d.ts",
+  "exports": {
+    "types": "./types/core/index.d.ts",
+    "default": "./core/index.js"
+  },
   "publishConfig": {
     "access": "public"
   },
