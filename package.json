@@ -3,7 +3,7 @@
   "name": "@symbiotejs/symbiote",
   "version": "2.0.4",
   "scripts": {
-    "types": "tsc -p dts.cfg.json"
+    "types": "rm -rf types && tsc -p dts.cfg.json"
   },
   "files": [
     "core/*",
