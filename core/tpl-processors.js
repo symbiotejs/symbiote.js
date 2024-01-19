@@ -52,6 +52,13 @@ function domBindProcessor(fr, fnCtx) {
           castType = 'single';
           valKey = valKey.replace('!', '');
         }
+        if (!fnCtx.has(valKey) && fnCtx.allowTemplateInits) {
+          if (valKey.startsWith(DICT.ATTR_BIND_PX)) {
+            fnCtx.add(valKey, fnCtx.getAttribute(valKey.replace(DICT.ATTR_BIND_PX, '')));
+          } else {
+            fnCtx.add(valKey, null);
+          }
+        }
         fnCtx.sub(valKey, (val) => {
           if (castType === 'double') {
             val = !!val;
@@ -123,6 +130,14 @@ const txtNodesProcessor = function (fr, fnCtx) {
     tokenNodes.forEach((tNode) => {
       let prop = tNode.textContent.replace(DICT.TEXT_NODE_OPEN_TOKEN, '').replace(DICT.TEXT_NODE_CLOSE_TOKEN, '');
       tNode.textContent = '';
+      if (!fnCtx.has(prop) && fnCtx.allowTemplateInits) {
+        if (prop.startsWith(DICT.ATTR_BIND_PX)) {
+          fnCtx.add(prop, fnCtx.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')));
+          fnCtx.initAttributeObserver();
+        } else {
+          fnCtx.add(prop, null);
+        }
+      }
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;
       });
