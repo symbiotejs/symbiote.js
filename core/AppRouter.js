@@ -113,7 +113,11 @@ export class AppRouter {
       }
     }
     let title = routeScheme.title || this.defaultTitle || '';
-    window.history.pushState(null, title, routeStr);
+    try {
+      window.history.pushState(null, title, routeStr);
+    } catch (err) {
+      console.warn('AppRouter: History API not available.');
+    }
     document.title = title;
   }
 
