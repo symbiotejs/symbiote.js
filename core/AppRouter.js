@@ -116,7 +116,7 @@ export class AppRouter {
     try {
       window.history.pushState(null, title, routeStr);
     } catch (err) {
-      console.warn('AppRouter: History API not available.');
+      console.warn('AppRouter: History API is not available.');
     }
     document.title = title;
   }

@@ -134,17 +134,20 @@ export class PubSub {
     }
   }
 
-  #processComputed() {
-    if (this.__computedSet) {
-      this.__computedSet.forEach((prop) => {
-        if (this[`__${prop}_timeout`]) {
-          window.clearTimeout(this[`__${prop}_timeout`]);
-        }
-        this[`__${prop}_timeout`] = window.setTimeout(() => {
-          this.notify(prop);
+  static #processComputed() {
+    this.globalStore.forEach((inst) => {
+      if (inst.__computedSet) {
+        inst.__computedSet.forEach((prop) => {
+          let tName = `__${prop}_timeout`;
+          if (inst[tName]) {
+            window.clearTimeout(inst[tName]);
+          }
+          inst[tName] = window.setTimeout(() => {
+            inst.notify(prop);
+          });
         });
-      });
-    }
+      }
+    });
   }
 
   /** @param {keyof T} prop */
@@ -155,7 +158,7 @@ export class PubSub {
       });
     }
     // @ts-expect-error
-    !prop?.startsWith(DICT.COMPUTED_PX) && this.#processComputed();
+    !prop?.startsWith(DICT.COMPUTED_PX) && PubSub.#processComputed();
   }
 
   /**
