@@ -39,6 +39,7 @@ export class Symbiote<S> extends HTMLElement {
     allowCustomTemplate: boolean;
     ctxOwner: boolean;
     isVirtual: boolean;
+    allowTemplateInits: boolean;
     get autoCtxName(): string;
     get cssCtxName(): string;
     get ctxName(): string;
@@ -51,6 +52,8 @@ export class Symbiote<S> extends HTMLElement {
     add$(obj: Partial<S>, rewrite?: boolean): void;
     get $(): S;
     set$(kvObj: Partial<S>, forcePrimitives?: boolean): void;
+    initAttributeObserver(): void;
+    attributeMutationObserver: MutationObserver;
     initChildren: ChildNode[];
     connectedOnce: boolean;
     connectedCallback(): void;
