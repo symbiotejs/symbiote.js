@@ -162,6 +162,8 @@ export class Symbiote extends HTMLElement {
     this.ctxOwner = false;
     /** @type {Boolean} */
     this.isVirtual = false;
+    /** @type {Boolean} */
+    this.allowTemplateInits = true;
   }
 
   /** @returns {String} */
@@ -341,6 +343,24 @@ export class Symbiote extends HTMLElement {
     return this.ctxOwner || (this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false');
   }
 
+  initAttributeObserver() {
+    if (!this.attributeMutationObserver) {
+      this.attributeMutationObserver = new MutationObserver((mutations) => {
+        for (let mr of mutations) {
+          if (mr.type === 'attributes') {
+            let propName = DICT.ATTR_BIND_PX + mr.attributeName;
+            if (this.has(propName)) {
+              this.$[propName] = this.getAttribute(mr.attributeName);
+            }
+          }
+        }
+      });
+      this.attributeMutationObserver.observe(this, {
+        attributes: true,
+      });
+    }
+  }
+
   #initDataCtx() {
     /** @type {{ [key: string]: string }} */
     let attrDesc = this.#super.__attrDesc;
@@ -354,6 +374,9 @@ export class Symbiote extends HTMLElement {
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.SHARED_CTX_PX)) {
         this.sharedCtx.add(prop.replace(DICT.SHARED_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
+      } else if (prop.startsWith(DICT.ATTR_BIND_PX)) {
+        this.localCtx.add(prop, (this.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')) || this.init$[prop]));
+        this.initAttributeObserver();
       } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
         let propArr = prop.split(DICT.NAMED_CTX_SPLTR);
         let ctxName = propArr[0].trim();
@@ -443,6 +466,9 @@ export class Symbiote extends HTMLElement {
     }
     this.#disconnectTimeout = window.setTimeout(() => {
       this.destroyCallback();
+      if (this.attributeMutationObserver) {
+        this.attributeMutationObserver.disconnect();
+      }
       for (let sub of this.allSubs) {
         sub.remove();
         this.allSubs.delete(sub);
@@ -491,7 +517,7 @@ export class Symbiote extends HTMLElement {
 
   /** @param {Object<string, string>} desc */
   static bindAttributes(desc) {
-    this.observedAttributes = Object.keys(desc);
+    this.observedAttributes = [...(this.observedAttributes || []), Object.keys(desc)];
     /** @private */
     this.__attrDesc = desc;
   }
