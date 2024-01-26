@@ -517,7 +517,10 @@ export class Symbiote extends HTMLElement {
 
   /** @param {Object<string, string>} desc */
   static bindAttributes(desc) {
-    this.observedAttributes = [...(this.observedAttributes || []), Object.keys(desc)];
+    /** @type {String[]} */
+    this.observedAttributes = [ 
+      ...new Set((this.observedAttributes || []).concat(Object.keys(desc)))
+    ];
     /** @private */
     this.__attrDesc = desc;
   }
