@@ -172,8 +172,7 @@ export class AppRouter {
     if (this.#onPopstate) {
       return;
     }
-    /** @private */
-    this.__onPopstate = () => {
+    this.#onPopstate = () => {
       this.notify();
     };
     window.addEventListener('popstate', this.#onPopstate);
