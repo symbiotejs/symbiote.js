@@ -52,19 +52,23 @@ export class PubSub {
     if (typeof prop === 'string' && prop.startsWith(DICT.COMPUTED_PX)) {
       /** @type {Function} */
       let compFn = this.store[prop];
-      if (!this.__computedSet) {
-        /** 
-         * @private 
-         * @type {Set<String>} 
-         */
-        this.__computedSet = new Set();
-      }
-      this.__computedSet.add(prop);
       if (compFn?.constructor !== Function) {
         PubSub.#warn('compute', prop);
-      } else {
-        return compFn();
+        return;
       }
+      if (!this.__computedMap) {
+        /** 
+         * @private 
+         * @type {Object<string, *>} 
+         */
+        this.__computedMap = {};
+      }
+      let currentVal = compFn();
+      if (!Object.keys(this.__computedMap).includes(prop)) {
+        this.__computedMap[prop] = currentVal;
+        this.notify(prop);
+      }
+      return currentVal;
     } else {
       return this.store[prop];
     }
@@ -136,14 +140,18 @@ export class PubSub {
 
   static #processComputed() {
     this.globalStore.forEach((inst) => {
-      if (inst.__computedSet) {
-        inst.__computedSet.forEach((prop) => {
+      if (inst.__computedMap) {
+        Object.keys(inst.__computedMap).forEach((prop) => {
           let tName = `__${prop}_timeout`;
           if (inst[tName]) {
             window.clearTimeout(inst[tName]);
           }
           inst[tName] = window.setTimeout(() => {
-            inst.notify(prop);
+            let currentVal = inst.read(prop);
+            if (currentVal !== inst.__computedMap[prop]) {
+              inst.__computedMap[prop] = currentVal;
+              inst.notify(prop);
+            }
           });
         });
       }
@@ -152,13 +160,16 @@ export class PubSub {
 
   /** @param {keyof T} prop */
   notify(prop) {
+    // @ts-expect-error
+    let isComputed = prop?.startsWith(DICT.COMPUTED_PX);
     if (this.callbackMap[prop]) {
+      // @ts-expect-error
+      let val = isComputed ? this.__computedMap[prop] : this.read(prop);
       this.callbackMap[prop].forEach((callback) => {
-        callback(this.read(prop));
+        callback(val);
       });
     }
-    // @ts-expect-error
-    !prop?.startsWith(DICT.COMPUTED_PX) && PubSub.#processComputed();
+    !isComputed && PubSub.#processComputed();
   }
 
   /**

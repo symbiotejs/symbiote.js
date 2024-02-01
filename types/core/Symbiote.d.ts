@@ -14,8 +14,8 @@ export class Symbiote<S> extends HTMLElement {
     }): void;
     static addRootStyles(styles: string | CSSStyleSheet): void;
     static addShadowStyles(styles: string | CSSStyleSheet): void;
-    static set rootStyles(arg: string | CSSStyleSheet);
-    static set shadowStyles(arg: string | CSSStyleSheet);
+    static set rootStyles(styles: string | CSSStyleSheet);
+    static set shadowStyles(styles: string | CSSStyleSheet);
     constructor();
     get Symbiote(): typeof Symbiote;
     initCallback(): void;
