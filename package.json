@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "Symbiote.js - close-to-platform frontend library for building super-powered web components",
   "author": "symbiote.js@gmail.com",
   "license": "MIT",
@@ -63,6 +63,6 @@
     "MIT"
   ],
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   }
 }

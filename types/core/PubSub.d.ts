@@ -8,7 +8,7 @@ export class PubSub<T extends Record<string, unknown>> {
     store: any;
     callbackMap: Record<keyof T, Set<(val: unknown) => void>>;
     read(prop: keyof T): any;
-    private __computedSet;
+    private __computedMap;
     has(prop: string): any;
     add(prop: string, val: unknown, rewrite?: boolean): void;
     pub(prop: keyof T, val: unknown): void;
@@ -19,12 +19,12 @@ export class PubSub<T extends Record<string, unknown>> {
         remove: () => void;
         callback: (val: unknown) => void;
     };
-    set uid(arg: string | Symbol);
+    set uid(uid: string | Symbol);
     get uid(): string | Symbol;
     #private;
 }
 export namespace PubSub {
-    const globalStore: Map<string | Symbol, PubSub<any>>;
+    let globalStore: Map<string | Symbol, PubSub<any>>;
 }
 export default PubSub;
 //# sourceMappingURL=PubSub.d.ts.map

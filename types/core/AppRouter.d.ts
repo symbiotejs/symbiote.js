@@ -14,7 +14,7 @@ export class AppRouter {
     static setRoutingMap(map: {
         [x: string]: {};
     }): void;
-    static set routingEventName(arg: string);
+    static set routingEventName(name: string);
     static get routingEventName(): string;
     static readAddressBar(): {
         route: any;
