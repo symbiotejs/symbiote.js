@@ -59,7 +59,7 @@ export class PubSub {
       if (!this.__computedMap) {
         /** 
          * @private 
-         * @type {Object<string, *>} 
+         * @type {Object<keyof T, *>} 
          */
         this.__computedMap = {};
       }
@@ -138,10 +138,18 @@ export class PubSub {
     }
   }
 
-  static #processComputed() {
+  /**
+   * 
+   * @param {PubSub} instCtx 
+   * @param {unknown} actProp 
+   */
+  static #processComputed(instCtx, actProp) {
     this.globalStore.forEach((inst) => {
       if (inst.__computedMap) {
         Object.keys(inst.__computedMap).forEach((prop) => {
+          if ((inst === instCtx) && (actProp === prop)) {
+            return;
+          }
           let tName = `__${prop}_timeout`;
           if (inst[tName]) {
             window.clearTimeout(inst[tName]);
@@ -163,13 +171,15 @@ export class PubSub {
     // @ts-expect-error
     let isComputed = prop?.startsWith(DICT.COMPUTED_PX);
     if (this.callbackMap[prop]) {
-      // @ts-expect-error
-      let val = isComputed ? this.__computedMap[prop] : this.read(prop);
+      let val = this.read(prop);
       this.callbackMap[prop].forEach((callback) => {
         callback(val);
       });
+      if (isComputed) {
+        this.__computedMap[prop] = val;
+      }
     }
-    !isComputed && PubSub.#processComputed();
+    !isComputed && PubSub.#processComputed(this, prop);
   }
 
   /**

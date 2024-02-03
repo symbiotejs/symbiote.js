@@ -1,6 +1,6 @@
 export class PubSub<T extends Record<string, unknown>> {
     static "__#1@#warn"(actionName: string, prop: any): void;
-    static "__#1@#processComputed"(): void;
+    static "__#1@#processComputed"(instCtx: PubSub<any>, actProp: unknown): void;
     static registerCtx<S extends Record<string, unknown>>(schema: S, uid?: string | Symbol): PubSub<S>;
     static deleteCtx(uid: string | Symbol): void;
     static getCtx(uid: string | Symbol, notify?: boolean): PubSub<any>;
