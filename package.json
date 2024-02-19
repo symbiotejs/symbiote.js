@@ -22,9 +22,45 @@
       "types": "./types/core/index.d.ts",
       "default": "./core/index.js"
     },
+    "./core/Symbiote.js": {
+      "types": "./types/core/Symbiote.d.ts",
+      "default": "./core/Symbiote.js"
+    },
+    "./core/PubSub.js": {
+      "types": "./types/core/PubSub.d.ts",
+      "default": "./core/PubSub.js"
+    },
+    "./core/html.js": {
+      "types": "./types/core/html.d.ts",
+      "default": "./core/html.js"
+    },
+    "./core/css.js": {
+      "types": "./types/core/css.d.ts",
+      "default": "./core/css.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
+    },
+    "./core/AppRouter.js": {
+      "types": "./types/core/AppRouter.d.ts",
+      "default": "./core/AppRouter.js"
+    },
+    "./utils/UID.js": {
+      "types": "./types/utils/UID.d.ts",
+      "default": "./utils/UID.js"
+    },
+    "./utils/setNestedProp.js": {
+      "types": "./types/utils/setNestedProp.d.ts",
+      "default": "./utils/setNestedProp.js"
+    },
+    "./utils/dom-helpers.js": {
+      "types": "./types/utils/dom-helpers.d.ts",
+      "default": "./utils/dom-helpers.js"
+    },
+    "./utils/kebabToCamel.js": {
+      "types": "./types/utils/kebabToCamel.d.ts",
+      "default": "./utils/kebabToCamel.js"
     }
   },
   "publishConfig": {
