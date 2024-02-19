@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Symbiote.js - close-to-platform frontend library for building super-powered web components",
   "author": "symbiote.js@gmail.com",
   "license": "MIT",
