@@ -6,18 +6,15 @@ import { DICT } from './dictionary.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.LIST_ATTR}]`)]
-    .filter((el) => {
+  [...fr.querySelectorAll(`[${DICT.LIST_ATTR}]`)].filter((el) => {
       return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
-    })
-    .forEach((el) => {
+    }).forEach((el) => {
       let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
       let itemClass;
       if (itemTag) {
         itemClass = window.customElements.get(itemTag);
       }
       if (!itemClass) {
-        // @ts-ignore - TS doesn't resolve Symbiote via getter =(
         itemClass = class extends fnCtx.Symbiote {
           constructor() {
             super();
@@ -26,8 +23,7 @@ export function itemizeProcessor(fr, fnCtx) {
             }
           }
         };
-        let itemTpl = el.innerHTML;
-        itemClass.template = itemTpl;
+        itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
         itemClass.reg(itemTag);
       }
       while (el.firstChild) {
@@ -41,18 +37,14 @@ export function itemizeProcessor(fr, fnCtx) {
           }
           return;
         }
+        /** @type {*[]} */
         let currentList = [...el.children];
         let fragment;
-        let fillItems = (/** @type {any[]} */ items) => {
+        let fillItems = (/** @type {*[]} */ items) => {
           items.forEach((item, idx) => {
             if (currentList[idx]) {
-              // @ts-ignore
               if (currentList[idx].set$) {
-                // wait until repeated element's state will be initialized
-                setTimeout(() => {
-                  // @ts-ignore
-                  currentList[idx].set$(item);
-                });
+                currentList[idx].set$(item);
               } else {
                 for (let k in item) {
                   currentList[idx][k] = item[k];
