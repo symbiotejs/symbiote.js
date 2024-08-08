@@ -9,7 +9,7 @@ import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 export { html } from './html.js';
 export { css } from './css.js';
-export { UID, PubSub }
+export { UID, PubSub, DICT }
 
 let autoTagsCount = 0;
 

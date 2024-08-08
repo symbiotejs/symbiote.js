@@ -1,4 +1,4 @@
-export const DICT = Object.freeze({
+export const DICT = {
   // Template data binding attribute:
   BIND_ATTR: 'bind',
   // Local state binding attribute name:
@@ -39,4 +39,4 @@ export const DICT = Object.freeze({
   TEXT_NODE_OPEN_TOKEN: '{{',
   // Text node binding token:
   TEXT_NODE_CLOSE_TOKEN: '}}',
-});
+};
