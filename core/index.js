@@ -15,5 +15,6 @@ export { applyStyles } from '../utils/dom-helpers.js';
 export { applyAttributes } from '../utils/dom-helpers.js';
 export { create } from '../utils/dom-helpers.js';
 export { kebabToCamel } from '../utils/kebabToCamel.js';
+export { reassignDictionary } from '../utils/reassignDictionary.js';
 
 export default Symbiote;
