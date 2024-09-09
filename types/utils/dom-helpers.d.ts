@@ -1,5 +1,5 @@
-export function applyStyles<T extends HTMLElement | SVGElement>(el: T, styleMap: StyleMap): void;
-export function applyAttributes<T extends HTMLElement | SVGElement>(el: T, attrMap: AttrMap): void;
+export function applyStyles<T extends SVGElement | HTMLElement>(el: T, styleMap: StyleMap): void;
+export function applyAttributes<T extends SVGElement | HTMLElement>(el: T, attrMap: AttrMap): void;
 export function create(desc?: ElementDescriptor): any;
 export type StyleMap = {
     [x: string]: string | number | boolean;

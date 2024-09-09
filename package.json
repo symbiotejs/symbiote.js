@@ -61,6 +61,10 @@
     "./utils/kebabToCamel.js": {
       "types": "./types/utils/kebabToCamel.d.ts",
       "default": "./utils/kebabToCamel.js"
+    },
+    "./utils/reassignDictionary.js": {
+      "types": "./types/utils/reassignDictionary.d.ts",
+      "default": "./utils/reassignDictionary.js"
     }
   },
   "publishConfig": {
