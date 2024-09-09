@@ -3,7 +3,7 @@ export { css } from "./css.js";
 export class Symbiote<S> extends HTMLElement {
     static __tpl: HTMLTemplateElement;
     static template: string;
-    static "__#2@#parseProp"<T_3 extends Symbiote<any>>(prop: string, fnCtx: T_3): {
+    static "__#2@#parseProp"<T extends Symbiote<any>>(prop: string, fnCtx: T): {
         ctx: PubSub<any>;
         name: string;
     };
@@ -45,10 +45,10 @@ export class Symbiote<S> extends HTMLElement {
     get ctxName(): string;
     get localCtx(): PubSub<any>;
     get sharedCtx(): PubSub<any>;
-    sub<T_1 extends keyof S>(prop: T_1, handler: (value: S[T_1]) => void, init?: boolean): void;
+    sub<T extends keyof S>(prop: T, handler: (value: S[T]) => void, init?: boolean): void;
     notify(prop: string): void;
     has(prop: string): any;
-    add<T_2 extends keyof S>(prop: string, val: S[T_2], rewrite?: boolean): void;
+    add<T extends keyof S>(prop: string, val: S[T], rewrite?: boolean): void;
     add$(obj: Partial<S>, rewrite?: boolean): void;
     get $(): S;
     set$(kvObj: Partial<S>, forcePrimitives?: boolean): void;
@@ -70,5 +70,6 @@ export class Symbiote<S> extends HTMLElement {
 export default Symbiote;
 import { UID } from '../utils/UID.js';
 import PubSub from './PubSub.js';
-export { UID, PubSub };
+import { DICT } from './dictionary.js';
+export { UID, PubSub, DICT };
 //# sourceMappingURL=Symbiote.d.ts.map
