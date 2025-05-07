@@ -94,8 +94,9 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
 
 ## 🧜‍♀️ Dive deeper
 Check the project documentation for details:
-* [symbiotejs.org](https://symbiotejs.org/)
-* [Docs on GitHub](https://github.com/symbiotejs/docsite/tree/main/md)
+* [rnd-pro.com/symbiote/](https://rnd-pro.com/symbiote/)
+* [Docs](https://symbiotejs.org/2x/docs/Get_started/)
+* [Code Playground](https://symbiotejs.org/#playground)
 
 ## ✅ Browser support
 Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
