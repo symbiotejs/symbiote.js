@@ -1,9 +1,9 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.3.3",
-  "description": "Symbiote.js - close-to-platform frontend library for building super-powered web components",
-  "author": "symbiote.js@gmail.com",
+  "version": "2.3.4",
+  "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
+  "author": "team@rnd-pro.com",
   "license": "MIT",
   "scripts": {
     "types": "rm -rf types && tsc -p dts.cfg.json"
@@ -73,7 +73,7 @@
   "bugs": {
     "url": "https://github.com/symbiotejs/symbiote.js/issues"
   },
-  "homepage": "https://symbiotejs.org/",
+  "homepage": "https://rnd-pro.com/symbiote/",
   "repository": {
     "type": "git",
     "url": "https://github.com/symbiotejs/symbiote.js.git"
@@ -100,7 +100,8 @@
     "cdn imports",
     "https imports",
     "reactive html attributes",
-    "MIT"
+    "MIT",
+    "JSDA"
   ],
   "devDependencies": {
     "typescript": "^5.4.5"
