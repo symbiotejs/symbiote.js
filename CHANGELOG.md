@@ -14,6 +14,8 @@
   this.templateProcessors.add(myProcessor);
   ```
 
+- **`AppRouter.applyRoute()` renamed to `AppRouter.navigate()`.**
+
 - **`#disconnectTimeout` renamed to `#destroyTimeout`.**
   Internal field renamed for clarity. No public API impact.
 
@@ -47,6 +49,31 @@
 
 - **`reg()` returns the class itself.**
   Enables patterns like `export default MyComponent.reg('my-component')`.
+
+- **`AppRouter`: path-based routing.**
+  Routes with a `pattern` key auto-switch to path-based URLs. Supports `:param` extraction:
+  ```js
+  AppRouter.initRoutingCtx('R', {
+    home: { pattern: '/', title: 'Home', default: true },
+    user: { pattern: '/users/:id', title: 'User' },
+  });
+  // /users/42 → { route: 'user', options: { id: '42' } }
+  ```
+  Routes without `pattern` keep working as query-string (full backward compatibility).
+
+- **`AppRouter.beforeRoute(fn)` — route guards.**
+  Register middleware that runs before navigation. Return `false` to cancel, a route string to redirect:
+  ```js
+  let unsub = AppRouter.beforeRoute((to, from) => {
+    if (!isAuth && to.route === 'settings') return 'login';
+  });
+  ```
+
+- **Lazy loaded route components.**
+  Add `load` to route descriptors for dynamic imports. Loaded once, cached automatically:
+  ```js
+  { pattern: '/settings', load: () => import('./pages/settings.js') }
+  ```
 
 - **AI_REFERENCE.md** — comprehensive AI context file for code assistants, covering full API surface, template syntax, state management, lifecycle, styling, routing, itemize, and common mistakes.
 

@@ -24,7 +24,7 @@ export class AppRouter {
     static reflect(route: string, options?: {
         [x: string]: any;
     }): void;
-    static applyRoute(route: string, options?: {
+    static navigate(route: string, options?: {
         [x: string]: any;
     }): void;
     static setSeparator(char: string): void;

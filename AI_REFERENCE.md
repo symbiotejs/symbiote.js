@@ -420,40 +420,73 @@ Usage:
 
 ## Routing (AppRouter)
 
+### Path-based routing (recommended)
 ```js
 import { AppRouter } from '@symbiotejs/symbiote';
 
-// Initialize routing with a named PubSub context
-const routerCtx = AppRouter.initRoutingCtx('ROUTER', {
-  home: { title: 'Home', default: true },
-  about: { title: 'About' },
-  error: { title: '404', error: true },
+const routerCtx = AppRouter.initRoutingCtx('R', {
+  home:     { pattern: '/',            title: 'Home', default: true },
+  user:     { pattern: '/users/:id',   title: 'User Profile' },
+  settings: { pattern: '/settings',    title: 'Settings' },
+  notFound: { pattern: '/404',         title: 'Not Found', error: true },
 });
 
 // Navigate programmatically
-AppRouter.applyRoute('about', { section: 'team' });
-// URL becomes: ?about&section=team
+AppRouter.navigate('user', { id: '42' });
+// URL becomes: /users/42
 
 // React to route changes in any component
-this.sub('ROUTER/route', (route) => {
-  console.log('Current route:', route);
+this.sub('R/route', (route) => console.log('Route:', route));
+this.sub('R/options', (opts) => console.log('Params:', opts)); // { id: '42' }
+```
+
+### Query-string routing (legacy/alternative)
+```js
+// Routes WITHOUT `pattern` use query-string mode automatically
+const routerCtx = AppRouter.initRoutingCtx('R', {
+  home:  { title: 'Home', default: true },
+  about: { title: 'About' },
 });
-this.sub('ROUTER/options', (opts) => {
-  console.log('Route options:', opts);
+AppRouter.navigate('about', { section: 'team' });
+// URL becomes: ?about&section=team
+```
+
+### Route guards
+```js
+// Register guard — runs before every navigation
+let unsub = AppRouter.beforeRoute((to, from) => {
+  if (!isAuth && to.route === 'settings') {
+    return 'login'; // redirect
+  }
+  // return false to cancel, nothing to proceed
+});
+
+unsub(); // remove guard
+```
+
+### Lazy loaded routes
+```js
+AppRouter.initRoutingCtx('R', {
+  settings: {
+    pattern: '/settings',
+    title: 'Settings',
+    load: () => import('./pages/settings.js'), // loaded once, cached
+  },
 });
 ```
 
 ### AppRouter API
 - `AppRouter.initRoutingCtx(ctxName, routingMap)` → PubSub
-- `AppRouter.applyRoute(route, options?)` — navigate
+- `AppRouter.navigate(route, options?)` — navigate and dispatch event
 - `AppRouter.reflect(route, options?)` — update URL without triggering event
-- `AppRouter.notify()` — read URL and dispatch routing event
+- `AppRouter.notify()` — read URL, run guards, lazy load, dispatch event
+- `AppRouter.beforeRoute(fn)` — register guard, returns unsubscribe fn
 - `AppRouter.setRoutingMap(map)` — extend routes
-- `AppRouter.setSeparator(char)` — default `&`
-- `AppRouter.setDefaultTitle(title)`
 - `AppRouter.readAddressBar()` → `{ route, options }`
+- `AppRouter.setSeparator(char)` — default `&` (query-string mode)
+- `AppRouter.setDefaultTitle(title)`
 - `AppRouter.removePopstateListener()`
-- URL format: `?routeName&opt1=val&opt2` (query-string based, NOT hash or path)
+- Mode auto-detected: routes with `pattern` → path-based, without → query-string
 
 ---
 
