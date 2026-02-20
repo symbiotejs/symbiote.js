@@ -26,7 +26,7 @@ export class Symbiote extends HTMLElement {
   #stateProxy;
   /** @type {Boolean} */
   #dataCtxInitialized;
-  #disconnectTimeout;
+  #destroyTimeout;
   #cssDataCache;
   #computedStyle;
   #boundCssProps;
@@ -262,7 +262,7 @@ export class Symbiote extends HTMLElement {
     let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
-      window.setTimeout(() => {
+      window.queueMicrotask(() => {
         this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
       });
     } else {
@@ -408,8 +408,8 @@ export class Symbiote extends HTMLElement {
     if (this.#noInit) {
       return;
     }
-    if (this.#disconnectTimeout) {
-      window.clearTimeout(this.#disconnectTimeout);
+    if (this.#destroyTimeout) {
+      window.clearTimeout(this.#destroyTimeout);
     }
     if (!this.connectedOnce) {
       let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
@@ -452,6 +452,7 @@ export class Symbiote extends HTMLElement {
 
   destroyCallback() {}
 
+  destructionDelay = 100;
   disconnectedCallback() {
     // if element wasn't connected, there is no need to disconnect it
     if (!this.connectedOnce) {
@@ -461,10 +462,10 @@ export class Symbiote extends HTMLElement {
     if (!this.readyToDestroy) {
       return;
     }
-    if (this.#disconnectTimeout) {
-      window.clearTimeout(this.#disconnectTimeout);
+    if (this.#destroyTimeout) {
+      window.clearTimeout(this.#destroyTimeout);
     }
-    this.#disconnectTimeout = window.setTimeout(() => {
+    this.#destroyTimeout = window.setTimeout(() => {
       this.destroyCallback();
       if (this.attributeMutationObserver) {
         this.attributeMutationObserver.disconnect();
@@ -477,7 +478,7 @@ export class Symbiote extends HTMLElement {
       for (let proc of this.tplProcessors) {
         this.tplProcessors.delete(proc);
       }
-    }, 100);
+    }, this.destructionDelay);
   }
 
   /**
@@ -617,7 +618,7 @@ export class Symbiote extends HTMLElement {
       set: (val) => {
         this[localPropName] = val;
         if (isAsync) {
-          window.setTimeout(() => {
+          window.queueMicrotask(() => {
             handler?.(val);
           });
         } else {
