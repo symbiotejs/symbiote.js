@@ -476,6 +476,7 @@ export class Symbiote extends HTMLElement {
   /**
    * @param {String} [tagName]
    * @param {Boolean} [isAlias]
+   * @returns {typeof Symbiote}
    */
   static reg(tagName, isAlias = false) {
     if (!tagName) {
@@ -496,9 +497,10 @@ export class Symbiote extends HTMLElement {
           ].join('\n')
         );
       }
-      return;
+      return this;
     }
     window.customElements.define(tagName, isAlias ? class extends this {} : this);
+    return this;
   }
 
   static get is() {

@@ -7,7 +7,7 @@ export class Symbiote<S> extends HTMLElement {
         ctx: PubSub<any>;
         name: string;
     };
-    static reg(tagName?: string, isAlias?: boolean): void;
+    static reg(tagName?: string, isAlias?: boolean): typeof Symbiote;
     static get is(): string;
     static bindAttributes(desc: {
         [x: string]: string;

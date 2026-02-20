@@ -45,6 +45,9 @@
 
 ### Added
 
+- **`reg()` returns the class itself.**
+  Enables patterns like `export default MyComponent.reg('my-component')`.
+
 - **AI_REFERENCE.md** — comprehensive AI context file for code assistants, covering full API surface, template syntax, state management, lifecycle, styling, routing, itemize, and common mistakes.
 
 - **`destructionDelay` instance property.**
