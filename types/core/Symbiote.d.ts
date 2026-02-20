@@ -21,12 +21,12 @@ export class Symbiote<S> extends HTMLElement {
     initCallback(): void;
     renderCallback(): void;
     render(template?: string | DocumentFragment, shadow?: boolean): void;
-    addTemplateProcessor<T extends Symbiote<any>>(processorFn: (fr: DocumentFragment | T, fnCtx: T) => void): void;
+
     init$: S;
     cssInit$: {
         [x: string]: any;
     };
-    tplProcessors: Set<(fr: DocumentFragment | Symbiote<any>, fnCtx: unknown) => void>;
+    templateProcessors: Set<(fr: DocumentFragment | Symbiote<any>, fnCtx: Symbiote<any>) => void>;
     ref: {
         [x: string]: any;
     };

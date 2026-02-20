@@ -84,7 +84,7 @@ export class Symbiote extends HTMLElement {
       }
     }
     if (this.processInnerHtml || this.ssrMode) {
-      for (let fn of this.tplProcessors) {
+      for (let fn of this.templateProcessors) {
         fn(this, this);
       }
     }
@@ -104,7 +104,7 @@ export class Symbiote extends HTMLElement {
         // @ts-expect-error
         fr = this.#super.__tpl.content.cloneNode(true);
       }
-      for (let fn of this.tplProcessors) {
+      for (let fn of this.templateProcessors) {
         fn(fr, this);
       }
     }
@@ -127,22 +127,14 @@ export class Symbiote extends HTMLElement {
     addFr();
   }
 
-  /**
-   * @template {Symbiote} T
-   * @param {(fr: DocumentFragment | T, fnCtx: T) => void} processorFn
-   */
-  addTemplateProcessor(processorFn) {
-    this.tplProcessors.add(processorFn);
-  }
-
   constructor() {
     super();
     /** @type {S} */
     this.init$ = Object.create(null);
     /** @type {Object<string, *>} */
     this.cssInit$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: unknown) => void>} */
-    this.tplProcessors = new Set();
+    /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: Symbiote) => void>} */
+    this.templateProcessors = new Set();
     /** @type {Object<string, any>} */
     this.ref = Object.create(null);
     this.allSubs = new Set();
@@ -425,7 +417,7 @@ export class Symbiote extends HTMLElement {
       }
       this.initChildren = [...this.childNodes];
       for (let proc of PROCESSORS) {
-        this.addTemplateProcessor(proc);
+        this.templateProcessors.add(proc);
       }
       if (this.pauseRender) {
         this.#initCallback();
@@ -475,8 +467,8 @@ export class Symbiote extends HTMLElement {
         this.allSubs.delete(sub);
       }
       this.#localCtx && PubSub.deleteCtx(this.#localCtx.uid);
-      for (let proc of this.tplProcessors) {
-        this.tplProcessors.delete(proc);
+      for (let proc of this.templateProcessors) {
+        this.templateProcessors.delete(proc);
       }
     }, this.destructionDelay);
   }

@@ -10,7 +10,7 @@ class TestSection extends Symbiote {
 
   constructor() {
     super();
-    this.addTemplateProcessor(slotProcessor);
+    this.templateProcessors.add(slotProcessor);
   }
 }
 

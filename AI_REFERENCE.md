@@ -398,7 +398,7 @@ import { slotProcessor } from '@symbiotejs/symbiote/core/slotProcessor.js';
 class MyWrapper extends Symbiote {
   constructor() {
     super();
-    this.addTemplateProcessor(slotProcessor);
+    this.templateProcessors.add(slotProcessor);
   }
 }
 
