@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote.js — Computed Properties Benchmark</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 24px;
+    }
+    h1 { color: #58a6ff; margin-bottom: 8px; font-size: 18px; }
+    h2 { color: #8b949e; margin: 16px 0 8px; font-size: 14px; font-weight: normal; }
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    label { font-size: 12px; color: #8b949e; }
+    input[type="number"] {
+      width: 80px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    button {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    button:hover { background: #2ea043; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #results {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 200px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .result-pass { color: #3fb950; }
+    .result-info { color: #58a6ff; }
+    .result-warn { color: #d29922; }
+    .result-head { color: #f0883e; font-weight: bold; }
+    .result-hybrid { color: #a371f7; }
+  </style>
+</head>
+<body>
+
+<h1>⚡ Computed Properties Benchmark — Original vs Hybrid</h1>
+<h2>Compares current global-scan approach with per-instance dependency tracking</h2>
+
+<div class="controls">
+  <div>
+    <label>PubSub instances:</label>
+    <input type="number" id="ctxCount" value="50" min="1" max="1000">
+  </div>
+  <div>
+    <label>Computed props / instance:</label>
+    <input type="number" id="compCount" value="3" min="0" max="50">
+  </div>
+  <div>
+    <label>State updates:</label>
+    <input type="number" id="updateCount" value="1000" min="1" max="50000">
+  </div>
+  <div>
+    <label>Warmup rounds:</label>
+    <input type="number" id="warmupCount" value="3" min="0" max="10">
+  </div>
+  <button id="runBtn" onclick="runBenchmark()">Run Benchmark</button>
+</div>
+
+<div id="results">Click "Run Benchmark" to start...</div>
+
+<script type="module">
+  import { PubSub as Original } from '../core/PubSub.js';
+  import { PubSub as Hybrid } from './PubSub-hybrid.js';
+
+  const resultsEl = document.getElementById('results');
+  const runBtn = document.getElementById('runBtn');
+
+  function log(msg, cls = '') {
+    let span = document.createElement('span');
+    span.className = cls;
+    span.textContent = msg + '\n';
+    resultsEl.appendChild(span);
+    resultsEl.scrollTop = resultsEl.scrollHeight;
+  }
+
+  function clearLog() {
+    resultsEl.innerHTML = '';
+  }
+
+  // --- Scenario runners ---
+
+  /**
+   * Scenario 1: Baseline — no computed props
+   */
+  function benchBaseline(PS, ctxCount, updateCount) {
+    let instances = [];
+    for (let i = 0; i < ctxCount; i++) {
+      instances.push(PS.registerCtx({ a: 0, b: 0, c: 0 }));
+    }
+
+    let start = performance.now();
+    for (let u = 0; u < updateCount; u++) {
+      instances[u % ctxCount].pub('a', u);
+    }
+    let elapsed = performance.now() - start;
+
+    instances.forEach((ctx) => PS.deleteCtx(ctx.uid));
+    return elapsed;
+  }
+
+  /**
+   * Scenario 2: Local computed — N instances, each with M computed props
+   */
+  function benchLocalComputed(PS, ctxCount, compCount, updateCount) {
+    let instances = [];
+    for (let i = 0; i < ctxCount; i++) {
+      let schema = { a: 0, b: 0, c: 0 };
+      for (let c = 0; c < compCount; c++) {
+        schema[`+comp${c}`] = () => schema.a + schema.b + c;
+      }
+      let ctx = PS.registerCtx(schema);
+      for (let c = 0; c < compCount; c++) {
+        ctx.read(`+comp${c}`);
+      }
+      instances.push(ctx);
+    }
+
+    let start = performance.now();
+    for (let u = 0; u < updateCount; u++) {
+      instances[u % ctxCount].pub('a', u);
+    }
+    let elapsed = performance.now() - start;
+
+    instances.forEach((ctx) => PS.deleteCtx(ctx.uid));
+    return elapsed;
+  }
+
+  /**
+   * Scenario 3: Sparse — many instances, only ONE has computed props
+   */
+  function benchSparseComputed(PS, ctxCount, compCount, updateCount) {
+    let instances = [];
+    let schema = { a: 0, b: 0 };
+    for (let c = 0; c < compCount; c++) {
+      schema[`+comp${c}`] = () => schema.a + schema.b + c;
+    }
+    let primary = PS.registerCtx(schema);
+    for (let c = 0; c < compCount; c++) {
+      primary.read(`+comp${c}`);
+    }
+    instances.push(primary);
+
+    for (let i = 1; i < ctxCount; i++) {
+      instances.push(PS.registerCtx({ x: 0 }));
+    }
+
+    let target = instances[1] || primary;
+    let start = performance.now();
+    for (let u = 0; u < updateCount; u++) {
+      target.pub('x', u);
+    }
+    let elapsed = performance.now() - start;
+
+    instances.forEach((ctx) => PS.deleteCtx(ctx.uid));
+    return elapsed;
+  }
+
+  /**
+   * Scenario 4: Cross-context computed
+   * Original: implicit (global scan catches it)
+   * Hybrid: explicit deps syntax { deps: [...], fn: ... }
+   */
+  function benchCrossCtxComputed(PS, ctxCount, updateCount, useExplicitDeps = false) {
+    let instances = [];
+    let sharedCtx = PS.registerCtx({ shared: 0 }, 'BENCH_SHARED');
+    instances.push(sharedCtx);
+
+    for (let i = 0; i < ctxCount; i++) {
+      let schema = { local: 0 };
+      if (useExplicitDeps) {
+        // Hybrid: explicit deps
+        schema['+crossComp'] = {
+          deps: ['BENCH_SHARED/shared'],
+          fn: () => sharedCtx.read('shared') + schema.local,
+        };
+      } else {
+        // Original: implicit (global scan)
+        schema['+crossComp'] = () => sharedCtx.read('shared') + schema.local;
+      }
+      let ctx = PS.registerCtx(schema);
+      ctx.read('+crossComp');
+      instances.push(ctx);
+    }
+
+    let start = performance.now();
+    for (let u = 0; u < updateCount; u++) {
+      sharedCtx.pub('shared', u);
+    }
+    let elapsed = performance.now() - start;
+
+    instances.forEach((ctx) => PS.deleteCtx(ctx.uid));
+    PS.deleteCtx('BENCH_SHARED');
+    return elapsed;
+  }
+
+  // --- Helpers ---
+
+  function fmtMs(ms) { return ms.toFixed(2); }
+  function fmtUs(ms, count) { return (ms / count * 1000).toFixed(2); }
+  function fmtPct(val, base) {
+    let pct = ((val / base - 1) * 100);
+    return (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
+  }
+  function speedup(original, hybrid) {
+    let x = original / hybrid;
+    return x.toFixed(1) + 'x ' + (x > 1 ? 'faster' : 'slower');
+  }
+
+  async function runBenchmark() {
+    runBtn.disabled = true;
+    clearLog();
+
+    let ctxCount = parseInt(document.getElementById('ctxCount').value);
+    let compCount = parseInt(document.getElementById('compCount').value);
+    let updateCount = parseInt(document.getElementById('updateCount').value);
+    let warmupCount = parseInt(document.getElementById('warmupCount').value);
+
+    log('Configuration:', 'result-head');
+    log(`  PubSub instances: ${ctxCount}`);
+    log(`  Computed props per instance: ${compCount}`);
+    log(`  State updates: ${updateCount}`);
+    log(`  Warmup rounds: ${warmupCount}`);
+    log('');
+    await new Promise((r) => setTimeout(r, 50));
+
+    // ── Scenario 1: Baseline ──
+    log('━━━ Scenario 1: Baseline (no computed props) ━━━', 'result-head');
+    for (let w = 0; w < warmupCount; w++) benchBaseline(Original, ctxCount, updateCount);
+    let origBase = benchBaseline(Original, ctxCount, updateCount);
+
+    for (let w = 0; w < warmupCount; w++) benchBaseline(Hybrid, ctxCount, updateCount);
+    let hybBase = benchBaseline(Hybrid, ctxCount, updateCount);
+
+    log(`  Original: ${fmtMs(origBase)} ms  (${fmtUs(origBase, updateCount)} µs/update)`, 'result-pass');
+    log(`  Hybrid:   ${fmtMs(hybBase)} ms  (${fmtUs(hybBase, updateCount)} µs/update)`, 'result-hybrid');
+    log('');
+    await new Promise((r) => setTimeout(r, 50));
+
+    // ── Scenario 2: Local computed ──
+    log(`━━━ Scenario 2: Local computed (${compCount} per instance) ━━━`, 'result-head');
+    for (let w = 0; w < warmupCount; w++) benchLocalComputed(Original, ctxCount, compCount, updateCount);
+    let origLocal = benchLocalComputed(Original, ctxCount, compCount, updateCount);
+
+    for (let w = 0; w < warmupCount; w++) benchLocalComputed(Hybrid, ctxCount, compCount, updateCount);
+    let hybLocal = benchLocalComputed(Hybrid, ctxCount, compCount, updateCount);
+
+    log(`  Original: ${fmtMs(origLocal)} ms  (${fmtUs(origLocal, updateCount)} µs/update)  ${fmtPct(origLocal, origBase)} vs baseline`, 'result-pass');
+    log(`  Hybrid:   ${fmtMs(hybLocal)} ms  (${fmtUs(hybLocal, updateCount)} µs/update)  ${fmtPct(hybLocal, hybBase)} vs baseline`, 'result-hybrid');
+    log(`  → Hybrid is ${speedup(origLocal, hybLocal)}`, 'result-info');
+    log('');
+    await new Promise((r) => setTimeout(r, 50));
+
+    // ── Scenario 3: Sparse ──
+    log(`━━━ Scenario 3: Sparse (1 of ${ctxCount} has computeds) ━━━`, 'result-head');
+    for (let w = 0; w < warmupCount; w++) benchSparseComputed(Original, ctxCount, compCount, updateCount);
+    let origSparse = benchSparseComputed(Original, ctxCount, compCount, updateCount);
+
+    for (let w = 0; w < warmupCount; w++) benchSparseComputed(Hybrid, ctxCount, compCount, updateCount);
+    let hybSparse = benchSparseComputed(Hybrid, ctxCount, compCount, updateCount);
+
+    log(`  Original: ${fmtMs(origSparse)} ms  (${fmtUs(origSparse, updateCount)} µs/update)  ${fmtPct(origSparse, origBase)} vs baseline`, 'result-pass');
+    log(`  Hybrid:   ${fmtMs(hybSparse)} ms  (${fmtUs(hybSparse, updateCount)} µs/update)  ${fmtPct(hybSparse, hybBase)} vs baseline`, 'result-hybrid');
+    log(`  → Hybrid is ${speedup(origSparse, hybSparse)}`, 'result-info');
+    log('');
+    await new Promise((r) => setTimeout(r, 50));
+
+    // ── Scenario 4: Cross-context ──
+    log('━━━ Scenario 4: Cross-context computed ━━━', 'result-head');
+    for (let w = 0; w < warmupCount; w++) benchCrossCtxComputed(Original, ctxCount, updateCount, false);
+    let origCross = benchCrossCtxComputed(Original, ctxCount, updateCount, false);
+
+    for (let w = 0; w < warmupCount; w++) benchCrossCtxComputed(Hybrid, ctxCount, updateCount, true);
+    let hybCross = benchCrossCtxComputed(Hybrid, ctxCount, updateCount, true);
+
+    log(`  Original (implicit): ${fmtMs(origCross)} ms  (${fmtUs(origCross, updateCount)} µs/update)`, 'result-pass');
+    log(`  Hybrid (explicit):   ${fmtMs(hybCross)} ms  (${fmtUs(hybCross, updateCount)} µs/update)`, 'result-hybrid');
+    log(`  → Hybrid is ${speedup(origCross, hybCross)}`, 'result-info');
+    log('');
+
+    // ── Summary ──
+    log('━━━ Summary ━━━', 'result-head');
+    log('');
+    log('  Scenario            │  Original   │  Hybrid     │  Speedup');
+    log('  ────────────────────┼─────────────┼─────────────┼──────────');
+    log(`  Baseline            │ ${fmtMs(origBase).padStart(8)} ms │ ${fmtMs(hybBase).padStart(8)} ms │  ${speedup(origBase, hybBase)}`);
+    log(`  Local computed      │ ${fmtMs(origLocal).padStart(8)} ms │ ${fmtMs(hybLocal).padStart(8)} ms │  ${speedup(origLocal, hybLocal)}`);
+    log(`  Sparse computed     │ ${fmtMs(origSparse).padStart(8)} ms │ ${fmtMs(hybSparse).padStart(8)} ms │  ${speedup(origSparse, hybSparse)}`);
+    log(`  Cross-context       │ ${fmtMs(origCross).padStart(8)} ms │ ${fmtMs(hybCross).padStart(8)} ms │  ${speedup(origCross, hybCross)}`);
+    log('');
+    log('  Note: Hybrid uses queueMicrotask batching for local computeds,', 'result-info');
+    log('  so recalcs happen async. Cross-context uses explicit deps.', 'result-info');
+
+    runBtn.disabled = false;
+  }
+
+  window.runBenchmark = runBenchmark;
+</script>
+
+</body>
+</html>
