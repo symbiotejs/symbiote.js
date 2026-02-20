@@ -195,18 +195,21 @@ export class PubSub {
         this.__computedMap = {};
       }
 
-      let currentVal = this.#executeTracked(prop);
-
-      if (!Object.keys(this.__computedMap).includes(prop)) {
-        this.__computedMap[prop] = currentVal;
-
-        let entry = this.store[prop];
-        if (entry?.constructor === Object && Array.isArray(entry.deps)) {
-          this.#setupExternalDeps(prop, entry.deps);
-        }
-
-        this.notify(prop);
+      // Already initialized — return cached value (recalc happens in #recalcComputed)
+      if (prop in this.__computedMap) {
+        return this.__computedMap[prop];
       }
+
+      // First read — initialize: execute, cache, setup deps
+      let currentVal = this.#executeTracked(prop);
+      this.__computedMap[prop] = currentVal;
+
+      let entry = this.store[prop];
+      if (entry?.constructor === Object && Array.isArray(entry.deps)) {
+        this.#setupExternalDeps(prop, entry.deps);
+      }
+
+      this.notify(prop);
       return currentVal;
     } else {
       if (this.#trackingTarget && typeof prop === 'string') {

@@ -1,0 +1,298 @@
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b22;
+  --bg-input: #0d1117;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-purple: #a371f7;
+  --accent-orange: #f0883e;
+  --accent-red: #f85149;
+  --radius: 8px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+test-app {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ── Shared card styles ── */
+test-section {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+
+  & h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  & [status] {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+
+    &[status="pass"] {
+      background: color-mix(in srgb, var(--accent-green) 15%, transparent);
+      color: var(--accent-green);
+    }
+    &[status="fail"] {
+      background: color-mix(in srgb, var(--accent-red) 15%, transparent);
+      color: var(--accent-red);
+    }
+  }
+}
+
+/* ── Controls ── */
+button {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  &[primary] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+
+    &:hover {
+      filter: brightness(1.15);
+    }
+  }
+}
+
+input[type="text"], input[type="number"] {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+/* ── Section-specific ── */
+.value-display {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 4px 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Counter ── */
+counter-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Todo list ── */
+todo-list {
+  display: block;
+
+  & .todo-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  & input[type="text"] {
+    flex: 1;
+  }
+}
+
+todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+  }
+
+  & [done] {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  & span {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  & button {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
+
+/* ── Shared context ── */
+shared-producer, shared-consumer {
+  display: block;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+shared-producer {
+  border-color: color-mix(in srgb, var(--accent-orange) 40%, var(--border));
+}
+
+shared-consumer {
+  border-color: color-mix(in srgb, var(--accent-purple) 40%, var(--border));
+}
+
+/* ── App header ── */
+.app-header {
+  margin-bottom: 24px;
+
+  & h1 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  & p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+}
+
+/* ── Test summary ── */
+test-summary {
+  display: block;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  & h2 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  & .summary-line {
+    font-size: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 2px 0;
+  }
+}
+
+/* ── Utility classes ── */
+.computed-label {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.section-label {
+  font-size: 12px;
+  margin-bottom: 8px;
+  font-weight: 600;
+
+  &.producer { color: var(--accent-orange); }
+  &.consumer { color: var(--accent-purple); }
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--text-muted);
+
+  &.summary {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+}
+
+.value-display.small {
+  font-size: 13px;
+}
+
+.value-display.purple {
+  color: var(--accent-purple);
+}
+
+.grid-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 20px;
+}

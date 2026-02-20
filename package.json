@@ -6,13 +6,17 @@
   "author": "team@rnd-pro.com",
   "license": "MIT",
   "scripts": {
-    "types": "rm -rf types && tsc -p dts.cfg.json"
+    "types": "rm -rf types && tsc -p dts.cfg.json",
+    "postinstall": "node scripts/postinstall.js"
   },
   "files": [
     "core/*",
     "utils/*",
     "types/*",
+    "scripts/*",
     "README.md",
+    "AI_REFERENCE.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "module": "./core/index.js",
