@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
-    "publish": "npm run types && npm publish",
+    "publish": "npm run types && node scripts/update-exports.js && npm publish",
     "postinstall": "node scripts/postinstall.js"
   },
   "files": [
@@ -27,37 +27,49 @@
       "types": "./types/core/index.d.ts",
       "default": "./core/index.js"
     },
-    "./core/Symbiote.js": {
-      "types": "./types/core/Symbiote.d.ts",
-      "default": "./core/Symbiote.js"
+    "./core/AppRouter.js": {
+      "types": "./types/core/AppRouter.d.ts",
+      "default": "./core/AppRouter.js"
     },
     "./core/PubSub.js": {
       "types": "./types/core/PubSub.d.ts",
       "default": "./core/PubSub.js"
     },
-    "./core/html.js": {
-      "types": "./types/core/html.d.ts",
-      "default": "./core/html.js"
+    "./core/Symbiote.js": {
+      "types": "./types/core/Symbiote.d.ts",
+      "default": "./core/Symbiote.js"
     },
     "./core/css.js": {
       "types": "./types/core/css.d.ts",
       "default": "./core/css.js"
     },
+    "./core/dictionary.js": {
+      "types": "./types/core/dictionary.d.ts",
+      "default": "./core/dictionary.js"
+    },
+    "./core/html.js": {
+      "types": "./types/core/html.d.ts",
+      "default": "./core/html.js"
+    },
+    "./core/itemizeProcessor-keyed.js": {
+      "types": "./types/core/itemizeProcessor-keyed.d.ts",
+      "default": "./core/itemizeProcessor-keyed.js"
+    },
+    "./core/itemizeProcessor.js": {
+      "types": "./types/core/itemizeProcessor.d.ts",
+      "default": "./core/itemizeProcessor.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
     },
-    "./core/AppRouter.js": {
-      "types": "./types/core/AppRouter.d.ts",
-      "default": "./core/AppRouter.js"
+    "./core/tpl-processors.js": {
+      "types": "./types/core/tpl-processors.d.ts",
+      "default": "./core/tpl-processors.js"
     },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
       "default": "./utils/UID.js"
-    },
-    "./utils/setNestedProp.js": {
-      "types": "./types/utils/setNestedProp.d.ts",
-      "default": "./utils/setNestedProp.js"
     },
     "./utils/dom-helpers.js": {
       "types": "./types/utils/dom-helpers.d.ts",
@@ -67,9 +79,21 @@
       "types": "./types/utils/kebabToCamel.d.ts",
       "default": "./utils/kebabToCamel.js"
     },
+    "./utils/parseCssPropertyValue.js": {
+      "types": "./types/utils/parseCssPropertyValue.d.ts",
+      "default": "./utils/parseCssPropertyValue.js"
+    },
+    "./utils/prepareStyleSheet.js": {
+      "types": "./types/utils/prepareStyleSheet.d.ts",
+      "default": "./utils/prepareStyleSheet.js"
+    },
     "./utils/reassignDictionary.js": {
       "types": "./types/utils/reassignDictionary.d.ts",
       "default": "./utils/reassignDictionary.js"
+    },
+    "./utils/setNestedProp.js": {
+      "types": "./types/utils/setNestedProp.d.ts",
+      "default": "./utils/setNestedProp.js"
     }
   },
   "publishConfig": {
