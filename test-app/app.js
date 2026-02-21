@@ -1,5 +1,7 @@
 import Symbiote, { html, css, PubSub } from '../core/index.js';
 
+Symbiote.devMode = true;
+
 import './components/counter-widget.js';
 import './components/shared-producer.js';
 import './components/shared-consumer.js';

@@ -22,19 +22,28 @@ export function html(parts, ...props) {
   let resultHtml = '';
   parts.forEach((part, idx) => {
     resultHtml += part;
-    if (props[idx]?.constructor === Object) {
+    if (idx >= props.length) return;
+    let val = props[idx];
+    if (val === undefined || val === null) {
+      console.error(
+        `[Symbiote > html] \`this\` used in template interpolation (value: ${val}).\n`
+        + 'Templates are context-free — use ${{ prop: \'stateKey\' }} binding syntax instead.'
+      );
+      return;
+    }
+    if (val?.constructor === Object) {
       let bindStr = '';
       // @ts-expect-error
-      for (let key in props[idx]) {
+      for (let key in val) {
         if (RESERVED_ATTRIBUTES.includes(key)) {
-          resultHtml += ` ${key}="${props[idx][key]}"`;
+          resultHtml += ` ${key}="${val[key]}"`;
         } else {
-          bindStr += `${key}:${props[idx][key]};`;
+          bindStr += `${key}:${val[key]};`;
         }
       }
       bindStr && (resultHtml += ` ${DICT.BIND_ATTR}="${bindStr}"`);
-    } else if (props[idx]) {
-      resultHtml += props[idx];
+    } else {
+      resultHtml += val;
     }
   });
   return resultHtml;

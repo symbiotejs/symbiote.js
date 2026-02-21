@@ -375,9 +375,10 @@ MyList.template = html`
 `;
 ```
 
-> **CRITICAL**: Inside itemize templates, items have their own state scope.
+> **CRITICAL**: Inside itemize templates, items are full Symbiote components with their own state scope.
 > - `{{name}}` — item's own property
-> - `${{onclick: '^handler'}}` — **MUST use `^` prefix** to reach parent component methods
+> - `${{onclick: 'handler'}}` — binds to the item component's own method/property
+> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property
 > - Failure to use `^` for parent handlers will result in broken event bindings
 
 ### Custom item component
@@ -571,11 +572,27 @@ reassignDictionary({ BIND_ATTR: 'data-bind' }); // customize internal attribute 
 
 ---
 
+## Dev Mode
+
+Enable verbose warnings during development:
+```js
+Symbiote.devMode = true;
+```
+
+**Always-on** (regardless of `devMode`):
+- `[Symbiote]` prefixed warnings for PubSub errors, duplicate tags, type mismatches, router issues
+- `this` in template interpolation error (`html` tag detects `${this.x}` usage)
+
+**Dev-only** (`devMode = true`):
+- Unresolved binding keys — warns when a template binding auto-initializes to `null` (likely typo)
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **DON'T** use `this` in template strings — templates are decoupled from component context
 2. **DON'T** nest property keys with dots in state: `'obj.prop'` won't work as a state key
-3. **DON'T** forget `^` prefix for parent handlers inside itemize templates
+3. **DON'T** forget `^` prefix when referencing **parent** component properties from itemize items
 4. **DON'T** use `@` prefix directly in HTML — it's only for binding syntax (`${{'@attr': 'prop'}}`)
 5. **DON'T** treat `init$` as a regular object — it's processed at connection time
 6. **DON'T** define `template` inside the class body (`static template = html\`...\`` won't work) — it's a static property **setter**, assign it outside: `MyComponent.template = html\`...\``. Same applies to `rootStyles` and `shadowStyles`.

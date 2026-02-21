@@ -38,6 +38,9 @@ export class Symbiote extends HTMLElement {
   /** @type {HTMLTemplateElement} */
   static __tpl;
 
+  /** @type {Boolean} */
+  static devMode = false;
+
   get Symbiote() {
     return Symbiote;
   }
@@ -79,7 +82,7 @@ export class Symbiote extends HTMLElement {
           // @ts-expect-error
           template = customTpl.content.cloneNode(true);
         } else {
-          console.warn(`Symbiote template "${customTplSelector}" is not found...`);
+          console.warn(`[Symbiote] <${this.localName}>: custom template "${customTplSelector}" not found.`);
         }
       }
     }
@@ -489,12 +492,8 @@ export class Symbiote extends HTMLElement {
     if (registeredClass) {
       if (!isAlias && registeredClass !== this) {
         console.warn(
-          [
-            `Element with tag name "${tagName}" already registered.`,
-            `You're trying to override it with another class "${this.name}".`,
-            `This is most likely a mistake.`,
-            `New element will not be registered.`,
-          ].join('\n')
+          `[Symbiote] <${tagName}> is already registered (class: ${registeredClass.name}).\n`
+          + `Attempted re-registration with class "${this.name}" — skipped.`
         );
       }
       return this;
@@ -553,7 +552,7 @@ export class Symbiote extends HTMLElement {
       try {
         this.#cssDataCache[propName] = parseCssPropertyValue(val);
       } catch (e) {
-        !silentCheck && console.warn(`CSS Data error: ${propName}`);
+        !silentCheck && console.warn(`[Symbiote] <${this.localName}>: CSS data parse error for "${propName}". Check that the CSS custom property is defined.`);
         this.#cssDataCache[propName] = null;
       }
     }

@@ -72,8 +72,9 @@ export class PubSub {
    * @param {String} actionName
    * @param {*} prop
    */
-  static #warn(actionName, prop) {
-    console.warn(`Symbiote PubSub: cannot ${actionName}. Prop name: ` + prop);
+  static #warn(actionName, prop, ctx) {
+    let uid = String(ctx?.uid || 'local');
+    console.warn(`[Symbiote] PubSub (${uid}): cannot ${actionName}. Property: "${prop}"`);
   }
 
   /**
@@ -119,7 +120,10 @@ export class PubSub {
       let extCtx = PubSub.getCtx(ctxName, false);
 
       if (!extCtx) {
-        console.warn(`PubSub: external dep context "${ctxName}" not found for computed "${compProp}"`);
+        console.warn(
+          `[Symbiote] PubSub: external dep context "${ctxName}" not found for computed "${compProp}".\n`
+          + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
+        );
         continue;
       }
 
@@ -243,17 +247,20 @@ export class PubSub {
    */
   pub(prop, val) {
     if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      PubSub.#warn('publish', prop);
+      PubSub.#warn('publish', prop, this);
       return;
     }
     // @ts-expect-error
     if (prop?.startsWith(DICT.COMPUTED_PX) && val.constructor !== Function) {
-      PubSub.#warn('publish computed', prop);
+      PubSub.#warn('publish computed (value must be a Function)', prop, this);
       return;
     }
     if (!(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
-      // @ts-expect-error
-      console.warn(`Symbiote PubSub: type warning for "${prop}" [${typeof this.store[prop]} -> ${typeof val}]`);
+      let uid = String(this.uid || 'local');
+      console.warn(
+        `[Symbiote] PubSub (${uid}): type change for "${String(prop)}" [${typeof this.store[prop]} → ${typeof val}].\n`
+        + `Previous: ${JSON.stringify(this.store[prop])}\nNew: ${JSON.stringify(val)}`
+      );
     }
     this.store[prop] = val;
     this.notify(prop);
@@ -352,7 +359,7 @@ export class PubSub {
     /** @type {PubSub} */
     let data = PubSub.globalStore.get(uid);
     if (data) {
-      console.warn('PubSub: context UID "' + uid + '" is already in use');
+      console.warn(`[Symbiote] PubSub: context "${uid}" is already registered. Returning existing instance.`);
     } else {
       data = new PubSub(schema);
       data.uid = uid;
@@ -372,7 +379,10 @@ export class PubSub {
    * @returns {PubSub}
    */
   static getCtx(uid, notify = true) {
-    return PubSub.globalStore.get(uid) || (notify && console.warn('PubSub: wrong context UID - "' + uid + '"'), null);
+    return PubSub.globalStore.get(uid) || (notify && console.warn(
+      `[Symbiote] PubSub: context "${String(uid)}" not found.\n`
+      + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
+    ), null);
   }
 }
 

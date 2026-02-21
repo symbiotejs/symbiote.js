@@ -57,6 +57,14 @@ function domBindProcessor(fr, fnCtx) {
             fnCtx.add(valKey, fnCtx.getAttribute(valKey.replace(DICT.ATTR_BIND_PX, '')));
           } else {
             fnCtx.add(valKey, null);
+            // Dev-only: warn about bindings that aren't in init$ (likely typos)
+            if (fnCtx.Symbiote?.devMode && !prop.startsWith('on')) {
+              let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
+              console.warn(
+                `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
+                + `Known keys: [${known.join(', ')}]`
+              );
+            }
           }
         }
         // In case of event handler is null, bind to fallback method (if defined):

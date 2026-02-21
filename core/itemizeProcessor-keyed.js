@@ -80,8 +80,7 @@ export function itemizeProcessor(fr, fnCtx) {
           items.push(init);
         }
       } else {
-        console.warn('Symbiote list data type error:');
-        console.log(data);
+        console.warn(`[Symbiote] <${fnCtx.localName}>: itemize data must be Array or Object, got ${typeof data}:`, data);
         return;
       }
 

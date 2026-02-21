@@ -57,6 +57,15 @@
 
 ### Added
 
+- **`Symbiote.devMode` flag.**
+  Enables verbose development warnings (unresolved template bindings, etc.). Default: `false`.
+
+- **Enhanced warning messages.**
+  All warnings now use `[Symbiote]` prefix with component tag names, context UIDs, available contexts, and fix suggestions.
+
+- **`this` in template detection.**
+  `html` tagged template now fires `console.error` when `${this.…}` is used in template interpolation (templates are context-free).
+
 - **`reg()` returns the class itself.**
   Enables patterns like `export default MyComponent.reg('my-component')`.
 

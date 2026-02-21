@@ -45,7 +45,7 @@ export class AppRouter {
   static #compiledPatterns = [];
 
   static #print(msg) {
-    console.warn(msg);
+    console.warn(`[Symbiote > AppRouter] ${msg}`);
   }
 
   /** @param {String} title */
@@ -288,7 +288,7 @@ export class AppRouter {
     try {
       window.history.pushState(null, title, url);
     } catch (err) {
-      console.warn('AppRouter: History API is not available.');
+      console.warn('[Symbiote > AppRouter] History API is not available.');
     }
     document.title = title;
   }
