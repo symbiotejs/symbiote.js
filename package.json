@@ -6,7 +6,7 @@
   "author": "team@rnd-pro.com",
   "license": "MIT",
   "scripts": {
-    "types": "rm -rf types && tsc -p dts.cfg.json",
+    "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
     "postinstall": "node scripts/postinstall.js"
   },
   "files": [
@@ -108,6 +108,6 @@
     "JSDA"
   ],
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "^5.9.3"
   }
 }

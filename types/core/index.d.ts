@@ -2,7 +2,6 @@ export { Symbiote };
 export { html } from "./html.js";
 export { css } from "./css.js";
 export { PubSub } from "./PubSub.js";
-export { AppRouter } from "./AppRouter.js";
 export { DICT } from "./dictionary.js";
 export { UID } from "../utils/UID.js";
 export { setNestedProp } from "../utils/setNestedProp.js";

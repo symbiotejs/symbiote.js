@@ -2,11 +2,8 @@ export { html } from "./html.js";
 export { css } from "./css.js";
 export class Symbiote<S> extends HTMLElement {
     static __tpl: HTMLTemplateElement;
+    static devMode: boolean;
     static template: string;
-    static "__#2@#parseProp"<T extends Symbiote<any>>(prop: string, fnCtx: T): {
-        ctx: PubSub<any>;
-        name: string;
-    };
     static reg(tagName?: string, isAlias?: boolean): typeof Symbiote;
     static get is(): string;
     static bindAttributes(desc: {
@@ -21,7 +18,6 @@ export class Symbiote<S> extends HTMLElement {
     initCallback(): void;
     renderCallback(): void;
     render(template?: string | DocumentFragment, shadow?: boolean): void;
-
     init$: S;
     cssInit$: {
         [x: string]: any;
@@ -58,6 +54,7 @@ export class Symbiote<S> extends HTMLElement {
     connectedOnce: boolean;
     connectedCallback(): void;
     destroyCallback(): void;
+    destructionDelay: number;
     disconnectedCallback(): void;
     attributeChangedCallback(name: any, oldVal: any, newVal: any): void;
     getCssData(propName: string, silentCheck?: boolean): any;
