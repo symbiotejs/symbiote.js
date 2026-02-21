@@ -87,6 +87,13 @@
 
 - **AI_REFERENCE.md** — comprehensive AI context file for code assistants, covering full API surface, template syntax, state management, lifecycle, styling, routing, itemize, and common mistakes.
 
+- **Event handler method fallback.**
+  `on*` bindings now fall back to class methods when no matching `init$` property is found:
+  ```js
+  // Works without init$ entry — class method is used as fallback:
+  onSubmit() { console.log('submitted'); }
+  ```
+
 - **`destructionDelay` instance property.**
   Configurable delay (default `100`ms) before component destruction in `disconnectedCallback`. Override per-component to control cleanup timing:
   ```js

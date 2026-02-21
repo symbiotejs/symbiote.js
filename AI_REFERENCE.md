@@ -94,6 +94,17 @@ Binds `propName` from component state to the text content of a text node. Works 
 ```
 The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
 
+**Event handler resolution (3.x):** For `on*` bindings, Symbiote first looks for the key in `init$` (reactive state). If not found, it falls back to a **class method** with the same name. Both approaches work:
+```js
+class MyComp extends Symbiote {
+  // Approach 1: state property (arrow function)
+  init$ = { onClick: () => console.log('clicked') };
+
+  // Approach 2: class method (fallback)
+  onSubmit() { console.log('submitted'); }
+}
+```
+
 ### Nested property binding
 ```html
 <div ${{'style.color': 'colorProp'}}>Text</div>

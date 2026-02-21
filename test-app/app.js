@@ -6,6 +6,7 @@ import './components/shared-consumer.js';
 import './components/todo-list.js';
 import './components/test-section.js';
 import './components/styled-demo.js';
+import './components/router-demo.js';
 
 PubSub.registerCtx({
   score: 0,
@@ -66,6 +67,10 @@ TestApp.template = html`
 
   <test-section title="5. Styling (rootStyles / shadowStyles)" statusText="Visual" statusType="pass">
     <styled-demo></styled-demo>
+  </test-section>
+
+  <test-section title="6. AppRouter (path routing, guards, lazy load)" statusText="Interactive" statusType="pass">
+    <router-demo></router-demo>
   </test-section>
 `;
 

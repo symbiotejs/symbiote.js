@@ -59,6 +59,10 @@ function domBindProcessor(fr, fnCtx) {
             fnCtx.add(valKey, null);
           }
         }
+        // In case of event handler is null, bind to fallback method (if defined):
+        if (prop.startsWith('on') && fnCtx.$[valKey] === null && typeof fnCtx[valKey] === 'function') {
+          fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx), true);
+        }
         fnCtx.sub(valKey, (val) => {
           if (castType === 'double') {
             val = !!val;
@@ -73,7 +77,7 @@ function domBindProcessor(fr, fnCtx) {
             }
           } else {
             if (!setNestedProp(el, prop, val)) {
-              // Custom element instances are not constructed properly at this time, so:
+              // Custom element instances are not constructed properly at this moment, so:
               if (!el[DICT.SET_LATER_KEY]) {
                 el[DICT.SET_LATER_KEY] = Object.create(null);
               }
