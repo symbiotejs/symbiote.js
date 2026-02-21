@@ -16,6 +16,16 @@
 
 - **`AppRouter.applyRoute()` renamed to `AppRouter.navigate()`.**
 
+- **`AppRouter` removed from main entry point.**
+  Now imported directly from its module:
+  ```js
+  // Before (2.x):
+  import { AppRouter } from '@symbiotejs/symbiote';
+
+  // After (3.x):
+  import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+  ```
+
 - **`#disconnectTimeout` renamed to `#destroyTimeout`.**
   Internal field renamed for clarity. No public API impact.
 

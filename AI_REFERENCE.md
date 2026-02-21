@@ -9,7 +9,7 @@
 
 ```js
 // NPM
-import Symbiote, { html, css, PubSub, AppRouter, DICT } from '@symbiotejs/symbiote';
+import Symbiote, { html, css, PubSub, DICT } from '@symbiotejs/symbiote';
 
 // CDN / HTTPS
 import Symbiote, { html, css } from 'https://esm.run/@symbiotejs/symbiote';
@@ -422,7 +422,7 @@ Usage:
 
 ### Path-based routing (recommended)
 ```js
-import { AppRouter } from '@symbiotejs/symbiote';
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
 
 const routerCtx = AppRouter.initRoutingCtx('R', {
   home:     { pattern: '/',            title: 'Home', default: true },
