@@ -79,7 +79,12 @@ MyComponent.reg('my-component');
 
 ## Template Binding Syntax
 
-Use the `html` tagged template literal for ergonomic binding syntax.
+Use the `html` tagged template literal for ergonomic binding syntax. It supports **two interpolation modes**:
+
+- **`Object`** → converted to `bind="prop:key;"` attribute (reactive binding)
+- **`string` / `number`** → concatenated as-is (native interpolation, useful for SSR page shells)
+
+This dual-mode design means `html` works for both component templates and full-page SSR output — no separate "server-only template" function is needed.
 
 ### Text node binding
 ```html
