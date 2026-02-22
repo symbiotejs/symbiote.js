@@ -204,6 +204,37 @@ PubSub.registerCtx({
 this.$['APP/user'] = 'New name';
 ```
 
+### Shared context (`*`)
+
+Inspired by native HTML `name` attributes — like how `<input name="group">` groups radio buttons — the `ctx` attribute groups components into a shared data context. Components with the same `ctx` value share `*`-prefixed properties:
+
+```html
+<upload-btn ctx="gallery"></upload-btn>
+<file-list  ctx="gallery"></file-list>
+<status-bar ctx="gallery"></status-bar>
+```
+
+```js
+class UploadBtn extends Symbiote {
+  init$ = {
+    '*files': [],
+    onUpload: () => {
+      this.$['*files'] = [...this.$['*files'], newFile];
+    },
+  }
+}
+
+class FileList extends Symbiote {
+  init$ = {
+    '*files': [],
+  }
+}
+```
+
+All three components access the same `*files` state — no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
+
+The context name can also be inherited via CSS custom property `--ctx`, enabling layout-driven grouping.
+
 ### Routing (optional module)
 
 ```js
@@ -263,6 +294,32 @@ Isolated.shadowStyles = css`
 ```
 
 All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` — no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
+
+### CSS Data Binding
+
+Components can read CSS custom properties as reactive state via `cssInit$`:
+
+```css
+my-widget {
+  --columns: 3;
+  --label: 'Click me';
+}
+```
+
+```js
+class MyWidget extends Symbiote {
+  cssInit$ = {
+    '--columns': 1,
+    '--label': '',
+  }
+}
+
+MyWidget.template = html`
+  <span ${{textContent: '--label'}}></span>
+`;
+```
+
+CSS values are parsed automatically — quoted strings become strings, numbers become numbers. Call `this.updateCssData()` to re-read after runtime CSS changes. This enables CSS-driven configuration: theme values, layout parameters, or localized strings — all settable from CSS without touching JS.
 
 ## Best for
 

@@ -12,6 +12,10 @@
     sym-animated[leaving] {
       opacity: 0;
     }
+    sym-css-data {
+      --theme-color: 'crimson';
+      --item-count: 5;
+    }
   </style>
 </head>
 <body>
@@ -281,6 +285,20 @@
   `;
   SymSharedB.reg('sym-shared-b');
 
+  // ── 18. CSS data binding (--prop) ──
+
+  class SymCssData extends Symbiote {
+    cssInit$ = {
+      '--theme-color': '',
+      '--item-count': 0,
+    }
+  }
+  SymCssData.template = html`
+    <span id="css-color" ${{textContent: '--theme-color'}}></span>
+    <span id="css-count" ${{textContent: '--item-count'}}></span>
+  `;
+  SymCssData.reg('sym-css-data');
+
   // ── Mount all ──
 
   document.getElementById('mount').innerHTML = `
@@ -301,6 +319,7 @@
     <sym-parent id="parent-el"></sym-parent>
     <sym-shared-a ctx="shared-test" id="shared-a"></sym-shared-a>
     <sym-shared-b ctx="shared-test" id="shared-b"></sym-shared-b>
+    <sym-css-data id="css-data-el"></sym-css-data>
   `;
 
   window.__TEST_READY = true;

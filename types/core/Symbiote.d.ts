@@ -34,10 +34,8 @@ export class Symbiote<S> extends HTMLElement {
     processInnerHtml: boolean;
     ssrMode: boolean;
     allowCustomTemplate: boolean;
-    ctxOwner: boolean;
     isVirtual: boolean;
     allowTemplateInits: boolean;
-    get autoCtxName(): string;
     get cssCtxName(): string;
     get ctxName(): string;
     get localCtx(): PubSub<any>;

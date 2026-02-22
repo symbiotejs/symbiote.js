@@ -274,4 +274,20 @@ test.describe('Symbiote class', () => {
     expect(await page.textContent('#shared-label-a')).toBe('hello');
     expect(await page.textContent('#shared-label-b')).toBe('hello');
   });
+
+  // ── CSS data binding (--prop) ──
+
+  test('--prop via cssInit$ should read CSS custom property value', async ({ page }) => {
+    expect(await page.textContent('#css-color')).toBe('crimson');
+    expect(await page.textContent('#css-count')).toBe('5');
+  });
+
+  test('updateCssData should refresh state from changed CSS', async ({ page }) => {
+    await page.evaluate(() => {
+      let el = document.querySelector('#css-data-el');
+      el.style.setProperty('--theme-color', "'blue'");
+      el.updateCssData();
+    });
+    expect(await page.textContent('#css-color')).toBe('blue');
+  });
 });

@@ -7,7 +7,6 @@ export function reassignDictionary(dict: Partial<any>): {
     COMPUTED_PX: string;
     CSS_DATA_PX: string;
     CTX_NAME_ATTR: string;
-    CTX_OWNER_ATTR: string;
     CSS_CTX_PROP: string;
     EL_REF_ATTR: string;
     AUTO_TAG_PX: string;
