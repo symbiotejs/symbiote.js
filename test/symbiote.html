@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote Class Tests</title>
+  <style>
+    sym-animated {
+      display: block;
+      opacity: 1;
+      transition: opacity 0.05s;
+    }
+    sym-animated[leaving] {
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="mount"></div>
+
+<script type="module">
+  import Symbiote, { html, css, PubSub } from '/core/Symbiote.js';
+
+  // ── 1. Basic component (reg, init$, $, template) ──
+
+  class SymBasic extends Symbiote {
+    init$ = {
+      label: 'initial',
+    }
+  }
+  SymBasic.template = html`
+    <span id="basic-label" ${{textContent: 'label'}}></span>
+  `;
+  SymBasic.reg('sym-basic');
+
+  // ── 2. Lifecycle hooks ──
+
+  class SymLifecycle extends Symbiote {
+    init$ = {
+      status: 'created',
+    }
+    initCallback() {
+      this.$.status = 'init';
+      this._initCalled = true;
+    }
+    renderCallback() {
+      this._renderCalled = true;
+    }
+    destroyCallback() {
+      window.__destroyCalled = true;
+    }
+  }
+  SymLifecycle.template = html`
+    <span id="lc-status" ${{textContent: 'status'}}></span>
+  `;
+  SymLifecycle.reg('sym-lifecycle');
+
+  // ── 3. set$ batch update ──
+
+  class SymBatch extends Symbiote {
+    init$ = {
+      a: 'A',
+      b: 'B',
+    }
+  }
+  SymBatch.template = html`
+    <span id="batch-a" ${{textContent: 'a'}}></span>
+    <span id="batch-b" ${{textContent: 'b'}}></span>
+  `;
+  SymBatch.reg('sym-batch');
+
+  // ── 4. sub() from inside component ──
+
+  class SymSub extends Symbiote {
+    init$ = {
+      source: 'hello',
+      mirror: '',
+    }
+    initCallback() {
+      this.sub('source', (val) => {
+        this.$.mirror = val.toUpperCase();
+      });
+    }
+  }
+  SymSub.template = html`
+    <span id="sub-mirror" ${{textContent: 'mirror'}}></span>
+  `;
+  SymSub.reg('sym-sub');
+
+  // ── 5. ref ──
+
+  class SymRef extends Symbiote {
+    init$ = {}
+    initCallback() {
+      this.ref.myBtn.textContent = 'ref works';
+    }
+  }
+  SymRef.template = html`
+    <button ref="myBtn" id="ref-btn">placeholder</button>
+  `;
+  SymRef.reg('sym-ref');
+
+  // ── 6. has() / add() / add$() ──
+
+  class SymAdd extends Symbiote {
+    init$ = {
+      existing: 'yes',
+    }
+  }
+  SymAdd.template = html`<div></div>`;
+  SymAdd.reg('sym-add');
+
+  // ── 7. Shadow DOM (renderShadow) ──
+
+  class SymShadow extends Symbiote {
+    renderShadow = true;
+    init$ = {
+      inside: 'shadow content',
+    }
+  }
+  SymShadow.template = html`
+    <span id="shadow-inner" ${{textContent: 'inside'}}></span>
+  `;
+  SymShadow.shadowStyles = css`
+    :host { display: block; }
+  `;
+  SymShadow.reg('sym-shadow');
+
+  // ── 8. rootStyles ──
+
+  class SymStyled extends Symbiote {
+    init$ = { val: 'styled' }
+  }
+  SymStyled.template = html`
+    <span id="styled-span" ${{textContent: 'val'}}></span>
+  `;
+  SymStyled.rootStyles = css`
+    sym-styled { color: rgb(255, 0, 0); }
+  `;
+  SymStyled.reg('sym-styled');
+
+  // ── 9. bindAttributes ──
+
+  class SymAttr extends Symbiote {
+    init$ = {
+      mode: 'default',
+    }
+  }
+  SymAttr.template = html`
+    <span id="attr-mode" ${{textContent: 'mode'}}></span>
+  `;
+  SymAttr.bindAttributes({ mode: 'mode' });
+  SymAttr.reg('sym-attr');
+
+  // ── 10. animateOut (static) ──
+
+  class SymAnimated extends Symbiote {
+    init$ = {}
+  }
+  SymAnimated.template = html`<span>animated</span>`;
+  SymAnimated.reg('sym-animated');
+
+  // ── 11. {{prop}} text node binding ──
+
+  class SymText extends Symbiote {
+    init$ = {
+      greeting: 'Hi',
+      name: 'World',
+    }
+  }
+  SymText.template = html`
+    <p id="text-output">{{greeting}}, {{name}}!</p>
+  `;
+  SymText.reg('sym-text');
+
+  // ── 12. Named context access ──
+
+  PubSub.registerCtx({ appName: 'TestApp' }, 'TESTCTX');
+
+  class SymCtx extends Symbiote {
+    init$ = {
+      local: 'local-val',
+    }
+    initCallback() {
+      this.sub('TESTCTX/appName', (val) => {
+        this.$.local = val;
+      });
+    }
+  }
+  SymCtx.template = html`
+    <span id="ctx-val" ${{textContent: 'local'}}></span>
+  `;
+  SymCtx.reg('sym-ctx');
+
+  // ── 13. Attribute binding (@attr) ──
+
+  class SymAttrBind extends Symbiote {
+    init$ = {
+      isHidden: false,
+    }
+  }
+  SymAttrBind.template = html`
+    <div id="attr-div" ${{'@hidden': '!!isHidden'}}>visible</div>
+  `;
+  SymAttrBind.reg('sym-attr-bind');
+
+  // ── 14. Computed (via init$) ──
+
+  class SymComputed extends Symbiote {
+    init$ = {
+      firstName: 'John',
+      lastName: 'Doe',
+      '+fullName': () => {
+        return this.$.firstName + ' ' + this.$.lastName;
+      },
+    }
+  }
+  SymComputed.template = html`
+    <span id="computed-name" ${{textContent: '+fullName'}}></span>
+  `;
+  SymComputed.reg('sym-computed');
+
+  // ── 15. reg() returns class ──
+
+  class SymRegReturn extends Symbiote {
+    init$ = { x: 1 }
+  }
+  SymRegReturn.template = html`<div></div>`;
+  let returned = SymRegReturn.reg('sym-reg-return');
+  window.__regReturnedClass = returned === SymRegReturn;
+
+  // ── 16. Bubbling binding (^) ──
+
+  class SymParent extends Symbiote {
+    init$ = {
+      parentVal: 'from-parent',
+      clickLog: '',
+      onChildClick: () => {
+        this.$.clickLog = 'clicked';
+      },
+    }
+  }
+  SymParent.template = html`
+    <span id="bubble-log" ${{textContent: 'clickLog'}}></span>
+    <sym-child></sym-child>
+  `;
+  SymParent.reg('sym-parent');
+
+  class SymChild extends Symbiote {
+    init$ = {}
+  }
+  SymChild.template = html`
+    <span id="bubble-text">{{^parentVal}}</span>
+    <button id="bubble-btn" ${{onclick: '^onChildClick'}}>click</button>
+  `;
+  SymChild.reg('sym-child');
+
+  // ── 17. Shared context (*) ──
+
+  class SymSharedA extends Symbiote {
+    init$ = {
+      '*sharedCount': 0,
+      '*sharedLabel': 'hello',
+    }
+    ctxOwner = true;
+  }
+  SymSharedA.template = html`
+    <span id="shared-count-a" ${{textContent: '*sharedCount'}}></span>
+    <span id="shared-label-a" ${{textContent: '*sharedLabel'}}></span>
+  `;
+  SymSharedA.reg('sym-shared-a');
+
+  class SymSharedB extends Symbiote {
+    init$ = {
+      '*sharedCount': 0,
+      '*sharedLabel': '',
+    }
+  }
+  SymSharedB.template = html`
+    <span id="shared-count-b" ${{textContent: '*sharedCount'}}></span>
+    <span id="shared-label-b" ${{textContent: '*sharedLabel'}}></span>
+  `;
+  SymSharedB.reg('sym-shared-b');
+
+  // ── Mount all ──
+
+  document.getElementById('mount').innerHTML = `
+    <sym-basic></sym-basic>
+    <sym-lifecycle id="lifecycle"></sym-lifecycle>
+    <sym-batch></sym-batch>
+    <sym-sub></sym-sub>
+    <sym-ref></sym-ref>
+    <sym-add id="add-el"></sym-add>
+    <sym-shadow id="shadow-el"></sym-shadow>
+    <sym-styled></sym-styled>
+    <sym-attr mode="custom" id="attr-el"></sym-attr>
+    <sym-animated id="animated-el"></sym-animated>
+    <sym-text></sym-text>
+    <sym-ctx></sym-ctx>
+    <sym-attr-bind id="attr-bind-el"></sym-attr-bind>
+    <sym-reg-return></sym-reg-return>
+    <sym-parent id="parent-el"></sym-parent>
+    <sym-shared-a ctx="shared-test" id="shared-a"></sym-shared-a>
+    <sym-shared-b ctx="shared-test" id="shared-b"></sym-shared-b>
+  `;
+
+  window.__TEST_READY = true;
+</script>
+
+</body>
+</html>

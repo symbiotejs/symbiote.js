@@ -9,7 +9,10 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
     "publish": "npm run types && node scripts/update-exports.js && npm publish",
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node scripts/postinstall.js",
+    "test": "node --test test/*.test.js && npx playwright test",
+    "test:unit": "node --test test/*.test.js",
+    "test:browser": "npx playwright test"
   },
   "files": [
     "core/*",
@@ -134,6 +137,7 @@
     "JSDA"
   ],
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "linkedom": "^0.18.12",
     "typescript": "^5.9.3"
   },

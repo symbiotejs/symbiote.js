@@ -46,7 +46,6 @@ describe('SSR Engine', async () => {
     SsrShadow.reg('ssr-shadow');
 
     let result = ssr.renderToString('ssr-shadow');
-    console.log(result);
     assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
     assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
     assert.ok(result.includes('<template shadowrootmode="open">'), 'Should contain DSD template');
@@ -90,7 +89,6 @@ describe('SSR Engine', async () => {
     SsrList.reg('ssr-list');
 
     let result = ssr.renderToString('ssr-list');
-    console.log(result);
     assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
     assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
     assert.ok(result.includes('Alpha'), `Expected "Alpha" in output: ${result}`);
@@ -121,7 +119,6 @@ describe('SSR Engine', async () => {
     SsrParent.reg('ssr-parent');
 
     let result = ssr.renderToString('ssr-parent');
-    console.log(result);
     assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
     assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
     assert.ok(result.includes('I am parent'), `Expected "I am parent" in output: ${result}`);
