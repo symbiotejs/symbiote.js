@@ -452,8 +452,28 @@ destroySSR(); // cleanup globals
 | Function | Description |
 |----------|-------------|
 | `initSSR()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver, patches globals |
-| `renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes `outerHTML`. Shadow DOM → DSD `<template shadowrootmode="open">` with inlined `<style>` |
+| `renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes to HTML string. Shadow DOM → DSD with inlined `<style>` |
+| `renderToStream(tagName, attrs?)` | Async generator — yields HTML chunks as it walks the DOM tree. Same output as `renderToString`, but streamed for lower TTFB and memory |
 | `destroySSR()` | Removes global patches, cleans up document |
+
+### Streaming usage
+
+```js
+import http from 'node:http';
+import { initSSR, renderToStream } from '@symbiotejs/symbiote/core/ssr.js';
+
+await initSSR();
+import './my-app.js';
+
+http.createServer(async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.write('<!DOCTYPE html><html><body>');
+  for await (let chunk of renderToStream('my-app')) {
+    res.write(chunk);
+  }
+  res.end('</body></html>');
+}).listen(3000);
+```
 
 ### Shadow DOM output
 

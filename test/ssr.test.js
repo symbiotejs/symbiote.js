@@ -130,12 +130,47 @@ describe('SSR Engine', async () => {
     assert.ok(result.includes('bind="textContent:parentTitle;"'), 'Parent should have own binding');
   });
 
+  it('should stream same output as renderToString', async () => {
+    let chunks = [];
+    for await (let chunk of ssr.renderToStream('ssr-basic')) {
+      chunks.push(chunk);
+    }
+    let streamed = chunks.join('');
+    let stringed = ssr.renderToString('ssr-basic');
+    assert.equal(streamed, stringed, `Stream output should match renderToString.\nStreamed: ${streamed}\nString:  ${stringed}`);
+  });
+
+  it('should yield multiple chunks when streaming', async () => {
+    let chunks = [];
+    for await (let chunk of ssr.renderToStream('ssr-parent')) {
+      chunks.push(chunk);
+    }
+    assert.ok(chunks.length > 1, `Expected multiple chunks, got ${chunks.length}: ${JSON.stringify(chunks)}`);
+    let result = chunks.join('');
+    assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
+    assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
+    assert.ok(result.includes('I am parent'), 'Should contain parent text');
+    assert.ok(result.includes('I am child'), 'Should contain child text');
+    assert.ok(result.includes('bind='), 'Should preserve bind attributes');
+  });
+
+  it('should stream shadow DOM component with DSD', async () => {
+    let chunks = [];
+    for await (let chunk of ssr.renderToStream('ssr-shadow')) {
+      chunks.push(chunk);
+    }
+    let result = chunks.join('');
+    assert.ok(result.includes('<template shadowrootmode="open">'), 'Should contain DSD');
+    assert.ok(result.includes('<style>'), 'Should contain inlined styles');
+    assert.ok(result.includes('Shadow Title'), 'Should contain content');
+  });
+
+  // Keep error test last — it destroys/reinits SSR, wiping customElements registry
   it('should throw if initSSR was not called', async () => {
     ssr.destroySSR();
     assert.throws(() => {
       ssr.renderToString('ssr-basic');
     }, /initSSR/);
-    // Re-init for any following tests:
     await ssr.initSSR();
   });
 });

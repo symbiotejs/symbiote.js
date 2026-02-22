@@ -73,7 +73,7 @@
   `ssrMode = true` (client-only) hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`. Bypassed on the server (`__SYMBIOTE_SSR`).
 
 - **Server-side rendering (`core/ssr.js`).**
-  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver) and sets `globalThis.__SYMBIOTE_SSR`. `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>`. Binding attributes (`bind`, `ref`, `itemize`) are preserved in output for client-side hydration. `linkedom` is an optional peer dependency.
+  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver) and sets `globalThis.__SYMBIOTE_SSR`. `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>`. `renderToStream(tagName, attrs?)` async generator yields HTML chunks for lower TTFB and memory usage. Binding attributes (`bind`, `ref`, `itemize`) are preserved in output for client-side hydration. `linkedom` is an optional peer dependency.
 
 ### Fixed
 

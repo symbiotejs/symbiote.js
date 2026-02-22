@@ -177,6 +177,122 @@ function serializeElement(el) {
 }
 
 /**
+ * Render a Symbiote component to a stream of HTML chunks.
+ * @param {string} tagName - Custom element tag name
+ * @param {Object<string, string>} [attrs] - Attributes to set on the element
+ * @returns {AsyncGenerator<string>}
+ */
+export async function* renderToStream(tagName, attrs = {}) {
+  if (!ssrDocument) {
+    throw new Error('[Symbiote SSR] Call initSSR() before renderToStream()');
+  }
+
+  let el = ssrDocument.createElement(tagName);
+
+  for (let [key, val] of Object.entries(attrs)) {
+    el.setAttribute(key, String(val));
+  }
+
+  // Trigger component lifecycle:
+  ssrDocument.body.appendChild(el);
+
+  // Stream the element:
+  yield* streamElement(el);
+
+  // Cleanup:
+  el.remove();
+}
+
+/**
+ * Stream-serialize an element, yielding chunks.
+ * Custom element children are recursed into for granular streaming.
+ * @param {HTMLElement} el
+ * @returns {AsyncGenerator<string>}
+ */
+async function* streamElement(el) {
+  let tagName = el.localName;
+  let attrsStr = '';
+  if (el.attributes) {
+    for (let attr of el.attributes) {
+      attrsStr += ` ${attr.name}="${attr.value}"`;
+    }
+  }
+
+  yield `<${tagName}${attrsStr}>`;
+
+  // Declarative Shadow DOM:
+  if (el.shadowRoot) {
+    yield '<template shadowrootmode="open">';
+
+    let ctor = /** @type {any} */ (el).constructor;
+    if (ctor.shadowStyleSheets) {
+      for (let sheet of ctor.shadowStyleSheets) {
+        let cssText = extractCSS(sheet);
+        if (cssText) {
+          yield `<style>${cssText}</style>`;
+        }
+      }
+    }
+
+    // Stream shadow DOM children:
+    for (let child of el.shadowRoot.childNodes) {
+      yield* streamNode(child);
+    }
+
+    yield '</template>';
+  } else {
+    // Stream light DOM children:
+    for (let child of el.childNodes) {
+      yield* streamNode(child);
+    }
+  }
+
+  yield `</${tagName}>`;
+}
+
+/**
+ * Stream-serialize a DOM node.
+ * @param {Node} node
+ * @returns {AsyncGenerator<string>}
+ */
+async function* streamNode(node) {
+  // Custom element — recurse for granular streaming:
+  if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
+    yield* streamElement(/** @type {HTMLElement} */ (node));
+    return;
+  }
+  // Regular element with children:
+  if (node.nodeType === 1) {
+    let el = /** @type {HTMLElement} */ (node);
+    let attrsStr = '';
+    if (el.attributes) {
+      for (let attr of el.attributes) {
+        attrsStr += ` ${attr.name}="${attr.value}"`;
+      }
+    }
+    if (el.childNodes.length) {
+      yield `<${el.localName}${attrsStr}>`;
+      for (let child of el.childNodes) {
+        yield* streamNode(child);
+      }
+      yield `</${el.localName}>`;
+    } else {
+      yield `<${el.localName}${attrsStr}>${el.innerHTML}</${el.localName}>`;
+    }
+    return;
+  }
+  // Text node:
+  if (node.nodeType === 3) {
+    yield node.textContent || '';
+    return;
+  }
+  // Comment node:
+  if (node.nodeType === 8) {
+    yield `<!--${node.textContent}-->`;
+  }
+}
+
+/**
  * Clean up the SSR environment.
  */
 export function destroySSR() {
