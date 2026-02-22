@@ -2,75 +2,28 @@
 
 # Symbiote.js
 
-Simple, light and very powerful library to create embedded components for any purpose, with a data flow management included.
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required. **~6kb** gzipped.
 
-## ⚖️ What for?
-Symbiote.js - is for symbiosis. That means, you can create complex meta-applications, above another applications, built with any modern stack.
+Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture.
 
-The major purpose of Symbiote.js - is to move application inner interactions from the locked space of certain frameworks implementations to the common open space based on native platform features and standards, to be closer to the HTML, CSS and simple DOM APIs, without a lack of DX.
+## What's new in 3.x
 
-Best for:
-* Complex widgets
-* Micro frontends
-* Reusable component libraries
-* Fast and reliable web applications
-* Framework agnostic solutions
-* Meta-applications
-* JamStack solutions
+- **Server-Side Rendering** — render components to HTML on the server with `renderToString()` or stream chunks with `renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
+- **Computed properties** — reactive derived state with microtask batching.
+- **Path-based router** — `AppRouter` with `:param` extraction, route guards, and lazy loading.
+- **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize.
+- **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
+- **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
 
-> Symbiote.js is designed to give the level of freedom, you got with Vanilla JS and to give the convenience level, as you got from the modern frameworks at the same time.
+## Quick start
 
-## 🔥 Core benefits
-* Symbiote.js - is a total agnostic. It can work with any of modern tools or in the target environment directly.
-* No extra dependencies.
-* Ultralight (~6kb br/gzip).
-* Global state-management already included, more powerful and flexible, than ever before.
-* Styling engine already included, based on cutting-edge platform features.
-* Blazing fast.
-* Memory friendly (no immutables).
-* CSP friendly - good for enterprise usage.
-* Highly extensible - you can add new custom features with ease.
-* Easy to learn - nothing completely new for experienced developers, nothing complicated for newbies.
-* Works in all modern browsers. As is.
-* Easy to test.
-* TypeScript friendly - use it in TS or JS projects from the same source code.
-* Integration friendly: works with any modern development stack.
-* Lifecycle control: no need to initiate or to remove something from outside.
-* ESM friendly - native JavaScript modules are best!
-* Developer Experience on the mind: compact & convenient APIs, habitual syntax.
-* Open source (MIT license).
-
-## 💎 Tech concept keypoints
-* Native modern APIs instead of performance-expensive external libraries.
-* Shadow DOM is optional. Use it when you need it only.
-* Total styling freedom: from the old classics to the cutting edge platform abilities.
-* Native HTML instead of custom template syntax processing.
-* Templates are out of the component or render function context. It’s just a simple JavaScript template literals. So you can keep or process them wherever you want.
-* Fast synchronous UI updates, no unexpected redraws.
-* Full data context access from the document structure.
-* Full data context availability for template bindings.
-* DOM API friendly approach for the most performant solutions.
-* Convenient object model access instead of opaque abstractions.
-* CDN friendly: every module is a possible endpoint for build or delivery process.
-
-## 🧠 DX
-We believe, that good Developer Experience is not just a vulgar minimum of symbols you typing.
-We believe, that good DX is ability to easily understand, what exactly you see in the code and what exactly you doing. Mental models behind your work are very important for the best result achievement. So, we don't like an excess abstraction layers and the black-box magic compilers.
-
-We build our DX philosophy on these principles:
-* We keep our entities close to platform native ones
-* We don't invent things, which are should be explained on a special developer conference
-* We try to keep maximum similarity between your code and what happens in your runtime
-* We keep in minimum the count of the necessary steps needed to deploy your code
-
-## 🍏 Quick start
-The easiest way to try Symbiote.js is to create a simple `html` file in your text editor and connect the Symbiote base class from web:
+No install needed — run this directly in a browser:
 
 ```html
 <script type="module">
-  import Symbiote, { html } from 'https://symbiotejs.github.io/symbiote.js/core/Symbiote.js';
+  import Symbiote, { html } from 'https://esm.sh/@symbiotejs/symbiote';
 
-  class MyComponent extends Symbiote {
+  class MyCounter extends Symbiote {
     init$ = {
       count: 0,
       increment: () => {
@@ -79,45 +32,200 @@ The easiest way to try Symbiote.js is to create a simple `html` file in your tex
     }
   }
 
-  MyComponent.template = html`
+  MyCounter.template = html`
     <h2>{{count}}</h2>
     <button ${{onclick: 'increment'}}>Click me!</button>
   `;
 
-  MyComponent.reg('my-component');
+  MyCounter.reg('my-counter');
 </script>
 
-<my-component></my-component>
+<my-counter></my-counter>
 ```
 
-**This code can work directly in any modern browser, so you don't need to install anything to try it!**
+Or install via npm:
 
-## 🧜‍♀️ Dive deeper
-Check the project documentation for details:
-* [rnd-pro.com/symbiote/](https://rnd-pro.com/symbiote/)
-* [Docs](https://rnd-pro.com/symbiote/2x/docs/get-started/)
-* [Code Playground](https://rnd-pro.com/symbiote/2x/docs/live-examples/)
+```bash
+npm i @symbiotejs/symbiote
+```
 
-## ✅ Browser support
-Symbiote.js is supported and tested in all major modern desktop and mobile browsers: 
-* Chrome
-* Firefox
-* Safari
-* Edge
-* Opera
-* etc.
+```js
+import Symbiote, { html, css } from '@symbiotejs/symbiote';
+```
 
-**Internet Explorer** - is outdated and not supported anymore.
+## SSR — simpler than you'd expect
 
-## 💰 General sponsor
-Big thanks to 🟡 **Uploadcare** for supporting this project!
+Symbiote's SSR doesn't need a virtual DOM, a reconciler, or framework-specific server packages. It's three functions:
 
-> https://uploadcare.com/
+```js
+import { initSSR, renderToString, destroySSR } from '@symbiotejs/symbiote/core/ssr.js';
 
-## 🌎 Useful external links
-* https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
-* https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM
-* https://custom-elements-everywhere.com
-* https://open-wc.org/
+await initSSR();              // patches globals with linkedom
+await import('./my-app.js');  // your components register normally
 
-**If you have questions or proposals - welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
+let html = renderToString('my-app');  // full HTML string
+destroySSR();                 // cleanup
+```
+
+On the client, components with `ssrMode = true` skip template injection and attach bindings to the existing DOM. State mutations work immediately — no hydration step, no reconciliation, no diffing.
+
+### Streaming
+
+For large pages, stream HTML chunks instead of building a string:
+
+```js
+import { renderToStream } from '@symbiotejs/symbiote/core/ssr.js';
+
+http.createServer(async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.write('<!DOCTYPE html><html><body>');
+  for await (let chunk of renderToStream('my-app')) {
+    res.write(chunk);
+  }
+  res.end('</body></html>');
+}).listen(3000);
+```
+
+### How it compares
+
+| | **Symbiote.js** | **Next.js (React)** | **Lit** (`@lit-labs/ssr`) |
+|--|----------------|---------------------|--------------------------|
+| **Architecture** | Binding-based. Client attaches to existing DOM | Virtual DOM. Client re-renders and diffs against server HTML | Template-based with comment markers |
+| **Hydration** | `ssrMode = true` — one flag, no diffing | `hydrateRoot()` — must produce identical output or errors | Requires `ssr-client` + hydrate support module loaded before Lit |
+| **Packages** | 1 module (`core/ssr.js`) + `linkedom` peer dep | Next.js framework (full buy-in) | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
+| **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
+| **Mismatch handling** | Not needed — bindings attach to whatever DOM exists | Hard errors or visual glitches if server/client output differs | N/A |
+| **Component code** | Same code, no changes | Server Components vs Client Components split | Same code, but load-order constraints |
+| **Template output** | Clean HTML with `bind=` attributes | HTML with framework markers | HTML with `<!--lit-part-->` comment markers |
+| **Bundle impact** | Zero — SSR module is server-only | React runtime required on client | Zero — SSR packages are server-only |
+| **Lock-in** | None — standard Web Components | Full framework commitment | Lit-specific, but Web Components |
+
+**Key insight:** Symbiote's SSR is simpler because it doesn't try to reconcile server and client output. The server produces HTML with binding attributes preserved. The client reads those attributes and adds reactivity. No comparison, no diffing, no mismatch errors.
+
+## Core concepts
+
+### Reactive state
+
+```js
+class TodoItem extends Symbiote {
+  init$ = {
+    text: '',
+    done: false,
+    toggle: () => {
+      this.$.done = !this.$.done;
+    },
+  }
+}
+
+TodoItem.template = html`
+  <span ${{textContent: 'text', onclick: 'toggle'}}></span>
+`;
+```
+
+State changes update the DOM synchronously. No virtual DOM, no scheduling, no surprises.
+
+### Templates
+
+Templates are plain HTML strings — context-free, easy to test, easy to move between files:
+
+```js
+// Separate file: my-component.template.js
+import { html } from '@symbiotejs/symbiote';
+
+export default html`
+  <h1>{{title}}</h1>
+  <button ${{onclick: 'doSomething'}}>Go</button>
+`;
+```
+
+The `html` function supports two interpolation modes:
+- **Object** → reactive binding: `${{textContent: 'myProp'}}`
+- **String/number** → native concatenation: `${pageTitle}`
+
+### Itemize (lists)
+
+Render lists from data arrays with efficient diffing:
+
+```js
+class TaskList extends Symbiote {
+  init$ = {
+    tasks: [
+      { name: 'Buy groceries' },
+      { name: 'Write docs' },
+    ],
+  }
+}
+
+TaskList.template = html`
+  <ul itemize="tasks">
+    <template>
+      <li>{{name}}</li>
+    </template>
+  </ul>
+`;
+```
+
+### Named data contexts
+
+Share state across components without prop drilling:
+
+```js
+import { PubSub } from '@symbiotejs/symbiote';
+
+PubSub.registerCtx({
+  user: 'Alex',
+  theme: 'dark',
+}, 'APP');
+
+// Any component can read/write:
+this.$['APP/user'] = 'New name';
+```
+
+### Routing
+
+```js
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+
+AppRouter.initRoutingCtx('R', {
+  home:    { pattern: '/' },
+  profile: { pattern: '/user/:id' },
+  about:   { pattern: '/about', lazyComponent: () => import('./about.js') },
+});
+```
+
+### Exit animations
+
+CSS-driven transitions with zero JS animation code:
+
+```css
+task-item {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  @starting-style { opacity: 0; }  /* enter */
+  &[leaving] { opacity: 0; }       /* exit  */
+}
+```
+
+`animateOut(el)` sets `[leaving]`, waits for `transitionend`, then removes. Itemize uses this automatically.
+
+## Best for
+
+- **Complex widgets** embedded in any host application
+- **Micro frontends** — standard custom elements, no framework coupling
+- **Reusable component libraries** — works in React, Vue, Angular, or plain HTML
+- **SSR-powered apps** — lightweight server rendering without framework lock-in
+- **Framework-agnostic solutions** — one codebase, any context
+
+## Browser support
+
+All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
+
+## Docs
+
+- [Documentation](https://rnd-pro.com/symbiote/)
+- [Code Playground](https://rnd-pro.com/symbiote/2x/docs/live-examples/)
+- [AI Reference](./AI_REFERENCE.md)
+- [Changelog](./CHANGELOG.md)
+
+**Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
