@@ -122,7 +122,13 @@ TodoItem.template = html`
 `;
 ```
 
-State changes update the DOM synchronously. No virtual DOM, no scheduling, no surprises.
+State changes update the DOM synchronously. No virtual DOM, no scheduling, no surprises. And since components are real DOM elements, state is accessible from the outside via standard APIs:
+
+```js
+document.querySelector('my-counter').$.count = 42;
+```
+
+This makes it easy to control Symbiote-based widgets and microfrontends from any host application — no framework adapters, just DOM.
 
 ### Templates
 
@@ -168,11 +174,11 @@ TaskList.template = html`
 `;
 ```
 
-Items have their own state scope. Use the **`^` prefix** to reach parent component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's.
+Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's.
 
-### Parent binding (`^`)
+### Bubbling binding (`^`)
 
-The `^` prefix works in any nested component template, not just itemize:
+The `^` prefix works in any nested component template — it walks up the DOM tree to find the nearest ancestor component that owns the property:
 
 ```html
 <!-- Text binding to parent property: -->
