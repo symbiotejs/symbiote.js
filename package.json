@@ -6,6 +6,7 @@
   "author": "team@rnd-pro.com",
   "license": "MIT",
   "scripts": {
+    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
     "publish": "npm run types && node scripts/update-exports.js && npm publish",
     "postinstall": "node scripts/postinstall.js"
