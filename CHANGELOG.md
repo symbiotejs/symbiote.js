@@ -69,6 +69,9 @@
 - **`reg()` returns the class itself.**
   Enables patterns like `export default MyComponent.reg('my-component')`.
 
+- **Declarative Shadow DOM hydration.**
+  `ssrMode = true` now hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`.
+
 - **`AppRouter`: path-based routing.**
   Routes with a `pattern` key auto-switch to path-based URLs. Supports `:param` extraction:
   ```js

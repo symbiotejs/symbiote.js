@@ -277,7 +277,7 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 | `renderShadow` | `false` | Render template into Shadow DOM |
 | `readyToDestroy` | `true` | Allow cleanup on disconnect |
 | `processInnerHtml` | `false` | Process existing inner HTML with template processors |
-| `ssrMode` | `false` | Skip initial text/attribute bindings for SSR hydration |
+| `ssrMode` | `false` | Hydrate server-rendered HTML: skips template injection, attaches bindings to existing DOM. Supports both light DOM and Declarative Shadow DOM (`<template shadowrootmode="open">`) |
 | `allowCustomTemplate` | `false` | Allow `use-template="#selector"` attribute |
 | `ctxOwner` | `false` | Force overwrite shared context props on init |
 | `isVirtual` | `false` | Replace element with its template fragment |

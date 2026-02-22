@@ -9,6 +9,7 @@ import './components/todo-list.js';
 import './components/test-section.js';
 import './components/styled-demo.js';
 import './components/router-demo.js';
+import './components/dsd-demo.js';
 
 PubSub.registerCtx({
   score: 0,

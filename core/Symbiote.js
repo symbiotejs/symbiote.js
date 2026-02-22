@@ -89,9 +89,13 @@ export class Symbiote extends HTMLElement {
     if (this.processInnerHtml || this.ssrMode) {
       for (let fn of this.templateProcessors) {
         fn(this, this);
+        // Declarative Shadow DOM: also hydrate existing shadowRoot
+        if (this.ssrMode && this.shadowRoot) {
+          fn(this.shadowRoot, this);
+        }
       }
     }
-    if (template || this.#super.template) {
+    if (!this.ssrMode && (template || this.#super.template)) {
       if (this.#super.template && !this.#super.__tpl) {
         this.#super.__tpl = document.createElement('template');
         this.#super.__tpl.innerHTML = this.#super.template;

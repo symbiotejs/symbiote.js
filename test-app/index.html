@@ -8,6 +8,17 @@
 </head>
 <body>
   <test-app></test-app>
+
+  <div style="max-width: 900px; margin: 24px auto; padding: 0 16px;">
+    <h3 style="color: #cdd6f4; font-family: system-ui;">7. Declarative Shadow DOM (SSR hydration)</h3>
+    <dsd-demo>
+      <template shadowrootmode="open">
+        <span class="greeting" bind="textContent: greeting">Hello from DSD!</span>
+        <span class="count">Count: <b bind="textContent: count">0</b></span>
+        <button bind="onclick: onIncrement">+1</button>
+      </template>
+    </dsd-demo>
+  </div>
   <script type="module" src="app.js"></script>
 </body>
 </html>
