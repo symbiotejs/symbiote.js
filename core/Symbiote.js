@@ -19,8 +19,6 @@ export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
   #initialized;
   /** @type {String} */
-  #autoCtxName;
-  /** @type {String} */
   #cachedCtxName;
   /** @type {PubSub} */
   #localCtx;
@@ -160,20 +158,9 @@ export class Symbiote extends HTMLElement {
     /** @type {Boolean} */
     this.allowCustomTemplate = false;
     /** @type {Boolean} */
-    this.ctxOwner = false;
-    /** @type {Boolean} */
     this.isVirtual = false;
     /** @type {Boolean} */
     this.allowTemplateInits = true;
-  }
-
-  /** @returns {String} */
-  get autoCtxName() {
-    if (!this.#autoCtxName) {
-      this.#autoCtxName = UID.generate();
-      this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.#autoCtxName}'`);
-    }
-    return this.#autoCtxName;
   }
 
   /** @returns {String} */
@@ -183,7 +170,7 @@ export class Symbiote extends HTMLElement {
 
   /** @returns {String} */
   get ctxName() {
-    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName || this.autoCtxName;
+    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName;
     /**
      * Cache last ctx name to be able to access context when element becomes disconnected
      *
@@ -340,10 +327,6 @@ export class Symbiote extends HTMLElement {
     }
   }
 
-  get #ctxOwner() {
-    return this.ctxOwner || (this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false');
-  }
-
   initAttributeObserver() {
     if (!this.attributeMutationObserver) {
       this.attributeMutationObserver = new MutationObserver((mutations) => {
@@ -374,7 +357,26 @@ export class Symbiote extends HTMLElement {
     }
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.SHARED_CTX_PX)) {
-        this.sharedCtx.add(prop.replace(DICT.SHARED_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
+        let sharedName = prop.replace(DICT.SHARED_CTX_PX, '');
+        let sharedVal = this.init$[prop];
+        if (!this.ctxName) {
+          if (Symbiote.devMode) {
+            console.warn(
+              `[Symbiote] "${this.localName}" uses *${sharedName} without ctx attribute or --ctx CSS variable. `
+              + 'Set ctx="name" or --ctx to share state.'
+            );
+          }
+        } else {
+          if (Symbiote.devMode && this.sharedCtx.has(sharedName)) {
+            let existing = this.sharedCtx.read(sharedName);
+            if (existing !== sharedVal && typeof sharedVal !== 'function') {
+              console.warn(
+                `[Symbiote] Shared prop "${sharedName}" already has value. Keeping existing.`
+              );
+            }
+          }
+          this.sharedCtx.add(sharedName, sharedVal);
+        }
       } else if (prop.startsWith(DICT.ATTR_BIND_PX)) {
         this.localCtx.add(prop, (this.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')) || this.init$[prop]));
         this.initAttributeObserver();

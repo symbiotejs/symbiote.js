@@ -7,7 +7,6 @@ export const RESERVED_ATTRIBUTES = [
   DICT.EL_REF_ATTR,
   DICT.USE_TPL_ATTR,
   DICT.CTX_NAME_ATTR,
-  DICT.CTX_OWNER_ATTR,
 ];
 
 /** @typedef {Record<keyof import('./Symbiote.js').Symbiote, String>} BindDescriptor */

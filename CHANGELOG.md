@@ -78,6 +78,11 @@
 - **Exit animation hook (`animateOut`).**
   New `animateOut(el)` utility and `Symbiote.animateOut` static method. Sets `[leaving]` attribute, waits for CSS `transitionend`, then removes element. Integrated into both itemize processors — items with CSS transitions animate out automatically. Enter animations use native CSS `@starting-style`.
 
+### Changed
+
+- **Shared context (`*prop`) simplified.**
+  Removed `ctxOwner` property and `ctx-owner` attribute. First-registered value always wins (via `add()` without rewrite). Dev-mode warnings: (1) when `*prop` is used without `ctx` attribute or `--ctx` CSS variable, (2) when a later component tries to set a different initial value for the same shared prop.
+
 ### Fixed
 
 - **`css()` tagged template trailing `undefined`.**

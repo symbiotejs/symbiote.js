@@ -268,9 +268,9 @@ test.describe('Symbiote class', () => {
     expect(await page.textContent('#shared-count-b')).toBe('42');
   });
 
-  test('ctxOwner should set initial values for shared props', async ({ page }) => {
-    // SymSharedA is ctxOwner and sets *sharedLabel = 'hello'
-    // SymSharedB sets *sharedLabel = '' but is not owner, so it shouldn't overwrite
+  test('first registered * value should win (no ctxOwner needed)', async ({ page }) => {
+    // SymSharedA registers first with *sharedLabel = 'hello'
+    // SymSharedB registers second with *sharedLabel = '' but add() doesn't overwrite
     expect(await page.textContent('#shared-label-a')).toBe('hello');
     expect(await page.textContent('#shared-label-b')).toBe('hello');
   });

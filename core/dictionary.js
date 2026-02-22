@@ -15,8 +15,6 @@ export const DICT = {
   CSS_DATA_PX: '--',
   // Data context name attribute:
   CTX_NAME_ATTR: 'ctx',
-  // Data context owner attribute:
-  CTX_OWNER_ATTR: 'ctx-owner',
   // Data context name in CSS custom property:
   CSS_CTX_PROP: '--ctx',
   // Element reference attribute:
