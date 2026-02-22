@@ -277,7 +277,7 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 | `renderShadow` | `false` | Render template into Shadow DOM |
 | `readyToDestroy` | `true` | Allow cleanup on disconnect |
 | `processInnerHtml` | `false` | Process existing inner HTML with template processors |
-| `ssrMode` | `false` | Hydrate server-rendered HTML: skips template injection, attaches bindings to existing DOM. Supports both light DOM and Declarative Shadow DOM (`<template shadowrootmode="open">`) |
+| `ssrMode` | `false` | **Client-only.** Hydrate server-rendered HTML: skips template injection, attaches bindings to existing DOM. Supports both light DOM and Declarative Shadow DOM. Ignored when `__SYMBIOTE_SSR` is active (server side) |
 | `allowCustomTemplate` | `false` | Allow `use-template="#selector"` attribute |
 | `ctxOwner` | `false` | Force overwrite shared context props on init |
 | `isVirtual` | `false` | Replace element with its template fragment |
@@ -466,6 +466,21 @@ Shadow components produce Declarative Shadow DOM markup with styles inlined:
   </template>
 </my-shadow>
 ```
+
+### SSR context detection
+
+`initSSR()` sets `globalThis.__SYMBIOTE_SSR = true`. This is separate from the instance `ssrMode` flag:
+
+| Flag | Scope | Purpose |
+|------|-------|-------|
+| `__SYMBIOTE_SSR` | Server (global) | Preserves binding attributes (`bind`, `ref`, `itemize`) in HTML output. Bypasses `ssrMode` effects |
+| `ssrMode` | Client (instance) | Skips template injection, hydrates existing DOM with bindings |
+
+### Hydration flow
+
+1. **Server**: `renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
+2. **Client**: component with `ssrMode = true` skips template injection, attaches bindings to pre-rendered DOM
+3. State mutations on client update DOM reactively
 
 ---
 

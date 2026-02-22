@@ -69,11 +69,19 @@
 - **`reg()` returns the class itself.**
   Enables patterns like `export default MyComponent.reg('my-component')`.
 
-- **Declarative Shadow DOM hydration.**
-  `ssrMode = true` now hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`.
+- **Declarative Shadow DOM hydration (`ssrMode`).**
+  `ssrMode = true` (client-only) hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`. Bypassed on the server (`__SYMBIOTE_SSR`).
 
 - **Server-side rendering (`core/ssr.js`).**
-  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver). `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>` for shadow components. `linkedom` is an optional peer dependency.
+  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver) and sets `globalThis.__SYMBIOTE_SSR`. `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>`. Binding attributes (`bind`, `ref`, `itemize`) are preserved in output for client-side hydration. `linkedom` is an optional peer dependency.
+
+### Fixed
+
+- **`css()` tagged template trailing `undefined`.**
+  `props[idx]` appended `"undefined"` when no interpolations exist. Fixed with `?? ''`.
+
+- **`new DocumentFragment()` SSR compatibility.**
+  Replaced with `document.createDocumentFragment()` in both `itemizeProcessor.js` and `itemizeProcessor-keyed.js` for linkedom compatibility.
 
 - **`AppRouter`: path-based routing.**
   Routes with a `pattern` key auto-switch to path-based URLs. Supports `:param` extraction:
