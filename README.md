@@ -2,7 +2,7 @@
 
 # Symbiote.js
 
-A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required. **~6kb** gzipped.
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** gzipped.
 
 Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture.
 
@@ -216,6 +216,16 @@ task-item {
 - **Reusable component libraries** — works in React, Vue, Angular, or plain HTML
 - **SSR-powered apps** — lightweight server rendering without framework lock-in
 - **Framework-agnostic solutions** — one codebase, any context
+
+## Bundle size
+
+| Library | Minified | Gzip | Brotli |
+|---------|----------|------|--------|
+| **Symbiote.js** (full) | 18.4 kb | 6.6 kb | **5.9 kb** |
+| **Lit** (LitElement + html + css) | 15.1 kb | 5.8 kb | **5.3 kb** |
+| **React + ReactDOM** | 188.8 kb | 58.8 kb | **50.6 kb** |
+
+Symbiote and Lit have similar base sizes, but Symbiote's **5.9 kb** includes more powerful features: global state management, exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~10× larger** before adding a router, state manager, or SSR framework.
 
 ## Browser support
 
