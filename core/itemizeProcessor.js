@@ -52,7 +52,7 @@ export function itemizeProcessor(fr, fnCtx) {
               }
             } else {
               if (!fragment) {
-                fragment = new DocumentFragment();
+                fragment = document.createDocumentFragment();
               }
               let repeatItem = new itemClass();
               Object.assign((repeatItem?.init$ || repeatItem), item);

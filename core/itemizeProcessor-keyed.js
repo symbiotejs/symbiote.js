@@ -107,7 +107,7 @@ export function itemizeProcessor(fr, fnCtx) {
       // ── Fast path: simple append ──
       if (newLen > prevLen && prevLen > 0) {
         if (items[0] === prevData[0] && items[prevLen - 1] === prevData[prevLen - 1]) {
-          let fragment = new DocumentFragment();
+          let fragment = document.createDocumentFragment();
           for (let i = prevLen; i < newLen; i++) {
             let repeatItem = new itemClass();
             Object.assign((repeatItem?.init$ || repeatItem), items[i]);
@@ -211,7 +211,7 @@ export function itemizeProcessor(fr, fnCtx) {
           }
         } else {
           if (!fragment) {
-            fragment = new DocumentFragment();
+            fragment = document.createDocumentFragment();
           }
           let repeatItem = new itemClass();
           Object.assign((repeatItem?.init$ || repeatItem), items[i]);
