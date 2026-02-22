@@ -30,6 +30,7 @@ describe('SSR Engine', async () => {
     assert.ok(result.includes('Hello SSR'), `Expected "Hello SSR" in output: ${result}`);
     assert.ok(result.includes('<ssr-basic'), 'Should contain opening tag');
     assert.ok(result.includes('</ssr-basic>'), 'Should contain closing tag');
+    assert.ok(result.includes('bind='), 'Should preserve bind attributes for hydration');
   });
 
   it('should render a shadow DOM component with DSD', async () => {
@@ -89,11 +90,44 @@ describe('SSR Engine', async () => {
     SsrList.reg('ssr-list');
 
     let result = ssr.renderToString('ssr-list');
+    console.log(result);
     assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
     assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
     assert.ok(result.includes('Alpha'), `Expected "Alpha" in output: ${result}`);
     assert.ok(result.includes('Beta'), `Expected "Beta" in output: ${result}`);
     assert.ok(result.includes('Charlie'), `Expected "Charlie" in output: ${result}`);
+  });
+
+  it('should render nested components with own state', async () => {
+    const { default: Symbiote, html } = await import('../core/Symbiote.js');
+
+    class SsrChild extends Symbiote {
+      init$ = {
+        childLabel: 'I am child',
+      };
+    }
+    SsrChild.template = html`<span ${{textContent: 'childLabel'}}></span>`;
+    SsrChild.reg('ssr-child');
+
+    class SsrParent extends Symbiote {
+      init$ = {
+        parentTitle: 'I am parent',
+      };
+    }
+    SsrParent.template = html`
+      <h2 ${{textContent: 'parentTitle'}}></h2>
+      <ssr-child></ssr-child>
+    `;
+    SsrParent.reg('ssr-parent');
+
+    let result = ssr.renderToString('ssr-parent');
+    console.log(result);
+    assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
+    assert.ok(!result.includes('[object Object]'), `Unexpected "[object Object]" in output: ${result}`);
+    assert.ok(result.includes('I am parent'), `Expected "I am parent" in output: ${result}`);
+    assert.ok(result.includes('I am child'), `Expected "I am child" in output: ${result}`);
+    assert.ok(result.includes('bind="textContent:childLabel;"'), 'Child should have own binding, not parent');
+    assert.ok(result.includes('bind="textContent:parentTitle;"'), 'Parent should have own binding');
   });
 
   it('should throw if initSSR was not called', async () => {

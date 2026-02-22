@@ -10,6 +10,7 @@ import './components/test-section.js';
 import './components/styled-demo.js';
 import './components/router-demo.js';
 import './components/dsd-demo.js';
+import './components/ssr-nested.js';
 
 PubSub.registerCtx({
   score: 0,

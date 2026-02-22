@@ -82,7 +82,9 @@ export function itemizeProcessor(fr, fnCtx) {
           console.warn(`[Symbiote] <${fnCtx.localName}>: itemize data must be Array or Object, got ${typeof data}:`, data);
         }
       });
-      el.removeAttribute(DICT.LIST_ATTR);
-      el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+      if (!globalThis.__SYMBIOTE_SSR) {
+        el.removeAttribute(DICT.LIST_ATTR);
+        el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+      }
     });
 }

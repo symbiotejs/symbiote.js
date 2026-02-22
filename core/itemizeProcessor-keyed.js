@@ -225,7 +225,9 @@ export function itemizeProcessor(fr, fnCtx) {
 
       prevData = items;
     });
-    el.removeAttribute(DICT.LIST_ATTR);
-    el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+    if (!globalThis.__SYMBIOTE_SSR) {
+      el.removeAttribute(DICT.LIST_ATTR);
+      el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+    }
   });
 }

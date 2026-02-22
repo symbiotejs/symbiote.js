@@ -18,6 +18,12 @@
         <button bind="onclick: onIncrement">+1</button>
       </template>
     </dsd-demo>
+
+    <h3 style="color: #cdd6f4; font-family: system-ui;">8. Nested SSR Hydration (own state)</h3>
+    <ssr-parent>
+      <h2 bind="textContent:parentTitle;">I am parent</h2>
+      <ssr-child><span bind="textContent:childLabel;">I am child</span></ssr-child>
+    </ssr-parent>
   </div>
   <script type="module" src="app.js"></script>
 </body>

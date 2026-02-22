@@ -70,6 +70,7 @@ export async function initSSR() {
   };
 
   // Patch globals:
+  globalThis.__SYMBIOTE_SSR = true;
   globalThis.document = document;
   globalThis.window = window;
   globalThis.HTMLElement = HTMLElement;
@@ -182,6 +183,7 @@ export function destroySSR() {
   if (ssrDocument) {
     ssrDocument.body.innerHTML = '';
   }
+  delete globalThis.__SYMBIOTE_SSR;
   delete globalThis.document;
   delete globalThis.window;
   delete globalThis.HTMLElement;

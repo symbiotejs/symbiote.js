@@ -13,7 +13,9 @@ function refProcessor(fr, fnCtx) {
   [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
     let refName = el.getAttribute(DICT.EL_REF_ATTR);
     fnCtx.ref[refName] = el;
-    el.removeAttribute(DICT.EL_REF_ATTR);
+    if (!globalThis.__SYMBIOTE_SSR) {
+      el.removeAttribute(DICT.EL_REF_ATTR);
+    }
   });
 }
 
@@ -92,10 +94,12 @@ function domBindProcessor(fr, fnCtx) {
               el[DICT.SET_LATER_KEY][prop] = val;
             }
           }
-        }, !(fnCtx.ssrMode && (prop === 'textContent' || isAttr)));
+        }, !(fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR && (prop === 'textContent' || isAttr)));
       }
     });
-    el.removeAttribute(DICT.BIND_ATTR);
+    if (!globalThis.__SYMBIOTE_SSR) {
+      el.removeAttribute(DICT.BIND_ATTR);
+    }
   });
 }
 
