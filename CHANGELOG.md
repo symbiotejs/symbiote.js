@@ -83,6 +83,9 @@
 - **Shared context (`*prop`) simplified.**
   Removed `ctxOwner` property and `ctx-owner` attribute. First-registered value always wins (via `add()` without rewrite). Dev-mode warnings: (1) when `*prop` is used without `ctx` attribute or `--ctx` CSS variable, (2) when a later component tries to set a different initial value for the same shared prop.
 
+- **Trusted Types support.**
+  Template `innerHTML` writes now use a `'symbiote'` Trusted Types policy when the API is available. Compatible with `require-trusted-types-for 'script'` CSP headers. Zero overhead when Trusted Types not enabled.
+
 ### Fixed
 
 - **`css()` tagged template trailing `undefined`.**

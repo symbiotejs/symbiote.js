@@ -14,6 +14,9 @@ export { UID, PubSub, DICT }
 
 let autoTagsCount = 0;
 
+// @ts-ignore - Trusted Types is a browser API, not in standard TS defs
+const trustedHTML = globalThis.trustedTypes ? trustedTypes.createPolicy('symbiote', { createHTML: (s) => s }) : { createHTML: (s) => s };
+
 /** @template S */
 export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
@@ -98,13 +101,13 @@ export class Symbiote extends HTMLElement {
     if (!clientSSR && (template || this.#super.template)) {
       if (this.#super.template && !this.#super.__tpl) {
         this.#super.__tpl = document.createElement('template');
-        this.#super.__tpl.innerHTML = this.#super.template;
+        this.#super.__tpl.innerHTML = trustedHTML.createHTML(this.#super.template);
       }
       if (template?.constructor === DocumentFragment) {
         fr = template;
       } else if (template?.constructor === String) {
         let tpl = document.createElement('template');
-        tpl.innerHTML = template;
+        tpl.innerHTML = trustedHTML.createHTML(template);
         // @ts-expect-error
         fr = tpl.content.cloneNode(true);
       } else if (this.#super.__tpl) {

@@ -723,6 +723,24 @@ reassignDictionary({ BIND_ATTR: 'data-bind' }); // customize internal attribute 
 
 ---
 
+## Security (Trusted Types)
+
+Template `innerHTML` writes use a Trusted Types policy when the API is available:
+
+```js
+// Symbiote creates a passthrough policy automatically:
+// trustedTypes.createPolicy('symbiote', { createHTML: (s) => s })
+```
+
+This makes Symbiote compatible with strict CSP headers:
+```
+Content-Security-Policy: require-trusted-types-for 'script'; trusted-types symbiote
+```
+
+No sanitization is performed — templates are developer-authored, not user input. The policy name is `'symbiote'`.
+
+---
+
 ## Dev Mode
 
 Enable verbose warnings during development:
