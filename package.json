@@ -8,6 +8,7 @@
   "scripts": {
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
+    "prepublishOnly": "npm test",
     "publish": "npm run types && node scripts/update-exports.js && npm publish",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/*.test.js && npx playwright test",
