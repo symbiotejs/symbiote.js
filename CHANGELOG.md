@@ -72,6 +72,9 @@
 - **Declarative Shadow DOM hydration.**
   `ssrMode = true` now hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`.
 
+- **Server-side rendering (`core/ssr.js`).**
+  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver). `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>` for shadow components. `linkedom` is an optional peer dependency.
+
 - **`AppRouter`: path-based routing.**
   Routes with a `pattern` key auto-switch to path-based URLs. Supports `:param` extraction:
   ```js

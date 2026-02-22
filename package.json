@@ -134,6 +134,15 @@
     "JSDA"
   ],
   "devDependencies": {
+    "linkedom": "^0.18.12",
     "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "linkedom": ">=0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "linkedom": {
+      "optional": true
+    }
   }
 }

@@ -430,6 +430,45 @@ Usage:
 
 ---
 
+## Server-Side Rendering (SSR)
+
+Import `core/ssr.js` to render components to HTML strings on the server. Requires `linkedom` (optional peer dependency).
+
+```js
+import { initSSR, renderToString, destroySSR } from '@symbiotejs/symbiote/core/ssr.js';
+
+await initSSR(); // patches globals with linkedom env
+
+import './my-component.js'; // component reg() works normally
+
+let html = renderToString('my-component', { title: 'Hello' });
+// => '<my-component title="Hello"><h1>Hello</h1></my-component>'
+
+destroySSR(); // cleanup globals
+```
+
+### API
+
+| Function | Description |
+|----------|-------------|
+| `initSSR()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver, patches globals |
+| `renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes `outerHTML`. Shadow DOM → DSD `<template shadowrootmode="open">` with inlined `<style>` |
+| `destroySSR()` | Removes global patches, cleans up document |
+
+### Shadow DOM output
+
+Shadow components produce Declarative Shadow DOM markup with styles inlined:
+```html
+<my-shadow>
+  <template shadowrootmode="open">
+    <style>:host { display: block; }</style>
+    <h1>Content</h1>
+  </template>
+</my-shadow>
+```
+
+---
+
 ## Routing (AppRouter)
 
 ### Path-based routing (recommended)
