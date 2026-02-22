@@ -10,8 +10,8 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 
 - **Server-Side Rendering** — render components to HTML on the server with `renderToString()` or stream chunks with `renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
 - **Computed properties** — reactive derived state with microtask batching.
-- **Path-based router** — `AppRouter` with `:param` extraction, route guards, and lazy loading.
-- **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize.
+- **Path-based router** — optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
+- **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
 - **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
 - **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
 
@@ -153,16 +153,33 @@ class TaskList extends Symbiote {
       { name: 'Buy groceries' },
       { name: 'Write docs' },
     ],
+    onItemClick: () => {
+      console.log('clicked!');
+    },
   }
 }
 
 TaskList.template = html`
   <ul itemize="tasks">
     <template>
-      <li>{{name}}</li>
+      <li ${{onclick: '^onItemClick'}}>{{name}}</li>
     </template>
   </ul>
 `;
+```
+
+Items have their own state scope. Use the **`^` prefix** to reach parent component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's.
+
+### Parent binding (`^`)
+
+The `^` prefix works in any nested component template, not just itemize:
+
+```html
+<!-- Text binding to parent property: -->
+<div>{{^parentTitle}}</div>
+
+<!-- Handler binding to parent method: -->
+<button ${{onclick: '^parentHandler'}}>Click</button>
 ```
 
 ### Named data contexts
@@ -181,7 +198,7 @@ PubSub.registerCtx({
 this.$['APP/user'] = 'New name';
 ```
 
-### Routing
+### Routing (optional module)
 
 ```js
 import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
@@ -208,6 +225,38 @@ task-item {
 ```
 
 `animateOut(el)` sets `[leaving]`, waits for `transitionend`, then removes. Itemize uses this automatically.
+
+### Styling
+
+Shadow DOM is **optional** in Symbiote — use it when you need isolation, skip it when you don't. This gives full flexibility:
+
+**Light DOM** — style components with regular CSS, no barriers:
+
+```js
+MyComponent.rootStyles = css`
+  my-component {
+    display: flex;
+    gap: 1rem;
+
+    & button { color: var(--accent); }
+  }
+`;
+```
+
+**Shadow DOM** — opt-in isolation when needed:
+
+```js
+class Isolated extends Symbiote {
+  renderShadow = true;
+}
+
+Isolated.shadowStyles = css`
+  :host { display: block; }
+  ::slotted(*) { margin: 0; }
+`;
+```
+
+All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` — no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
 
 ## Best for
 
