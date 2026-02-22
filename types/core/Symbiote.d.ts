@@ -4,6 +4,7 @@ export class Symbiote<S> extends HTMLElement {
     static __tpl: HTMLTemplateElement;
     static devMode: boolean;
     static template: string;
+    static animateOut: typeof animateOut;
     static reg(tagName?: string, isAlias?: boolean): typeof Symbiote;
     static get is(): string;
     static bindAttributes(desc: {
@@ -68,5 +69,6 @@ export default Symbiote;
 import { UID } from '../utils/UID.js';
 import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
 export { UID, PubSub, DICT };
 //# sourceMappingURL=Symbiote.d.ts.map
