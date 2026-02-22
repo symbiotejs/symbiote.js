@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
 
 /**
  * Optimized itemize template processor.
@@ -97,7 +98,7 @@ export function itemizeProcessor(fr, fnCtx) {
       if (newLen < prevLen && newLen > 0) {
         if (items[0] === prevData[0] && items[newLen - 1] === prevData[newLen - 1]) {
           for (let i = prevLen - 1; i >= newLen; i--) {
-            children[i].remove();
+            animateOut(children[i]);
           }
           prevData = items;
           return;
@@ -179,7 +180,7 @@ export function itemizeProcessor(fr, fnCtx) {
           }
 
           for (let key of toRemove) {
-            children[prevKeyToIdx.get(key)].remove();
+            animateOut(children[prevKeyToIdx.get(key)]);
           }
 
           for (let i = 0; i < newChildren.length; i++) {
@@ -220,7 +221,7 @@ export function itemizeProcessor(fr, fnCtx) {
       }
       fragment && el.appendChild(fragment);
       for (let i = prevLen - 1; i >= newLen; i--) {
-        children[i].remove();
+        animateOut(children[i]);
       }
 
       prevData = items;

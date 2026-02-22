@@ -75,6 +75,9 @@
 - **Server-side rendering (`core/ssr.js`).**
   New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver) and sets `globalThis.__SYMBIOTE_SSR`. `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>`. `renderToStream(tagName, attrs?)` async generator yields HTML chunks for lower TTFB and memory usage. Binding attributes (`bind`, `ref`, `itemize`) are preserved in output for client-side hydration. `linkedom` is an optional peer dependency.
 
+- **Exit animation hook (`animateOut`).**
+  New `animateOut(el)` utility and `Symbiote.animateOut` static method. Sets `[leaving]` attribute, waits for CSS `transitionend`, then removes element. Integrated into both itemize processors — items with CSS transitions animate out automatically. Enter animations use native CSS `@starting-style`.
+
 ### Fixed
 
 - **`css()` tagged template trailing `undefined`.**

@@ -1,5 +1,6 @@
 import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
 import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
@@ -451,6 +452,14 @@ export class Symbiote extends HTMLElement {
   }
 
   destroyCallback() {}
+
+  /**
+   * Animate an element out, then remove it.
+   * Sets `[leaving]` attribute, waits for CSS `transitionend`, then calls `.remove()`.
+   * @param {HTMLElement} el
+   * @returns {Promise<void>}
+   */
+  static animateOut = animateOut;
 
   destructionDelay = 100;
   disconnectedCallback() {

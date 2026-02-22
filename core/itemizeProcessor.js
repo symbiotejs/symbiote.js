@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -62,7 +63,7 @@ export function itemizeProcessor(fr, fnCtx) {
           fragment && el.appendChild(fragment);
           let oversize = currentList.slice(items.length, currentList.length);
           for (let exItm of oversize) {
-            exItm.remove();
+            animateOut(exItm);
           }
         };
         if (data.constructor === Array) {

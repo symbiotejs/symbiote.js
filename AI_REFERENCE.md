@@ -293,6 +293,42 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 - `this.initChildren` — array of original child nodes (before template render)
 - `this.$` — state proxy
 - `this.allSubs` — Set of all subscriptions (for cleanup)
+---
+
+## Exit Animation (`animateOut`)
+
+`animateOut(el)` sets `[leaving]` attribute, waits for CSS `transitionend`, then removes the element. If no CSS transition is defined, removes immediately. Available as standalone import or `Symbiote.animateOut`.
+
+```js
+import { animateOut } from '@symbiotejs/symbiote';
+// or: Symbiote.animateOut(el)
+```
+
+### CSS pattern
+
+```css
+my-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+
+  /* Enter (CSS-native, no JS needed): */
+  @starting-style {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  /* Exit (triggered by animateOut): */
+  &[leaving] {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+```
+
+### Itemize integration
+
+Both itemize processors use `animateOut` automatically for item removal. Items with CSS `transition` + `[leaving]` styles will animate out before being removed from the DOM.
 
 ---
 
