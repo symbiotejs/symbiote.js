@@ -266,6 +266,43 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 
 ---
 
+## Shared Context (`*` prefix)
+
+Components grouped by the `ctx` HTML attribute (or `--ctx` CSS custom property) share a data context. Properties with `*` prefix are read/written in this shared context — inspired by native HTML `name` attribute grouping (like radio button groups):
+
+```html
+<upload-btn ctx="gallery"></upload-btn>
+<file-list  ctx="gallery"></file-list>
+```
+
+```js
+class UploadBtn extends Symbiote {
+  init$ = {
+    '*files': [],
+    onUpload: () => {
+      this.$['*files'] = [...this.$['*files'], newFile];
+    },
+  }
+}
+
+class FileList extends Symbiote {
+  init$ = {
+    '*files': [],  // same shared prop — first-registered value wins
+  }
+}
+```
+
+Both components access the same `*files` state — no parent component, no prop drilling, no global store. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties.
+
+### Context name resolution (first match wins)
+1. `ctx="name"` HTML attribute
+2. `--ctx` CSS custom property (inherited from ancestors)
+3. No match → `*` props are **silently skipped** (dev mode warns)
+
+> **WARNING**: `*` properties require an explicit `ctx` attribute or `--ctx` CSS variable. Without one, the shared context is not created and `*` props have no effect.
+
+---
+
 ## Lifecycle & Instance Properties
 
 ### Lifecycle callbacks (override in subclass)
@@ -284,7 +321,6 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 | `processInnerHtml` | `false` | Process existing inner HTML with template processors |
 | `ssrMode` | `false` | **Client-only.** Hydrate server-rendered HTML: skips template injection, attaches bindings to existing DOM. Supports both light DOM and Declarative Shadow DOM. Ignored when `__SYMBIOTE_SSR` is active (server side) |
 | `allowCustomTemplate` | `false` | Allow `use-template="#selector"` attribute |
-| `ctxOwner` | `false` | Force overwrite shared context props on init |
 | `isVirtual` | `false` | Replace element with its template fragment |
 | `allowTemplateInits` | `true` | Auto-add props found in template but not in init$ |
 
@@ -700,6 +736,8 @@ Symbiote.devMode = true;
 
 **Dev-only** (`devMode = true`):
 - Unresolved binding keys — warns when a template binding auto-initializes to `null` (likely typo)
+- `*prop` without `ctx` attribute or `--ctx` CSS variable — warns that shared context won't be created
+- `*prop` conflict — warns when a later component tries to set a different initial value for the same shared prop
 
 ---
 
@@ -715,3 +753,4 @@ Symbiote.devMode = true;
 8. **DON'T** wrap Custom Elements in extra divs — the custom tag IS the wrapper
 9. **DON'T** use CSS frameworks (Tailwind, etc.) — use native CSS with custom properties
 10. **DON'T** use `require()` — ESM only (import/export)
+11. **DON'T** use `*prop` without `ctx` attribute or `--ctx` CSS variable — shared context won't be created
