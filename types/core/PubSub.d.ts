@@ -12,7 +12,7 @@ export class PubSub<T extends Record<string, unknown>> {
     pub(prop: keyof T, val: unknown): void;
     get proxy(): T;
     multiPub(updObj: T): void;
-    notify(prop: keyof T): void;
+    notify(prop: keyof T, val: any): void;
     sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean): {
         remove: () => void;
         callback: (val: unknown) => void;
@@ -23,6 +23,7 @@ export class PubSub<T extends Record<string, unknown>> {
 }
 export namespace PubSub {
     let globalStore: Map<string | Symbol, PubSub<any>>;
+    let devMode: boolean;
 }
 export default PubSub;
 //# sourceMappingURL=PubSub.d.ts.map

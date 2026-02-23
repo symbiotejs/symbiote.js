@@ -2,7 +2,8 @@ export { html } from "./html.js";
 export { css } from "./css.js";
 export class Symbiote<S> extends HTMLElement {
     static __tpl: HTMLTemplateElement;
-    static devMode: boolean;
+    static set devMode(val: boolean);
+    static get devMode(): boolean;
     static template: string;
     static animateOut: typeof animateOut;
     static reg(tagName?: string, isAlias?: boolean): typeof Symbiote;
