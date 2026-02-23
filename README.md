@@ -21,7 +21,7 @@ No install needed — run this directly in a browser:
 
 ```html
 <script type="module">
-  import Symbiote, { html } from 'https://esm.sh/@symbiotejs/symbiote';
+  import Symbiote, { html } from 'https://esm.run/@symbiotejs/symbiote';
 
   class MyCounter extends Symbiote {
     init$ = {
@@ -118,7 +118,7 @@ class TodoItem extends Symbiote {
 }
 
 TodoItem.template = html`
-  <span ${{textContent: 'text', onclick: 'toggle'}}></span>
+  <span ${{onclick: 'toggle'}}>{{text}}</span>
 `;
 ```
 

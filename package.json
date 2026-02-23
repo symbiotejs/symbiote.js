@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-next.1",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
     "prepublishOnly": "npm test",
-    "publish": "npm run types && node scripts/update-exports.js && npm publish",
+    "publish": "npm run types && node scripts/update-exports.js && npm publish --tag next",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/*.test.js && npx playwright test",
     "test:unit": "node --test test/*.test.js",
@@ -44,6 +44,10 @@
       "types": "./types/core/Symbiote.d.ts",
       "default": "./core/Symbiote.js"
     },
+    "./core/animateOut.js": {
+      "types": "./types/core/animateOut.d.ts",
+      "default": "./core/animateOut.js"
+    },
     "./core/css.js": {
       "types": "./types/core/css.d.ts",
       "default": "./core/css.js"
@@ -67,6 +71,10 @@
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
+    },
+    "./core/ssr.js": {
+      "types": "./types/core/ssr.d.ts",
+      "default": "./core/ssr.js"
     },
     "./core/tpl-processors.js": {
       "types": "./types/core/tpl-processors.d.ts",
@@ -110,7 +118,7 @@
   "homepage": "https://rnd-pro.com/symbiote/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/symbiotejs/symbiote.js.git"
+    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
   },
   "keywords": [
     "web components",

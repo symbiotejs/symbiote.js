@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote.js — Internal Benchmark</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0e0e12;
+      --surface: #1a1a24;
+      --surface-hover: #22222e;
+      --border: #2a2a38;
+      --text: #e4e4ef;
+      --text-muted: #8888a0;
+      --accent: #7c6aef;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --blue: #60a5fa;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover { filter: brightness(1.15); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .status {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-left: 0.5rem;
+    }
+
+    .results {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .bench-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .bench-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .bench-card .desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+
+    .result-cell {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .result-cell .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+
+    .result-cell .unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .result-cell .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .runs-detail {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .placeholder {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+<h1>⚡ Symbiote.js — Internal Benchmark</h1>
+<p class="subtitle">Performance profiling for Symbiote components — loaded from local source</p>
+
+<div class="controls">
+  <button class="primary" id="run-all">▶ Run All</button>
+  <button id="run-create">Component Creation</button>
+  <button id="run-update">State Updates</button>
+  <button id="run-list">List Render</button>
+  <button id="run-list-update">List Update</button>
+  <button id="run-memory">Memory</button>
+  <span class="status" id="status"></span>
+</div>
+
+<div class="results" id="results">
+  <div class="placeholder">Click "Run All" to start benchmarks</div>
+</div>
+
+<div id="bench-container" style="position:fixed;left:-9999px;top:0;width:1000px;height:1000px;overflow:hidden;"></div>
+
+<script type="module">
+
+const container = document.getElementById('bench-container');
+const resultsEl = document.getElementById('results');
+const statusEl = document.getElementById('status');
+
+function setStatus(msg) { statusEl.textContent = msg; }
+function clearContainer() { container.innerHTML = ''; }
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Measure helper (returns all runs) ──
+async function measure(fn, warmup = 2, runs = 7) {
+  for (let i = 0; i < warmup; i++) {
+    await fn();
+    clearContainer();
+    await sleep(20);
+  }
+  let times = [];
+  for (let i = 0; i < runs; i++) {
+    let t0 = performance.now();
+    await fn();
+    let t1 = performance.now();
+    times.push(t1 - t0);
+    clearContainer();
+    await sleep(20);
+  }
+  times.sort((a, b) => a - b);
+  return {
+    median: times[Math.floor(times.length / 2)],
+    min: times[0],
+    max: times[times.length - 1],
+    avg: times.reduce((a, b) => a + b, 0) / times.length,
+    runs: times,
+  };
+}
+
+// ── Symbiote (local source) ──
+const { Symbiote, html } = await import('https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote@3.0.0-next.1/+esm');
+setStatus('Symbiote loaded ✓');
+
+const N_CREATE = 10000;
+const N_UPDATE = 100000;
+const N_LIST = 10000;
+
+// ═══════════════════════════════════════════
+// 1. Component Creation
+// ═══════════════════════════════════════════
+
+let createIdx = 0;
+
+async function benchCreate() {
+  let tag = `sb-create-${createIdx++}`;
+  class Item extends Symbiote {
+    init$ = { label: 'item' };
+  }
+  Item.template = html`<span bind="textContent: label"></span>`;
+  Item.reg(tag);
+  for (let i = 0; i < N_CREATE; i++) {
+    container.appendChild(document.createElement(tag));
+  }
+  await sleep(0);
+}
+
+// ═══════════════════════════════════════════
+// 2. State Updates
+// ═══════════════════════════════════════════
+
+let updateIdx = 0;
+
+async function benchUpdate() {
+  let tag = `sb-update-${updateIdx++}`;
+  class Counter extends Symbiote {
+    init$ = { count: 0 };
+  }
+  Counter.template = html`<span bind="textContent: count"></span>`;
+  Counter.reg(tag);
+  let el = document.createElement(tag);
+  container.appendChild(el);
+  await sleep(0);
+  for (let i = 0; i < N_UPDATE; i++) {
+    el.$.count = i;
+  }
+  await sleep(0);
+}
+
+// ═══════════════════════════════════════════
+// 3. List Render
+// ═══════════════════════════════════════════
+
+function listData(n) {
+  return Array.from({ length: n }, (_, i) => ({ id: i, name: `Item ${i}` }));
+}
+
+let listIdx = 0;
+
+async function benchListRender() {
+  let tag = `sb-list-${listIdx++}`;
+  class BenchList extends Symbiote {
+    init$ = { items: listData(N_LIST) };
+  }
+  BenchList.template = html`
+    <div itemize="items">
+      <template><span bind="textContent: name"></span></template>
+    </div>
+  `;
+  BenchList.reg(tag);
+  container.appendChild(document.createElement(tag));
+  await sleep(0);
+}
+
+// ═══════════════════════════════════════════
+// 4. List Update (swap + modify)
+// ═══════════════════════════════════════════
+
+let listUpdateIdx = 0;
+
+async function benchListUpdate() {
+  let tag = `sb-lu-${listUpdateIdx++}`;
+  class BenchLU extends Symbiote {
+    init$ = { items: listData(N_LIST) };
+  }
+  BenchLU.template = html`
+    <div itemize="items">
+      <template><span bind="textContent: name"></span></template>
+    </div>
+  `;
+  BenchLU.reg(tag);
+  let el = document.createElement(tag);
+  container.appendChild(el);
+  await sleep(0);
+  let data = [...listData(N_LIST)];
+  [data[0], data[data.length - 1]] = [data[data.length - 1], data[0]];
+  data[500].name = 'UPDATED';
+  el.$.items = data;
+  await sleep(0);
+}
+
+// ═══════════════════════════════════════════
+// 5. Memory (subscription cleanup)
+// ═══════════════════════════════════════════
+
+let memIdx = 0;
+
+async function benchMemory() {
+  let tag = `sb-mem-${memIdx++}`;
+  class MemItem extends Symbiote {
+    init$ = { val: 0 };
+  }
+  MemItem.template = html`<span bind="textContent: val"></span>`;
+  MemItem.reg(tag);
+
+  // Create 500 components
+  let els = [];
+  for (let i = 0; i < 500; i++) {
+    let el = document.createElement(tag);
+    container.appendChild(el);
+    els.push(el);
+  }
+  await sleep(0);
+
+  let before = performance.memory?.usedJSHeapSize;
+
+  // Remove all
+  clearContainer();
+  els = null;
+  await sleep(50);
+
+  // Force GC if available
+  if (globalThis.gc) globalThis.gc();
+  await sleep(100);
+
+  let after = performance.memory?.usedJSHeapSize;
+
+  return {
+    before,
+    after,
+    freed: before && after ? before - after : null,
+  };
+}
+
+// ═══════════════════════════════════════════
+// Registry
+// ═══════════════════════════════════════════
+
+const BENCHMARKS = [
+  {
+    id: 'create',
+    title: 'Component Creation',
+    desc: `Create and mount ${N_CREATE.toLocaleString()} components`,
+    fn: benchCreate,
+  },
+  {
+    id: 'update',
+    title: 'State Updates',
+    desc: `${N_UPDATE.toLocaleString()} sequential $.count = i updates`,
+    fn: benchUpdate,
+  },
+  {
+    id: 'list',
+    title: 'List Render',
+    desc: `Itemize ${N_LIST.toLocaleString()} items (initial render)`,
+    fn: benchListRender,
+  },
+  {
+    id: 'list-update',
+    title: 'List Update',
+    desc: `Swap first/last + modify middle in ${N_LIST.toLocaleString()}-item list`,
+    fn: benchListUpdate,
+  },
+  {
+    id: 'memory',
+    title: 'Memory Cleanup',
+    desc: 'Create 500 components, remove all, measure heap delta',
+    fn: null, // special
+  },
+];
+
+// ═══════════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════════
+
+let allResults = {};
+
+function renderResults() {
+  let html = '';
+  for (let bench of BENCHMARKS) {
+    let result = allResults[bench.id];
+    html += `<div class="bench-card">
+      <h2>${bench.title}</h2>
+      <p class="desc">${bench.desc}</p>`;
+
+    if (result && bench.id === 'memory') {
+      html += `<div class="result-grid">
+        <div class="result-cell">
+          <div class="value">${result.before ? (result.before / 1024 / 1024).toFixed(1) : '—'}</div>
+          <div class="unit">MB</div>
+          <div class="label">Heap before</div>
+        </div>
+        <div class="result-cell">
+          <div class="value">${result.after ? (result.after / 1024 / 1024).toFixed(1) : '—'}</div>
+          <div class="unit">MB</div>
+          <div class="label">Heap after</div>
+        </div>
+        <div class="result-cell">
+          <div class="value">${result.freed !== null ? (result.freed / 1024).toFixed(0) : '—'}</div>
+          <div class="unit">KB freed</div>
+          <div class="label">Delta</div>
+        </div>
+      </div>`;
+      if (!result.before) {
+        html += `<div class="runs-detail">⚠ performance.memory not available (Chrome only, use --enable-precise-memory-info)</div>`;
+      }
+    } else if (result) {
+      html += `<div class="result-grid">
+        <div class="result-cell">
+          <div class="value">${result.median.toFixed(1)}</div>
+          <div class="unit">ms (median)</div>
+        </div>
+        <div class="result-cell">
+          <div class="value">${result.min.toFixed(1)}</div>
+          <div class="unit">ms (min)</div>
+        </div>
+        <div class="result-cell">
+          <div class="value">${result.max.toFixed(1)}</div>
+          <div class="unit">ms (max)</div>
+        </div>
+        <div class="result-cell">
+          <div class="value">${result.avg.toFixed(1)}</div>
+          <div class="unit">ms (avg)</div>
+        </div>
+      </div>
+      <div class="runs-detail">Runs: ${result.runs.map(r => r.toFixed(1) + 'ms').join(' · ')}</div>`;
+    } else {
+      html += '<div class="placeholder">—</div>';
+    }
+    html += '</div>';
+  }
+  resultsEl.innerHTML = html;
+}
+
+async function runBench(id) {
+  let bench = BENCHMARKS.find(b => b.id === id);
+  setStatus(`Running: ${bench.title}…`);
+
+  if (id === 'memory') {
+    allResults[id] = await benchMemory();
+  } else {
+    allResults[id] = await measure(bench.fn);
+  }
+  renderResults();
+}
+
+function disableButtons(disabled) {
+  document.querySelectorAll('.controls button').forEach(b => b.disabled = disabled);
+}
+
+async function runAll() {
+  disableButtons(true);
+  allResults = {};
+  renderResults();
+  for (let bench of BENCHMARKS) {
+    await runBench(bench.id);
+  }
+  setStatus('Done ✓');
+  disableButtons(false);
+}
+
+async function runSingle(id) {
+  disableButtons(true);
+  await runBench(id);
+  setStatus('Done ✓');
+  disableButtons(false);
+}
+
+// ── Event listeners ──
+document.getElementById('run-all').addEventListener('click', runAll);
+document.getElementById('run-create').addEventListener('click', () => runSingle('create'));
+document.getElementById('run-update').addEventListener('click', () => runSingle('update'));
+document.getElementById('run-list').addEventListener('click', () => runSingle('list'));
+document.getElementById('run-list-update').addEventListener('click', () => runSingle('list-update'));
+document.getElementById('run-memory').addEventListener('click', () => runSingle('memory'));
+
+renderResults();
+
+</script>
+</body>
+</html>
