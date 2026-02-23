@@ -186,7 +186,7 @@ export class PubSub {
 
   /** @param {keyof T} prop */
   read(prop) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('read', prop);
       return null;
     }
@@ -234,11 +234,11 @@ export class PubSub {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    if (!rewrite && Object.keys(this.store).includes(prop)) {
+    if (!rewrite && (prop in this.store)) {
       return;
     }
     this.store[prop] = val;
-    this.notify(prop);
+    this.notify(prop, val);
   }
 
   /**
@@ -246,7 +246,7 @@ export class PubSub {
    * @param {unknown} val
    */
   pub(prop, val) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('publish', prop, this);
       return;
     }
@@ -255,7 +255,7 @@ export class PubSub {
       PubSub.#warn('publish computed (value must be a Function)', prop, this);
       return;
     }
-    if (!(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
+    if (PubSub.devMode && !(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
       let uid = String(this.uid || 'local');
       console.warn(
         `[Symbiote] PubSub (${uid}): type change for "${String(prop)}" [${typeof this.store[prop]} → ${typeof val}].\n`
@@ -263,7 +263,7 @@ export class PubSub {
       );
     }
     this.store[prop] = val;
-    this.notify(prop);
+    this.notify(prop, val);
   }
 
   /** @returns {T} */
@@ -291,11 +291,13 @@ export class PubSub {
   }
 
   /** @param {keyof T} prop */
-  notify(prop) {
+  notify(prop, val) {
     // @ts-expect-error
     let isComputed = prop?.startsWith(DICT.COMPUTED_PX);
     if (this.callbackMap[prop]) {
-      let val = this.read(prop);
+      if (val === undefined) {
+        val = this.read(prop);
+      }
       this.callbackMap[prop].forEach((callback) => {
         callback(val);
       });
@@ -316,7 +318,7 @@ export class PubSub {
    * @param {Boolean} [init]
    */
   sub(prop, callback, init = true) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('subscribe', prop);
       return null;
     }
@@ -388,5 +390,8 @@ export class PubSub {
 
 /** @type {Map<String | Symbol, PubSub>} */
 PubSub.globalStore = new Map();
+
+/** @type {Boolean} */
+PubSub.devMode = false;
 
 export default PubSub;

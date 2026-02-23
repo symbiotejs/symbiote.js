@@ -32,6 +32,8 @@ export class Symbiote extends HTMLElement {
   #cssDataCache;
   #computedStyle;
   #boundCssProps;
+  /** @type {Map<string, {ctx: PubSub, name: string}>} */
+  #parsedPropCache;
 
   /** @type {typeof Symbiote} */
   // @ts-expect-error
@@ -41,7 +43,16 @@ export class Symbiote extends HTMLElement {
   static __tpl;
 
   /** @type {Boolean} */
-  static devMode = false;
+  static #devMode = false;
+
+  static set devMode(val) {
+    Symbiote.#devMode = val;
+    PubSub.devMode = val;
+  }
+
+  static get devMode() {
+    return Symbiote.#devMode;
+  }
 
   get Symbiote() {
     return Symbiote;
@@ -186,7 +197,7 @@ export class Symbiote extends HTMLElement {
   /** @returns {PubSub} */
   get localCtx() {
     if (!this.#localCtx) {
-      this.#localCtx = PubSub.registerCtx({});
+      this.#localCtx = new PubSub({});
     }
     return this.#localCtx;
   }
@@ -206,22 +217,28 @@ export class Symbiote extends HTMLElement {
     let ctx;
     /** @type {String} */
     let name;
-    if (prop.startsWith(DICT.SHARED_CTX_PX)) {
+    let first = prop.charCodeAt(0);
+    // Fast path for common local props (no prefix, no /)
+    // Char codes: * = 42, ^ = 94, @ = 64, + = 43, - = 45
+    if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+      return { ctx: fnCtx.localCtx, name: prop };
+    }
+    if (first === 42) {
       ctx = fnCtx.sharedCtx;
-      name = prop.replace(DICT.SHARED_CTX_PX, '');
-    } else if (prop.startsWith(DICT.PARENT_CTX_PX)) {
-      name = prop.replace(DICT.PARENT_CTX_PX, '');
+      name = prop.slice(1);
+    } else if (first === 94) {
+      name = prop.slice(1);
       let found = fnCtx;
       while (found && !found?.has?.(name)) {
         // @ts-expect-error
         found = found.parentElement || found.parentNode || found.host;
       }
       ctx = found?.localCtx || fnCtx.localCtx;
-    } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
-      let pArr = prop.split(DICT.NAMED_CTX_SPLTR);
-      ctx = PubSub.getCtx(pArr[0]);
-      name = pArr[1];
-    } else if (prop.startsWith(DICT.CSS_DATA_PX)) {
+    } else if (prop.includes('/')) {
+      let slashIdx = prop.indexOf('/');
+      ctx = PubSub.getCtx(prop.slice(0, slashIdx));
+      name = prop.slice(slashIdx + 1);
+    } else if (first === 45 && prop.charCodeAt(1) === 45) {
       ctx = fnCtx.localCtx;
       name = prop;
       if (!ctx.has(name)) {
@@ -231,10 +248,7 @@ export class Symbiote extends HTMLElement {
       ctx = fnCtx.localCtx;
       name = prop;
     }
-    return {
-      ctx,
-      name,
-    };
+    return { ctx, name };
   }
 
   /**
@@ -300,11 +314,21 @@ export class Symbiote extends HTMLElement {
       let o = Object.create(null);
       this.#stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
-          let parsed = Symbiote.#parseProp(prop, this);
-          parsed.ctx.pub(parsed.name, val);
+          // Fast path: local prop (no prefix, no /)
+          let first = prop.charCodeAt(0);
+          if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+            this.localCtx.pub(prop, val);
+          } else {
+            let parsed = Symbiote.#parseProp(prop, this);
+            parsed.ctx.pub(parsed.name, val);
+          }
           return true;
         },
         get: (obj, /** @type {String} */ prop) => {
+          let first = prop.charCodeAt(0);
+          if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+            return this.localCtx.read(prop);
+          }
           let parsed = Symbiote.#parseProp(prop, this);
           return parsed.ctx.read(parsed.name);
         },
@@ -488,7 +512,7 @@ export class Symbiote extends HTMLElement {
         sub.remove();
         this.allSubs.delete(sub);
       }
-      this.#localCtx && PubSub.deleteCtx(this.#localCtx.uid);
+      this.#localCtx = null;
       for (let proc of this.templateProcessors) {
         this.templateProcessors.delete(proc);
       }

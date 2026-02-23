@@ -126,6 +126,10 @@ function getTextNodesWithTokens(el) {
  * @param {T} fnCtx
  */
 const txtNodesProcessor = function (fr, fnCtx) {
+  // Skip TreeWalker entirely if no {{ tokens in the fragment
+  if (!fr.textContent?.includes(DICT.TEXT_NODE_OPEN_TOKEN)) {
+    return;
+  }
   let txtNodes = getTextNodesWithTokens(fr);
   txtNodes.forEach((/** @type {Text} */ txtNode) => {
     let tokenNodes = [];

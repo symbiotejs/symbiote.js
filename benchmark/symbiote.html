@@ -157,7 +157,7 @@
 <body>
 
 <h1>⚡ Symbiote.js — Internal Benchmark</h1>
-<p class="subtitle">Performance profiling for Symbiote components — loaded from local source</p>
+<p class="subtitle">Performance profiling for Symbiote components</p>
 
 <div class="controls">
   <button class="primary" id="run-all">▶ Run All</button>
@@ -211,13 +211,13 @@ async function measure(fn, warmup = 2, runs = 7) {
   };
 }
 
-// ── Symbiote (local source) ──
+// ── Symbiote ──
 const { Symbiote, html } = await import('https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote@3.0.0-next.1/+esm');
 setStatus('Symbiote loaded ✓');
 
-const N_CREATE = 10000;
-const N_UPDATE = 100000;
-const N_LIST = 10000;
+const N_CREATE = 1000;
+const N_UPDATE = 10000;
+const N_LIST = 1000;
 
 // ═══════════════════════════════════════════
 // 1. Component Creation
@@ -255,7 +255,7 @@ async function benchUpdate() {
   container.appendChild(el);
   await sleep(0);
   for (let i = 0; i < N_UPDATE; i++) {
-    el.$.count = i;
+    el.localCtx.pub('count', i);
   }
   await sleep(0);
 }
