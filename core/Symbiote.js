@@ -347,9 +347,9 @@ export class Symbiote extends HTMLElement {
       /** @type {unknown[]} */
       let primArr = [String, Number, Boolean];
       if (forcePrimitives || !primArr.includes(val?.constructor)) {
-        this.$[key] = val;
+        this.localCtx.pub(key, val);
       } else {
-        this.$[key] !== val && (this.$[key] = val);
+        this.localCtx.read(key) !== val && this.localCtx.pub(key, val);
       }
     }
   }
@@ -361,7 +361,7 @@ export class Symbiote extends HTMLElement {
           if (mr.type === 'attributes') {
             let propName = DICT.ATTR_BIND_PX + mr.attributeName;
             if (this.has(propName)) {
-              this.$[propName] = this.getAttribute(mr.attributeName);
+              this.localCtx.pub(propName, this.getAttribute(mr.attributeName));
             }
           }
         }
@@ -570,7 +570,7 @@ export class Symbiote extends HTMLElement {
     let $prop = this.#super.__attrDesc?.[name];
     if ($prop) {
       if (this.#dataCtxInitialized) {
-        this.$[$prop] = newVal;
+        this.localCtx.pub($prop, newVal);
       } else {
         this.init$[$prop] = newVal;
       }
@@ -616,7 +616,7 @@ export class Symbiote extends HTMLElement {
     this.dropCssDataCache();
     this.#boundCssProps?.forEach((ctxProp) => {
       let val = this.getCssData(this.#extractCssName(ctxProp), true);
-      val !== null && this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+      val !== null && this.localCtx.read(ctxProp) !== val && (this.localCtx.pub(ctxProp, val));
     });
   };
 

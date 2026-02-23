@@ -70,7 +70,7 @@ function domBindProcessor(fr, fnCtx) {
           }
         }
         // In case of event handler is null, bind to fallback method (if defined):
-        if (prop.startsWith('on') && fnCtx.$[valKey] === null && typeof fnCtx[valKey] === 'function') {
+        if (prop.startsWith('on') && fnCtx.localCtx.read(valKey) === null && typeof fnCtx[valKey] === 'function') {
           fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx), true);
         }
         fnCtx.sub(valKey, (val) => {

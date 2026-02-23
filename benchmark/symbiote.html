@@ -212,7 +212,7 @@ async function measure(fn, warmup = 2, runs = 7) {
 }
 
 // ── Symbiote ──
-const { Symbiote, html } = await import('https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote@3.0.0-next.1/+esm');
+const { Symbiote, html } = await import('../core/index.js');
 setStatus('Symbiote loaded ✓');
 
 const N_CREATE = 1000;
@@ -308,7 +308,7 @@ async function benchListUpdate() {
   let data = [...listData(N_LIST)];
   [data[0], data[data.length - 1]] = [data[data.length - 1], data[0]];
   data[500].name = 'UPDATED';
-  el.$.items = data;
+  el.localCtx.pub('items', data);
   await sleep(0);
 }
 
