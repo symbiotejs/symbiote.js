@@ -1,6 +1,9 @@
 [![npm version](https://badge.fury.io/js/@symbiotejs%2Fsymbiote.svg)](https://badge.fury.io/js/@symbiotejs%2Fsymbiote)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 # Symbiote.js
+
+<img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
 
 A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** gzipped.
 
