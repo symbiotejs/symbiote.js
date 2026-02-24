@@ -14,6 +14,8 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
 - **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
 - **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
+- **on-event-handlers fallback** — event handlers now able to be described as direct class methods.
+- And [more](https://github.com/symbiotejs/symbiote/blob/main/CHANGELOG.md).
 
 ## Quick start
 
@@ -219,12 +221,19 @@ class UploadBtn extends Symbiote {
   init$ = {
     '*files': [],
     onUpload: () => {
+      ...
       this.$['*files'] = [...this.$['*files'], newFile];
     },
   }
 }
 
 class FileList extends Symbiote {
+  init$ = {
+    '*files': [],
+  }
+}
+
+class StatusBar extends Symbiote {
   init$ = {
     '*files': [],
   }
@@ -283,9 +292,7 @@ MyComponent.rootStyles = css`
 **Shadow DOM** — opt-in isolation when needed:
 
 ```js
-class Isolated extends Symbiote {
-  renderShadow = true;
-}
+class Isolated extends Symbiote {}
 
 Isolated.shadowStyles = css`
   :host { display: block; }
@@ -337,7 +344,7 @@ CSS values are parsed automatically — quoted strings become strings, numbers b
 | **Lit** (LitElement + html + css) | 15.1 kb | 5.8 kb | **5.3 kb** |
 | **React + ReactDOM** | 188.8 kb | 58.8 kb | **50.6 kb** |
 
-Symbiote and Lit have similar base sizes, but Symbiote's **5.9 kb** includes more powerful features: global state management, exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~10× larger** before adding a router, state manager, or SSR framework.
+Symbiote and Lit have similar base sizes, but Symbiote's **5.9 kb** includes more powerful features: global state management, lists (itemize API), exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~10× larger** before adding a router, state manager, or SSR framework.
 
 ## Browser support
 
