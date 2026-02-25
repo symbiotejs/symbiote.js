@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import PubSub from '../core/PubSub.js';
+import PubSub from '../../core/PubSub.js';
 
 describe('PubSub', () => {
   /** @type {PubSub} */

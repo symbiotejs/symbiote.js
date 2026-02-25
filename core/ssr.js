@@ -135,6 +135,7 @@ export function renderToString(tagName, attrs = {}) {
 
 /**
  * Serialize a custom element to HTML with DSD support.
+ * Recursively serializes nested custom elements.
  * @param {HTMLElement} el
  * @returns {string}
  */
@@ -164,16 +165,57 @@ function serializeElement(el) {
       }
     }
 
-    shadowHTML += el.shadowRoot.innerHTML;
+    for (let child of el.shadowRoot.childNodes) {
+      shadowHTML += serializeNode(child);
+    }
     innerContent += `<template shadowrootmode="open">${shadowHTML}</template>`;
   }
 
-  // Light DOM content:
+  // Light DOM content (recursively serialize children):
   if (!el.shadowRoot) {
-    innerContent += el.innerHTML;
+    for (let child of el.childNodes) {
+      innerContent += serializeNode(child);
+    }
   }
 
   return `<${tagName}${attrsStr}>${innerContent}</${tagName}>`;
+}
+
+/**
+ * Serialize a DOM node to HTML string.
+ * Custom elements are recursively serialized via serializeElement.
+ * @param {Node} node
+ * @returns {string}
+ */
+function serializeNode(node) {
+  // Custom element — recurse:
+  if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
+    return serializeElement(/** @type {HTMLElement} */ (node));
+  }
+  // Regular element:
+  if (node.nodeType === 1) {
+    let el = /** @type {HTMLElement} */ (node);
+    let attrsStr = '';
+    if (el.attributes) {
+      for (let attr of el.attributes) {
+        attrsStr += ` ${attr.name}="${attr.value}"`;
+      }
+    }
+    let childHTML = '';
+    for (let child of el.childNodes) {
+      childHTML += serializeNode(child);
+    }
+    return `<${el.localName}${attrsStr}>${childHTML}</${el.localName}>`;
+  }
+  // Text node:
+  if (node.nodeType === 3) {
+    return node.textContent || '';
+  }
+  // Comment:
+  if (node.nodeType === 8) {
+    return `<!--${node.textContent}-->`;
+  }
+  return '';
 }
 
 /**

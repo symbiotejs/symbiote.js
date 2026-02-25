@@ -5,7 +5,7 @@ describe('SSR Engine', async () => {
   let ssr;
 
   before(async () => {
-    ssr = await import('../core/ssr.js');
+    ssr = await import('../../core/ssr.js');
     await ssr.initSSR();
   });
 
@@ -14,7 +14,7 @@ describe('SSR Engine', async () => {
   });
 
   it('should render a basic component to HTML', async () => {
-    const { default: Symbiote, html } = await import('../core/Symbiote.js');
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
 
     class SsrBasic extends Symbiote {
       init$ = {
@@ -34,7 +34,7 @@ describe('SSR Engine', async () => {
   });
 
   it('should render a shadow DOM component with DSD', async () => {
-    const { default: Symbiote, html, css } = await import('../core/Symbiote.js');
+    const { default: Symbiote, html, css } = await import('../../core/Symbiote.js');
 
     class SsrShadow extends Symbiote {
       init$ = {
@@ -55,7 +55,7 @@ describe('SSR Engine', async () => {
   });
 
   it('should set attributes from attrs argument', async () => {
-    const { default: Symbiote } = await import('../core/Symbiote.js');
+    const { default: Symbiote } = await import('../../core/Symbiote.js');
 
     class SsrAttrs extends Symbiote {}
     SsrAttrs.template = '<div>content</div>';
@@ -68,7 +68,7 @@ describe('SSR Engine', async () => {
     assert.ok(result.includes('data-val="42"'), 'Should have data attribute');
   });
   it('should render itemize list', async () => {
-    const { default: Symbiote, html } = await import('../core/Symbiote.js');
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
 
     class SsrList extends Symbiote {
       init$ = {
@@ -97,7 +97,7 @@ describe('SSR Engine', async () => {
   });
 
   it('should render nested components with own state', async () => {
-    const { default: Symbiote, html } = await import('../core/Symbiote.js');
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
 
     class SsrChild extends Symbiote {
       init$ = {

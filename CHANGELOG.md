@@ -1,43 +1,36 @@
 # Changelog
 
-## 3.0.0-rc.1
+## 3.0.0
 
 ### ⚠️ Breaking Changes
 
-- **`tplProcessors` renamed to `templateProcessors`.**
-  The instance property and its API now use the full name. The `addTemplateProcessor()` method has been removed — use native `Set` methods directly:
+- **`tplProcessors` → `templateProcessors`.**
+  The `addTemplateProcessor()` method is removed — use native `Set` methods:
   ```js
-  // Before (2.x):
+  // 2.x:
   this.addTemplateProcessor(myProcessor);
-
-  // After (3.x):
+  // 3.x:
   this.templateProcessors.add(myProcessor);
   ```
 
-- **`AppRouter.applyRoute()` renamed to `AppRouter.navigate()`.**
+- **`AppRouter.applyRoute()` → `AppRouter.navigate()`.**
 
 - **`AppRouter` removed from main entry point.**
-  Now imported directly from its module:
   ```js
-  // Before (2.x):
+  // 2.x:
   import { AppRouter } from '@symbiotejs/symbiote';
-
-  // After (3.x):
+  // 3.x:
   import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
   ```
 
-- **`#disconnectTimeout` renamed to `#destroyTimeout`.**
-  Internal field renamed for clarity. No public API impact.
-
 - **Computed properties: cross-context requires explicit deps.**
-  Computed properties that depend on external named contexts no longer auto-detect dependencies via global scan. Use the new object syntax:
+  Local computeds (same-context) keep working unchanged. Cross-context now uses object syntax:
   ```js
-  // Before (2.x) — implicit, worked via global scan:
+  // 2.x — implicit via global scan:
   init$ = {
     '+total': () => this.$['APP/score'] + this.$.local,
   };
-
-  // After (3.x) — explicit deps required:
+  // 3.x — explicit deps:
   init$ = {
     '+total': {
       deps: ['APP/score'],
@@ -45,99 +38,40 @@
     },
   };
   ```
-  Local computed properties (depending only on same-context props) continue to work with function syntax unchanged.
+
+- **Shared context (`*prop`) simplified.**
+  Removed `ctxOwner` / `ctx-owner`. First-registered value always wins. Dev-mode warnings when `*prop` used without `ctx` attribute.
 
 ### Performance
 
 - **Computed properties: per-instance dependency tracking.**
-  Replaced global `#processComputed` scan with per-instance local dependency auto-tracking. `read()` now records which local props a computed function accesses, and only affected computeds are recalculated. Benchmarked up to **676x faster** for local computeds, **14x** for sparse scenarios.
+  Replaced global scan with per-instance auto-tracking. Up to **676× faster** for local computeds, **14×** for sparse scenarios.
 
-- **Microtask batching for computed recalculation.**
-  Replaced `setTimeout`-based debounce with `queueMicrotask`, providing predictable async batching and eliminating per-computed timer overhead.
+- **Microtask batching.**
+  All computed recalculation and internal scheduling uses `queueMicrotask` instead of `setTimeout`.
 
-### Added
+- **`#parseProp` fast path.**
+  `charCodeAt` checks skip full string parsing for common local properties — the most frequent case.
 
-- **`Symbiote.devMode` flag.**
-  Enables verbose development warnings (unresolved template bindings, etc.). Default: `false`.
+- **`$` proxy inlined fast path.**
+  Both `get` and `set` traps bypass `#parseProp` entirely for local props.
 
-- **Enhanced warning messages.**
-  All warnings now use `[Symbiote]` prefix with component tag names, context UIDs, available contexts, and fix suggestions.
+- **`PubSub.pub()` direct value pass.**
+  Eliminates redundant `read()` on every state update.
 
-- **`this` in template detection.**
-  `html` tagged template now fires `console.error` when `${this.…}` is used in template interpolation (templates are context-free).
+- **Dev warnings gated by `PubSub.devMode`.**
+  Type-mismatch checks have zero overhead in production.
 
-- **`reg()` returns the class itself.**
-  Enables patterns like `export default MyComponent.reg('my-component')`.
+- **`txtNodesProcessor` early exit.**
+  Skips text-node scanning when template contains no `{{` tokens.
 
-- **Declarative Shadow DOM hydration (`ssrMode`).**
-  `ssrMode = true` (client-only) hydrates both light DOM and existing Declarative Shadow DOM (`<template shadowrootmode="open">`). Template injection is skipped; bindings attach to pre-rendered content. Shadow styles applied via `adoptedStyleSheets`. Bypassed on the server (`__SYMBIOTE_SSR`).
+- **`localCtx` direct construction.**
+  Uses `new PubSub({})` instead of `PubSub.registerCtx({})`, bypassing global store for component-scoped state.
 
-- **Server-side rendering (`core/ssr.js`).**
-  New SSR module: `initSSR()` creates a linkedom-backed DOM environment with polyfills (CSSStyleSheet, NodeFilter, MutationObserver) and sets `globalThis.__SYMBIOTE_SSR`. `renderToString(tagName, attrs?)` renders components to HTML with Declarative Shadow DOM and inlined `<style>`. `renderToStream(tagName, attrs?)` async generator yields HTML chunks for lower TTFB and memory usage. Binding attributes (`bind`, `ref`, `itemize`) are preserved in output for client-side hydration. `linkedom` is an optional peer dependency.
-
-- **Exit animation hook (`animateOut`).**
-  New `animateOut(el)` utility and `Symbiote.animateOut` static method. Sets `[leaving]` attribute, waits for CSS `transitionend`, then removes element. Integrated into both itemize processors — items with CSS transitions animate out automatically. Enter animations use native CSS `@starting-style`.
-
-### Changed
-
-- **Shared context (`*prop`) simplified.**
-  Removed `ctxOwner` property and `ctx-owner` attribute. First-registered value always wins (via `add()` without rewrite). Dev-mode warnings: (1) when `*prop` is used without `ctx` attribute or `--ctx` CSS variable, (2) when a later component tries to set a different initial value for the same shared prop.
-
-- **Trusted Types support.**
-  Template `innerHTML` writes now use a `'symbiote'` Trusted Types policy when the API is available. Compatible with `require-trusted-types-for 'script'` CSP headers. Zero overhead when Trusted Types not enabled.
-
-### Fixed
-
-- **`css()` tagged template trailing `undefined`.**
-  `props[idx]` appended `"undefined"` when no interpolations exist. Fixed with `?? ''`.
-
-- **`new DocumentFragment()` SSR compatibility.**
-  Replaced with `document.createDocumentFragment()` in both `itemizeProcessor.js` and `itemizeProcessor-keyed.js` for linkedom compatibility.
-
-- **`AppRouter`: path-based routing.**
-  Routes with a `pattern` key auto-switch to path-based URLs. Supports `:param` extraction:
-  ```js
-  AppRouter.initRoutingCtx('R', {
-    home: { pattern: '/', title: 'Home', default: true },
-    user: { pattern: '/users/:id', title: 'User' },
-  });
-  // /users/42 → { route: 'user', options: { id: '42' } }
-  ```
-  Routes without `pattern` keep working as query-string (full backward compatibility).
-
-- **`AppRouter.beforeRoute(fn)` — route guards.**
-  Register middleware that runs before navigation. Return `false` to cancel, a route string to redirect:
-  ```js
-  let unsub = AppRouter.beforeRoute((to, from) => {
-    if (!isAuth && to.route === 'settings') return 'login';
-  });
-  ```
-
-- **Lazy loaded route components.**
-  Add `load` to route descriptors for dynamic imports. Loaded once, cached automatically:
-  ```js
-  { pattern: '/settings', load: () => import('./pages/settings.js') }
-  ```
-
-- **AI_REFERENCE.md** — comprehensive AI context file for code assistants, covering full API surface, template syntax, state management, lifecycle, styling, routing, itemize, and common mistakes.
-
-- **Event handler method fallback.**
-  `on*` bindings now fall back to class methods when no matching `init$` property is found:
-  ```js
-  // Works without init$ entry — class method is used as fallback:
-  onSubmit() { console.log('submitted'); }
-  ```
-
-- **`destructionDelay` instance property.**
-  Configurable delay (default `100`ms) before component destruction in `disconnectedCallback`. Override per-component to control cleanup timing:
-  ```js
-  class MyComponent extends Symbiote {
-    destructionDelay = 0; // instant cleanup
-  }
-  ```
+- **`hasOwnProperty` → `in` operator** across `PubSub` internals.
 
 - **`itemizeProcessor-keyed.js` — optional optimized itemize processor.**
-  Drop-in replacement with reference-equality fast paths and key-based reconciliation. Up to **3x faster** for appends, **2x** for in-place updates, **32x** for no-ops. Opt-in per component:
+  Drop-in replacement with reference-equality fast paths and key-based reconciliation. Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-ops:
   ```js
   import { itemizeProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor-keyed.js';
   import { itemizeProcessor as defaultProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor.js';
@@ -151,6 +85,67 @@
   }
   ```
 
-### Internal
+### Added
 
-- Replaced `setTimeout` with `queueMicrotask` in prop binding race avoidance and async accessor handlers.
+- **Server-side rendering (`core/ssr.js`).**
+  `initSSR()` creates a linkedom-backed DOM environment. `renderToString(tagName, attrs?)` renders to HTML with Declarative Shadow DOM. `renderToStream(tagName, attrs?)` async generator yields HTML chunks. Binding attributes preserved for client hydration. `linkedom` is an optional peer dependency.
+
+- **Declarative Shadow DOM hydration (`ssrMode`).**
+  `ssrMode = true` hydrates pre-rendered content (light DOM + `<template shadowrootmode>`). Template injection skipped; bindings attach to existing DOM. Shadow styles applied via `adoptedStyleSheets`.
+
+- **Exit animation hook (`animateOut`).**
+  Sets `[leaving]` attribute, waits for CSS `transitionend`, removes element. Integrated into itemize processors — items with transitions animate out automatically. Enter animations use `@starting-style`.
+
+- **`AppRouter`: path-based routing.**
+  Routes with `pattern` key use path-based URLs with `:param` extraction:
+  ```js
+  AppRouter.initRoutingCtx('R', {
+    home: { pattern: '/', title: 'Home', default: true },
+    user: { pattern: '/users/:id', title: 'User' },
+  });
+  // /users/42 → { route: 'user', options: { id: '42' } }
+  ```
+  Query-string routes remain fully backward compatible.
+
+- **Route guards — `AppRouter.beforeRoute(fn)`.**
+  Return `false` to cancel, a route string to redirect:
+  ```js
+  let unsub = AppRouter.beforeRoute((to, from) => {
+    if (!isAuth && to.route === 'settings') return 'login';
+  });
+  ```
+
+- **Lazy loaded routes.**
+  `load` in route descriptors for dynamic imports, cached automatically:
+  ```js
+  { pattern: '/settings', load: () => import('./pages/settings.js') }
+  ```
+
+- **Event handler method fallback.**
+  `on*` bindings fall back to class methods when no `init$` property found:
+  ```js
+  onSubmit() { console.log('submitted'); }
+  ```
+
+- **`Symbiote.devMode` flag.**
+  Enables verbose warnings (unresolved bindings, tag names, available contexts). Also wires `PubSub.devMode`.
+
+- **`reg()` returns the class itself.**
+  Enables `export default MyComponent.reg('my-component')`.
+
+- **`destructionDelay` instance property.**
+  Configurable delay (default `100`ms) before cleanup in `disconnectedCallback`.
+
+- **Trusted Types support.**
+  Template writes use `'symbiote'` Trusted Types policy when available. Zero overhead otherwise.
+
+- **`this` in template detection.**
+  `html` fires `console.error` when `${this.…}` used in template (templates are context-free).
+
+- **AI_REFERENCE.md** — comprehensive context file for code assistants.
+
+### Fixed
+
+- `css()` trailing `undefined` when no interpolations exist.
+- `new DocumentFragment()` → `document.createDocumentFragment()` for linkedom compatibility.
+- `txtNodesProcessor` null check for `fr.textContent` in SSR environments.

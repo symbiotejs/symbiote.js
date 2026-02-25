@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './test',
+  testDir: './test/browser',
   testMatch: '**/*.browser.js',
   fullyParallel: true,
   reporter: 'list',

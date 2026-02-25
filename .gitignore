@@ -13,3 +13,4 @@ package-lock.json
 ## dev
 TMP
 build
+test-results

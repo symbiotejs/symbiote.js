@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { html, RESERVED_ATTRIBUTES } from '../core/html.js';
+import { html, RESERVED_ATTRIBUTES } from '../../core/html.js';
 
 describe('html tagged template', () => {
 

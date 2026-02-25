@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Symbiote class', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/test/symbiote.html');
+    await page.goto('/test/browser/fixtures/symbiote.html');
     await page.waitForFunction(() => window.__TEST_READY === true);
   });
 

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Symbiote basic component', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/test/test.html');
+    await page.goto('/test/browser/fixtures/component.html');
     await page.waitForFunction(() => window.__TEST_READY === true);
   });
 

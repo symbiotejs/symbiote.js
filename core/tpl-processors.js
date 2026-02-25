@@ -1,8 +1,11 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
+import { ownElements, isOwnNode } from './ownElements.js';
 
 // Should go first among other processors:
 import { itemizeProcessor } from './itemizeProcessor.js';
+
+
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -10,7 +13,7 @@ import { itemizeProcessor } from './itemizeProcessor.js';
  * @param {T} fnCtx
  */
 function refProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
+  ownElements(fr, `[${DICT.EL_REF_ATTR}]`).forEach((/** @type {HTMLElement} */ el) => {
     let refName = el.getAttribute(DICT.EL_REF_ATTR);
     fnCtx.ref[refName] = el;
     if (!globalThis.__SYMBIOTE_SSR) {
@@ -25,7 +28,7 @@ function refProcessor(fr, fnCtx) {
  * @param {T} fnCtx
  */
 function domBindProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
+  ownElements(fr, `[${DICT.BIND_ATTR}]`).forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
     let keyValArr = subStr.split(';');
     keyValArr.forEach((keyValStr) => {
@@ -104,10 +107,12 @@ function domBindProcessor(fr, fnCtx) {
 }
 
 function getTextNodesWithTokens(el) {
+  let isCustomEl = el instanceof HTMLElement && el.localName?.includes('-');
   let node;
   let result = [];
   let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
     acceptNode: (txt) => {
+      if (isCustomEl && !isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
       return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR) 
         && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN) 
         && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN) 

@@ -1,5 +1,6 @@
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
+import { ownElements } from './ownElements.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -7,7 +8,7 @@ import { animateOut } from './animateOut.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.LIST_ATTR}]`)].filter((el) => {
+  ownElements(fr, `[${DICT.LIST_ATTR}]`).filter((el) => {
       return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
     }).forEach((el) => {
       let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
