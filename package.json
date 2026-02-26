@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
