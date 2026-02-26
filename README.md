@@ -18,7 +18,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
 - **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
 - **on-event-handlers fallback** — event handlers now able to be described as direct class methods.
-- And [more](https://github.com/symbiotejs/symbiote/blob/main/CHANGELOG.md).
+- And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).
 
 ## Quick start
 
@@ -358,9 +358,8 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 
 ## Docs
 
-- [Documentation](https://rnd-pro.com/symbiote/)
-- [Code Playground](https://rnd-pro.com/symbiote/2x/docs/live-examples/)
-- [AI Reference](./AI_REFERENCE.md)
-- [Changelog](./CHANGELOG.md)
+- [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
+- [AI Reference](https://github.com/symbiotejs/symbiote.js/blob/main/AI_REFERENCE.md)
+- [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
 **Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
