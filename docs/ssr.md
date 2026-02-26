@@ -2,7 +2,7 @@
 
 Symbiote.js provides a simple SSR solution via `node/SSR.js`. It doesn't need a virtual DOM, a reconciler, or framework-specific server packages — just one class.
 
-Requirements: `linkedom` (optional peer dependency).
+Requirements: [linkedom](https://github.com/WebReflection/linkedom) (optional peer dependency).
 
 ```js
 import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
