@@ -134,7 +134,31 @@ html`
 
 Shared context works similarly to native HTML radio inputs — set the `name` attribute and different inputs connect into one workflow.
 
-Use the `*` token to connect properties to a group:
+In 3.x, an explicit context name is **required** for shared properties. Set it using the `ctx` HTML attribute:
+```html
+<upload-btn ctx="gallery"></upload-btn>
+<file-list ctx="gallery"></file-list>
+```
+
+Or using the `--ctx` CSS custom property:
+```css
+.gallery-section {
+  --ctx: gallery;
+}
+```
+```html
+<div class="gallery-section">
+  <upload-btn></upload-btn>
+  <file-list></file-list>
+</div>
+```
+
+The CSS approach is useful when:
+- You want **layout-driven grouping** — components inherit the context from their visual container rather than repeating the attribute on each one
+- You need to **reassign context at different DOM levels** — just like any CSS custom property, `--ctx` cascades and can be overridden in nested selectors
+- You work in a **framework-agnostic setup** — CSS can be managed separately from markup, so context assignment doesn't depend on template engine or host framework
+
+Then use the `*` token to define shared properties:
 ```js
 class UploadBtn extends Symbiote {
   init$ = {
@@ -152,21 +176,16 @@ class FileList extends Symbiote {
 }
 ```
 
-For manual context creation, use the `ctx` HTML attribute:
-```html
-<upload-btn ctx="gallery"></upload-btn>
-<file-list ctx="gallery"></file-list>
-```
-
 Both components access the same `*files` state — no parent component, no prop drilling, no global store.
 
-### Context name resolution (first match wins)
+### Context name resolution
+
+The context name is resolved in this order (first match wins):
 
 1. `ctx="name"` HTML attribute
 2. `--ctx` CSS custom property (inherited from ancestors)
-3. No match → `*` props are silently skipped (dev mode warns)
 
-> **WARNING**: `*` properties require an explicit `ctx` attribute or `--ctx` CSS variable. Without one, the shared context is not created and `*` props have no effect.
+> **IMPORTANT**: In 3.x, `*` properties **require** an explicit `ctx` attribute or `--ctx` CSS variable. Without one, the shared context is not created, `*` props have no effect, and dev mode will warn about it.
 
 ## CSS Data context
 
