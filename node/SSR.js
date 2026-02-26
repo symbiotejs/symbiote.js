@@ -42,6 +42,27 @@ function extractCSS(sheet) {
 }
 
 /**
+ * Resolve {{prop}} text node tokens by reading values from the closest custom element.
+ * @param {string} text
+ * @param {Node} node
+ * @returns {string}
+ */
+function resolveTextTokens(text, node) {
+  if (!text.includes('{{')) return text;
+  // Find closest parent custom element:
+  let el = node.parentElement;
+  while (el && !el.localName?.includes('-')) {
+    el = el.parentElement;
+  }
+  if (!el || !/** @type {any} */ (el).localCtx) return text;
+  let ctx = /** @type {any} */ (el).localCtx;
+  return text.replace(/\{\{([^}]+)\}\}/g, (match, prop) => {
+    let val = ctx.has(prop) ? ctx.read(prop) : undefined;
+    return val !== undefined && val !== null ? String(val) : match;
+  });
+}
+
+/**
  * Serialize a custom element to HTML with DSD and rootStyles support.
  * @param {HTMLElement} el
  * @param {Set<Function>} emittedStyles - track which constructors already emitted rootStyles
@@ -130,7 +151,7 @@ function serializeNode(node, emittedStyles) {
   }
   // Text node:
   if (node.nodeType === 3) {
-    return node.textContent || '';
+    return resolveTextTokens(node.textContent || '', node);
   }
   // Comment:
   if (node.nodeType === 8) {
@@ -216,7 +237,7 @@ async function* streamNode(node, emittedStyles) {
     return;
   }
   if (node.nodeType === 3) {
-    yield node.textContent || '';
+    yield resolveTextTokens(node.textContent || '', node);
     return;
   }
   if (node.nodeType === 8) {
