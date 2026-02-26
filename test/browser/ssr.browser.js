@@ -6,10 +6,11 @@ let ssrMarkup;
 
 test.beforeAll(() => {
   let script = `
-    import { initSSR, renderToString } from './core/ssr.js';
-    await initSSR();
+    import { SSR } from './node/SSR.js';
+    await SSR.init();
     await import('./test/browser/helpers/ssr-components.js');
-    let html = renderToString('ssr-root');
+    let html = SSR.renderToString('ssr-root');
+    SSR.destroy();
     process.stdout.write(html);
   `;
   ssrMarkup = execSync(`node --input-type=module -e "${script.replace(/"/g, '\\"')}"`, {

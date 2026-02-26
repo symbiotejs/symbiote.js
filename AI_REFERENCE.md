@@ -509,43 +509,67 @@ Usage:
 
 ## Server-Side Rendering (SSR)
 
-Import `core/ssr.js` to render components to HTML strings on the server. Requires `linkedom` (optional peer dependency).
+Import `node/SSR.js` to render components to HTML strings on the server. Requires `linkedom` (optional peer dependency).
+
+### Basic usage — `processHtml`
 
 ```js
-import { initSSR, renderToString, destroySSR } from '@symbiotejs/symbiote/core/ssr.js';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
 
-await initSSR(); // patches globals with linkedom env
+await SSR.init();                // patches globals with linkedom env
+await import('./my-component.js'); // component reg() works normally
 
-import './my-component.js'; // component reg() works normally
+let html = await SSR.processHtml('<div><my-component></my-component></div>');
+// => '<div><my-component><style>...</style><template shadowrootmode="open">...</template>content</my-component></div>'
 
-let html = renderToString('my-component', { title: 'Hello' });
+SSR.destroy();                   // cleanup globals
+```
+
+`processHtml` takes any HTML string, renders all Symbiote components found within, and returns the processed HTML. If `SSR.init()` was already called, it reuses the existing environment; otherwise it auto-initializes (and auto-destroys after).
+
+### Advanced — `renderToString` / `renderToStream`
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();
+await import('./my-component.js');
+
+let html = SSR.renderToString('my-component', { title: 'Hello' });
 // => '<my-component title="Hello"><h1>Hello</h1></my-component>'
 
-destroySSR(); // cleanup globals
+SSR.destroy();
 ```
 
 ### API
 
-| Function | Description |
-|----------|-------------|
-| `initSSR()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver, patches globals |
-| `renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes to HTML string. Shadow DOM → DSD with inlined `<style>` |
-| `renderToStream(tagName, attrs?)` | Async generator — yields HTML chunks as it walks the DOM tree. Same output as `renderToString`, but streamed for lower TTFB and memory |
-| `destroySSR()` | Removes global patches, cleans up document |
+| Method | Description |
+|--------|-------------|
+| `SSR.init()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver/adoptedStyleSheets, patches globals |
+| `SSR.processHtml(html)` | `async` — parses HTML string, renders all custom elements, returns processed HTML. Auto-inits if needed |
+| `SSR.renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes to HTML string |
+| `SSR.renderToStream(tagName, attrs?)` | Async generator — yields HTML chunks. Same output as `renderToString`, but streamed for lower TTFB |
+| `SSR.destroy()` | Removes global patches, cleans up document |
+
+### Styles in SSR output
+
+- **rootStyles** → `<style>` tag as first child of the component (light DOM, deduplicated per constructor)
+- **shadowStyles** → `<style>` inside the Declarative Shadow DOM `<template>`
+- Both are supported simultaneously on the same component
 
 ### Streaming usage
 
 ```js
 import http from 'node:http';
-import { initSSR, renderToStream } from '@symbiotejs/symbiote/core/ssr.js';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
 
-await initSSR();
+await SSR.init();
 import './my-app.js';
 
 http.createServer(async (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.write('<!DOCTYPE html><html><body>');
-  for await (let chunk of renderToStream('my-app')) {
+  for await (let chunk of SSR.renderToStream('my-app')) {
     res.write(chunk);
   }
   res.end('</body></html>');
@@ -554,19 +578,22 @@ http.createServer(async (req, res) => {
 
 ### Shadow DOM output
 
-Shadow components produce Declarative Shadow DOM markup with styles inlined:
+Shadow components produce Declarative Shadow DOM markup with styles inlined. Light DOM content is preserved alongside the DSD template:
 ```html
 <my-shadow>
+  <style>my-shadow { display: block; }</style>
   <template shadowrootmode="open">
-    <style>:host { display: block; }</style>
+    <style>:host { color: red; }</style>
     <h1>Content</h1>
+    <slot></slot>
   </template>
+  Light DOM content here
 </my-shadow>
 ```
 
 ### SSR context detection
 
-`initSSR()` sets `globalThis.__SYMBIOTE_SSR = true`. This is separate from the instance `ssrMode` flag:
+`SSR.init()` sets `globalThis.__SYMBIOTE_SSR = true`. This is separate from the instance `ssrMode` flag:
 
 | Flag | Scope | Purpose |
 |------|-------|-------|
@@ -575,7 +602,7 @@ Shadow components produce Declarative Shadow DOM markup with styles inlined:
 
 ### Hydration flow
 
-1. **Server**: `renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
+1. **Server**: `SSR.processHtml()` / `SSR.renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
 2. **Client**: component with `ssrMode = true` skips template injection, attaches bindings to pre-rendered DOM
 3. State mutations on client update DOM reactively
 

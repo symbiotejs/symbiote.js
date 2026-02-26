@@ -72,9 +72,9 @@
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
     },
-    "./core/ssr.js": {
-      "types": "./types/core/ssr.d.ts",
-      "default": "./core/ssr.js"
+    "./node/SSR.js": {
+      "types": "./types/node/SSR.d.ts",
+      "default": "./node/SSR.js"
     },
     "./core/tpl-processors.js": {
       "types": "./types/core/tpl-processors.d.ts",

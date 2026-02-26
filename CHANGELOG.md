@@ -87,8 +87,15 @@
 
 ### Added
 
-- **Server-side rendering (`core/ssr.js`).**
-  `initSSR()` creates a linkedom-backed DOM environment. `renderToString(tagName, attrs?)` renders to HTML with Declarative Shadow DOM. `renderToStream(tagName, attrs?)` async generator yields HTML chunks. Binding attributes preserved for client hydration. `linkedom` is an optional peer dependency.
+- **Server-side rendering (`node/SSR.js`).**
+  `SSR` class with static methods for server-side rendering. `SSR.processHtml(html)` renders any HTML string with embedded components. `SSR.renderToString(tagName, attrs?)` renders a single component. `SSR.renderToStream(tagName, attrs?)` async generator yields HTML chunks. Declarative Shadow DOM with inlined styles. rootStyles emitted as `<style>` tags in light DOM. Light DOM content preserved. Binding attributes preserved for client hydration. `linkedom` is an optional peer dependency.
+  ```js
+  import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+  await SSR.init();
+  await import('./my-app.js');
+  let html = await SSR.processHtml('<my-app>content</my-app>');
+  SSR.destroy();
+  ```
 
 - **Declarative Shadow DOM hydration (`ssrMode`).**
   `ssrMode = true` hydrates pre-rendered content (light DOM + `<template shadowrootmode>`). Template injection skipped; bindings attach to existing DOM. Shadow styles applied via `adoptedStyleSheets`.

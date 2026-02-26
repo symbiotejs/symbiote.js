@@ -11,7 +11,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 
 ## What's new in 3.x
 
-- **Server-Side Rendering** — render components to HTML on the server with `renderToString()` or stream chunks with `renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
+- **Server-Side Rendering** — render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
 - **Computed properties** — reactive derived state with microtask batching.
 - **Path-based router** — optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
 - **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
@@ -60,16 +60,16 @@ import Symbiote, { html, css } from '@symbiotejs/symbiote';
 
 ## SSR — simpler than you'd expect
 
-Symbiote's SSR doesn't need a virtual DOM, a reconciler, or framework-specific server packages. It's three functions:
+Symbiote's SSR doesn't need a virtual DOM, a reconciler, or framework-specific server packages. It's one class:
 
 ```js
-import { initSSR, renderToString, destroySSR } from '@symbiotejs/symbiote/core/ssr.js';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
 
-await initSSR();              // patches globals with linkedom
-await import('./my-app.js');  // your components register normally
+await SSR.init();              // patches globals with linkedom
+await import('./my-app.js');   // your components register normally
 
-let html = renderToString('my-app');  // full HTML string
-destroySSR();                 // cleanup
+let html = await SSR.processHtml('<my-app>slot content</my-app>');
+SSR.destroy();                 // cleanup
 ```
 
 On the client, components with `ssrMode = true` skip template injection and attach bindings to the existing DOM. State mutations work immediately — no hydration step, no reconciliation, no diffing.
@@ -79,12 +79,15 @@ On the client, components with `ssrMode = true` skip template injection and atta
 For large pages, stream HTML chunks instead of building a string:
 
 ```js
-import { renderToStream } from '@symbiotejs/symbiote/core/ssr.js';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();
+await import('./my-app.js');
 
 http.createServer(async (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.write('<!DOCTYPE html><html><body>');
-  for await (let chunk of renderToStream('my-app')) {
+  for await (let chunk of SSR.renderToStream('my-app')) {
     res.write(chunk);
   }
   res.end('</body></html>');
@@ -97,7 +100,7 @@ http.createServer(async (req, res) => {
 |--|----------------|---------------------|--------------------------|
 | **Architecture** | Binding-based. Client attaches to existing DOM | Virtual DOM. Client re-renders and diffs against server HTML | Template-based with comment markers |
 | **Hydration** | `ssrMode = true` — one flag, no diffing | `hydrateRoot()` — must produce identical output or errors | Requires `ssr-client` + hydrate support module loaded before Lit |
-| **Packages** | 1 module (`core/ssr.js`) + `linkedom` peer dep | Next.js framework (full buy-in) | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
+| **Packages** | 1 module (`node/SSR.js`) + `linkedom` peer dep | Next.js framework (full buy-in) | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
 | **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
 | **Mismatch handling** | Not needed — bindings attach to whatever DOM exists | Hard errors or visual glitches if server/client output differs | N/A |
 | **Component code** | Same code, no changes | Server Components vs Client Components split | Same code, but load-order constraints |
