@@ -2,29 +2,7 @@
 
 ## Using `itemize` API
 
-To create a dynamic list inside your component, use the `itemize` binding on the list container element:
-```js
-MyComponent.template = html`
-  <div ${{itemize: 'userList'}}>
-    <template>
-      <div>First name: {{firstName}}</div>
-      <div>Second name: {{secondName}}</div>
-    </template>
-  </div>
-`;
-```
-
-Or using the plain HTML attribute form:
-```html
-<div itemize="userList">
-  <template>
-    <div>{{firstName}}</div>
-    <div>{{secondName}}</div>
-  </template>
-</div>
-```
-
-The `itemize` value points to a key in the component's data context:
+To create a dynamic list inside your component, use the `itemize` attribute on the list container element:
 ```js
 class MyComponent extends Symbiote {
 
@@ -36,18 +14,27 @@ class MyComponent extends Symbiote {
   };
 
 }
+
+MyComponent.template = html`
+  <div itemize="userList">
+    <template>
+      <div>First name: {{firstName}}</div>
+      <div>Second name: {{secondName}}</div>
+    </template>
+  </div>
+`;
 ```
 
-You can use any type of data context token or a computed list property.
+The `itemize` value points to a key in the component's data context. You can use any type of data context token or a computed list property:
 
 Inherited:
 ```js
-html`<div ${{itemize: '^userList'}}>...item template</div>`;
+html`<div itemize="^userList">...item template</div>`;
 ```
 
 Named:
 ```js
-html`<div ${{itemize: 'APP/userList'}}>...item template</div>`;
+html`<div itemize="APP/userList">...item template</div>`;
 ```
 
 Computed:
@@ -63,9 +50,11 @@ class MyComponent extends Symbiote {
 }
 
 MyComponent.template = html`
-  <div ${{itemize: '+userList'}}> ... </div>
+  <div itemize="+userList"> ... </div>
 `;
 ```
+
+> You can also use the `${{itemize: 'prop'}}` binding syntax if preferred — it produces the same result.
 
 ## List items
 
@@ -79,10 +68,10 @@ By default, all list items are Symbiote components wrapped with a corresponding 
 
 ### Custom item tag name
 
-Use `item-tag` to define a named tag for list items:
+Use `item-tag` attribute to define a named tag for list items:
 ```js
 MyComponent.template = html`
-  <div ${{itemize: 'userList', 'item-tag': 'user-card'}}>
+  <div itemize="userList" item-tag="user-card">
     <template>
       <div>{{firstName}}</div>
       <div>{{secondName}}</div>
@@ -127,7 +116,7 @@ UserCard.reg('user-card');
 Use it:
 ```js
 html`
-  <div ${{itemize: 'listData', 'item-tag': 'user-card'}}></div>
+  <div itemize="listData" item-tag="user-card"></div>
 `;
 ```
 
@@ -136,7 +125,7 @@ html`
 We recommend wrapping item templates in the `<template>` tag:
 ```js
 html`
-  <div ${{itemize: 'listData', 'item-tag': 'my-list-item'}}>
+  <div itemize="listData" item-tag="my-list-item">
     <template>
       <div>{{firstName}}</div>
       <div>{{secondName}}</div>
@@ -165,7 +154,7 @@ class MyComponent extends Symbiote {
 }
 
 MyComponent.template = html`
-  <div ${{itemize: 'userList', 'item-tag': 'user-card'}}>
+  <div itemize="userList" item-tag="user-card">
     <template>
       <div>ID: {{_KEY_}}</div>
       <div>{{firstName}}</div>
@@ -218,6 +207,64 @@ class BigList extends Symbiote {
 
 Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-ops.
 
+## Nested lists
+
+List nesting is fully supported. To render hierarchical data, define a custom item component that contains its own `itemize`:
+```js
+class CategoryItem extends Symbiote {
+
+  init$ = {
+    name: '',
+    items: [],
+  };
+
+}
+
+CategoryItem.template = html`
+  <h3>{{name}}</h3>
+  <ul itemize="items">
+    <template>
+      <li>{{title}}</li>
+    </template>
+  </ul>
+`;
+
+CategoryItem.reg('category-item');
+```
+
+Then use it in the parent:
+```js
+class MyApp extends Symbiote {
+
+  init$ = {
+    categories: [
+      {
+        name: 'Frontend',
+        items: [
+          { title: 'Symbiote.js' },
+          { title: 'HTML' },
+          { title: 'CSS' },
+        ],
+      },
+      {
+        name: 'Backend',
+        items: [
+          { title: 'Node.js' },
+          { title: 'Rust' },
+        ],
+      },
+    ],
+  };
+
+}
+
+MyApp.template = html`
+  <div itemize="categories" item-tag="category-item"></div>
+`;
+```
+
+Each nesting level is an independent Symbiote component with its own state scope, so updates at any level are handled efficiently.
+
 ## Custom raw web components as items
 
 Symbiote.js allows using any custom component as a list item, including raw web components for maximum performance:
@@ -266,7 +313,7 @@ MyTable.rootStyles = css`
 
 MyTable.template = html`
   <h1>Hello table!</h1>
-  <table ${{itemize: 'tableData', 'item-tag': 'table-row'}}></table>
+  <table itemize="tableData" item-tag="table-row"></table>
 `;
 
 MyTable.reg('my-table');
