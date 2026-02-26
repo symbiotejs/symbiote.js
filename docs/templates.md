@@ -143,7 +143,7 @@ Templates can be written as plain HTML without any JavaScript context — the `h
 
 [Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with external markup.
 
-Since 3.x, slot processing must be imported and added explicitly:
+Since 2.x, slot processing must be imported and added explicitly:
 ```js
 import { slotProcessor } from '@symbiotejs/symbiote/core/slotProcessor.js';
 
@@ -209,9 +209,9 @@ class MyComponent extends Symbiote {
 
 MyComponent.template = html`
   <h1>My list:</h1>
-  <ul ${{itemize: 'listData'}}>
+  <ul itemize="listData">
     <template>
-      <li>{{firstName}} {{secondName}}</li>
+      <li>{{firstName}} - {{secondName}}</li>
     </template>
   </ul>
 `;
@@ -221,7 +221,7 @@ MyComponent.template = html`
 
 ## External customizable templates
 
-Symbiote.js allows components to connect templates defined in the HTML document.
+Symbiote.js allows components to connect templates defined in the common HTML document.
 
 Set the `allowCustomTemplate` flag:
 ```js
