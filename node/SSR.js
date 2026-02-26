@@ -68,6 +68,8 @@ function serializeElement(el, emittedStyles) {
   // Declarative Shadow DOM:
   if (el.shadowRoot) {
     let shadowHTML = '';
+    // New scope — each shadow root is a separate styling root:
+    let shadowEmitted = new Set();
     if (ctor.shadowStyleSheets) {
       for (let sheet of ctor.shadowStyleSheets) {
         let cssText = extractCSS(sheet);
@@ -77,7 +79,7 @@ function serializeElement(el, emittedStyles) {
       }
     }
     for (let child of el.shadowRoot.childNodes) {
-      shadowHTML += serializeNode(child, emittedStyles);
+      shadowHTML += serializeNode(child, shadowEmitted);
     }
     innerContent += `<template shadowrootmode="open">${shadowHTML}</template>`;
   }
@@ -164,6 +166,8 @@ async function* streamElement(el, emittedStyles) {
   // Declarative Shadow DOM:
   if (el.shadowRoot) {
     yield '<template shadowrootmode="open">';
+    // New scope — each shadow root is a separate styling root:
+    let shadowEmitted = new Set();
     if (ctor.shadowStyleSheets) {
       for (let sheet of ctor.shadowStyleSheets) {
         let cssText = extractCSS(sheet);
@@ -173,7 +177,7 @@ async function* streamElement(el, emittedStyles) {
       }
     }
     for (let child of el.shadowRoot.childNodes) {
-      yield* streamNode(child, emittedStyles);
+      yield* streamNode(child, shadowEmitted);
     }
     yield '</template>';
   }

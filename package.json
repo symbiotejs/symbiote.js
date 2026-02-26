@@ -68,13 +68,13 @@
       "types": "./types/core/itemizeProcessor.d.ts",
       "default": "./core/itemizeProcessor.js"
     },
+    "./core/ownElements.js": {
+      "types": "./types/core/ownElements.d.ts",
+      "default": "./core/ownElements.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
-    },
-    "./node/SSR.js": {
-      "types": "./types/node/SSR.d.ts",
-      "default": "./node/SSR.js"
     },
     "./core/tpl-processors.js": {
       "types": "./types/core/tpl-processors.d.ts",
