@@ -37,6 +37,39 @@ Check the details at [TypeScript JSDoc Supported Types](https://www.typescriptla
 
 [Esbuild](https://esbuild.github.io/) is our choice for code bundling and minification. Esbuild is a very performant and easy-to-configure solution that can prepare your JavaScript and CSS code for distribution.
 
+### HTML and CSS template literals minification
+
+Esbuild minifies JavaScript but doesn't touch the contents of template literals. Use [`esbuild-minify-templates`](https://github.com/ArnoldSmith86/esbuild-minify-templates) to minify `html` and `css` tagged templates at build time — it handles whitespace collapsing, comment removal, and preserves `<pre>` formatting:
+
+```shell
+npm install --save-dev esbuild-minify-templates
+```
+
+```js
+import esbuild from 'esbuild';
+import { minifyTemplates, writeFiles } from 'esbuild-minify-templates';
+
+await esbuild.build({
+  entryPoints: ['src/index.js'],
+  bundle: true,
+  minify: true,
+  format: 'esm',
+  outfile: 'dist/index.js',
+  write: false, // required — writeFiles handles output
+  plugins: [minifyTemplates({ taggedOnly: true }), writeFiles()],
+});
+```
+
+The `taggedOnly: true` option ensures only tagged templates (`html\`...\``, `css\`...\``) are processed — plain untagged template literals are left untouched.
+
+To exclude a specific template from minification:
+```js
+/*! minify-templates-ignore */
+let preservedTemplate = html`
+  <pre>  keep   this   spacing  </pre>
+`;
+```
+
 ## Code sharing
 
 Network imports are a powerful platform feature that helps share common code parts across different functional endpoints in large applications. You don't need complex build workflows to share dependencies:
