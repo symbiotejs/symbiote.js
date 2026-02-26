@@ -22,6 +22,39 @@ export class PubSub {
   /** @type {Boolean} */
   #storeIsProxy;
 
+  /**
+   * Local dependency map for computed props.
+   * Key = computed prop name, Value = Set of local prop names it depends on.
+   * @type {Object<string, Set<string>>}
+   */
+  #localDeps = {};
+
+  /**
+   * External dependency subscriptions for cross-context computed props.
+   * Key = computed prop name, Value = array of subscription removers.
+   * @type {Object<string, Array<{remove: Function}>>}
+   */
+  #externalSubs = {};
+
+  /**
+   * Tracks which computed prop is currently being executed,
+   * so read() can record local dependencies.
+   * @type {string | null}
+   */
+  #trackingTarget = null;
+
+  /**
+   * Pending microtask flag to batch computed recalculations.
+   * @type {boolean}
+   */
+  #pendingRecalc = false;
+
+  /**
+   * Set of local props that changed and need computed recalc.
+   * @type {Set<string>}
+   */
+  #dirtyProps = new Set();
+
   /** @param {T} schema */
   constructor(schema) {
     if (schema.constructor === Object) {
@@ -39,23 +72,125 @@ export class PubSub {
    * @param {String} actionName
    * @param {*} prop
    */
-  static #warn(actionName, prop) {
-    console.warn(`Symbiote PubSub: cannot ${actionName}. Prop name: ` + prop);
+  static #warn(actionName, prop, ctx) {
+    let uid = String(ctx?.uid || 'local');
+    console.warn(`[Symbiote] PubSub (${uid}): cannot ${actionName}. Property: "${prop}"`);
+  }
+
+  /**
+   * Execute a computed function while tracking local reads.
+   * @param {string} compProp - computed property name
+   * @returns {unknown} computed result
+   */
+  #executeTracked(compProp) {
+    let compEntry = this.store[compProp];
+    let fn = typeof compEntry === 'function' ? compEntry : compEntry?.fn;
+
+    if (fn?.constructor !== Function) {
+      PubSub.#warn('compute', compProp);
+      return;
+    }
+
+    this.#trackingTarget = compProp;
+    this.#localDeps[compProp] = new Set();
+    let val = fn();
+    this.#trackingTarget = null;
+
+    return val;
+  }
+
+  /**
+   * Set up external dependency subscriptions for a computed prop declared
+   * with object syntax: { deps: ['CTX/prop', ...], fn: () => ... }
+   * @param {string} compProp
+   * @param {string[]} deps
+   */
+  #setupExternalDeps(compProp, deps) {
+    if (this.#externalSubs[compProp]) {
+      this.#externalSubs[compProp].forEach((s) => s.remove());
+    }
+    this.#externalSubs[compProp] = [];
+
+    for (let depKey of deps) {
+      let slashIdx = depKey.indexOf('/');
+      if (slashIdx === -1) continue;
+
+      let ctxName = depKey.slice(0, slashIdx);
+      let propName = depKey.slice(slashIdx + 1);
+      let extCtx = PubSub.getCtx(ctxName, false);
+
+      if (!extCtx) {
+        console.warn(
+          `[Symbiote] PubSub: external dep context "${ctxName}" not found for computed "${compProp}".\n`
+          + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
+        );
+        continue;
+      }
+
+      let sub = extCtx.sub(propName, () => {
+        this.#recalcComputed(compProp);
+      }, false);
+
+      if (sub) {
+        this.#externalSubs[compProp].push(sub);
+      }
+    }
+  }
+
+  /**
+   * Recalculate a single computed prop and notify if changed.
+   * @param {string} compProp
+   */
+  #recalcComputed(compProp) {
+    if (!this.__computedMap) return;
+
+    let newVal = this.#executeTracked(compProp);
+    if (newVal !== this.__computedMap[compProp]) {
+      this.__computedMap[compProp] = newVal;
+      this.notify(compProp);
+    }
+  }
+
+  /**
+   * Schedule batched recalculation of computed props affected by dirty local props.
+   */
+  #scheduleBatchRecalc() {
+    if (this.#pendingRecalc) return;
+    this.#pendingRecalc = true;
+
+    queueMicrotask(() => {
+      this.#pendingRecalc = false;
+      if (!this.__computedMap) return;
+
+      let dirtySnapshot = new Set(this.#dirtyProps);
+      this.#dirtyProps.clear();
+
+      for (let compProp of Object.keys(this.__computedMap)) {
+        let deps = this.#localDeps[compProp];
+        if (!deps) continue;
+
+        let affected = false;
+        for (let dp of dirtySnapshot) {
+          if (deps.has(dp)) {
+            affected = true;
+            break;
+          }
+        }
+
+        if (affected) {
+          this.#recalcComputed(compProp);
+        }
+      }
+    });
   }
 
   /** @param {keyof T} prop */
   read(prop) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('read', prop);
       return null;
     }
     if (typeof prop === 'string' && prop.startsWith(DICT.COMPUTED_PX)) {
-      /** @type {Function} */
-      let compFn = this.store[prop];
-      if (compFn?.constructor !== Function) {
-        PubSub.#warn('compute', prop);
-        return;
-      }
       if (!this.__computedMap) {
         /** 
          * @private 
@@ -63,13 +198,27 @@ export class PubSub {
          */
         this.__computedMap = {};
       }
-      let currentVal = compFn();
-      if (!Object.keys(this.__computedMap).includes(prop)) {
-        this.__computedMap[prop] = currentVal;
-        this.notify(prop);
+
+      // Already initialized — return cached value (recalc happens in #recalcComputed)
+      if (prop in this.__computedMap) {
+        return this.__computedMap[prop];
       }
+
+      // First read — initialize: execute, cache, setup deps
+      let currentVal = this.#executeTracked(prop);
+      this.__computedMap[prop] = currentVal;
+
+      let entry = this.store[prop];
+      if (entry?.constructor === Object && Array.isArray(entry.deps)) {
+        this.#setupExternalDeps(prop, entry.deps);
+      }
+
+      this.notify(prop);
       return currentVal;
     } else {
+      if (this.#trackingTarget && typeof prop === 'string') {
+        this.#localDeps[this.#trackingTarget].add(prop);
+      }
       return this.store[prop];
     }
   }
@@ -85,11 +234,11 @@ export class PubSub {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    if (!rewrite && Object.keys(this.store).includes(prop)) {
+    if (!rewrite && (prop in this.store)) {
       return;
     }
     this.store[prop] = val;
-    this.notify(prop);
+    this.notify(prop, val);
   }
 
   /**
@@ -97,21 +246,24 @@ export class PubSub {
    * @param {unknown} val
    */
   pub(prop, val) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
-      PubSub.#warn('publish', prop);
+    if (!this.#storeIsProxy && !(prop in this.store)) {
+      PubSub.#warn('publish', prop, this);
       return;
     }
     // @ts-expect-error
     if (prop?.startsWith(DICT.COMPUTED_PX) && val.constructor !== Function) {
-      PubSub.#warn('publish computed', prop);
+      PubSub.#warn('publish computed (value must be a Function)', prop, this);
       return;
     }
-    if (!(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
-      // @ts-expect-error
-      console.warn(`Symbiote PubSub: type warning for "${prop}" [${typeof this.store[prop]} -> ${typeof val}]`);
+    if (PubSub.devMode && !(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
+      let uid = String(this.uid || 'local');
+      console.warn(
+        `[Symbiote] PubSub (${uid}): type change for "${String(prop)}" [${typeof this.store[prop]} → ${typeof val}].\n`
+        + `Previous: ${JSON.stringify(this.store[prop])}\nNew: ${JSON.stringify(val)}`
+      );
     }
     this.store[prop] = val;
-    this.notify(prop);
+    this.notify(prop, val);
   }
 
   /** @returns {T} */
@@ -124,7 +276,7 @@ export class PubSub {
           return true;
         },
         get: (obj, /** @type {String} */ prop) => {
-          this.read(prop);
+          return this.read(prop);
         },
       });
     }
@@ -138,40 +290,14 @@ export class PubSub {
     }
   }
 
-  /**
-   * 
-   * @param {PubSub} instCtx 
-   * @param {unknown} actProp 
-   */
-  static #processComputed(instCtx, actProp) {
-    this.globalStore.forEach((inst) => {
-      if (inst.__computedMap) {
-        Object.keys(inst.__computedMap).forEach((prop) => {
-          if ((inst === instCtx) && (actProp === prop)) {
-            return;
-          }
-          let tName = `__${prop}_timeout`;
-          if (inst[tName]) {
-            window.clearTimeout(inst[tName]);
-          }
-          inst[tName] = window.setTimeout(() => {
-            let currentVal = inst.read(prop);
-            if (currentVal !== inst.__computedMap[prop]) {
-              inst.__computedMap[prop] = currentVal;
-              inst.notify(prop);
-            }
-          });
-        });
-      }
-    });
-  }
-
   /** @param {keyof T} prop */
-  notify(prop) {
+  notify(prop, val) {
     // @ts-expect-error
     let isComputed = prop?.startsWith(DICT.COMPUTED_PX);
     if (this.callbackMap[prop]) {
-      let val = this.read(prop);
+      if (val === undefined) {
+        val = this.read(prop);
+      }
       this.callbackMap[prop].forEach((callback) => {
         callback(val);
       });
@@ -179,7 +305,11 @@ export class PubSub {
         this.__computedMap[prop] = val;
       }
     }
-    !isComputed && PubSub.#processComputed(this, prop);
+
+    if (!isComputed && this.__computedMap) {
+      this.#dirtyProps.add(/** @type {string} */ (prop));
+      this.#scheduleBatchRecalc();
+    }
   }
 
   /**
@@ -188,7 +318,7 @@ export class PubSub {
    * @param {Boolean} [init]
    */
   sub(prop, callback, init = true) {
-    if (!this.#storeIsProxy && !this.store.hasOwnProperty(prop)) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('subscribe', prop);
       return null;
     }
@@ -231,7 +361,7 @@ export class PubSub {
     /** @type {PubSub} */
     let data = PubSub.globalStore.get(uid);
     if (data) {
-      console.warn('PubSub: context UID "' + uid + '" is already in use');
+      console.warn(`[Symbiote] PubSub: context "${uid}" is already registered. Returning existing instance.`);
     } else {
       data = new PubSub(schema);
       data.uid = uid;
@@ -251,11 +381,17 @@ export class PubSub {
    * @returns {PubSub}
    */
   static getCtx(uid, notify = true) {
-    return PubSub.globalStore.get(uid) || (notify && console.warn('PubSub: wrong context UID - "' + uid + '"'), null);
+    return PubSub.globalStore.get(uid) || (notify && console.warn(
+      `[Symbiote] PubSub: context "${String(uid)}" not found.\n`
+      + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
+    ), null);
   }
 }
 
 /** @type {Map<String | Symbol, PubSub>} */
 PubSub.globalStore = new Map();
+
+/** @type {Boolean} */
+PubSub.devMode = false;
 
 export default PubSub;

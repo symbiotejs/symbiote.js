@@ -7,7 +7,7 @@ export function css(parts, ...props) {
   let cssTxt = '';
   let sheet = new CSSStyleSheet();
   parts.forEach((part, idx) => {
-    cssTxt += part + props[idx];
+    cssTxt += part + (props[idx] ?? '');
   });
   css.processors.forEach((prFn) => {
     cssTxt = prFn(cssTxt);

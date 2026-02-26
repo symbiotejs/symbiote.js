@@ -1,18 +1,29 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "2.3.4",
+  "version": "3.0.4",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
   "scripts": {
-    "types": "rm -rf types && tsc -p dts.cfg.json"
+    "prepare": "git config core.hooksPath .git-hooks",
+    "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
+    "prepublishOnly": "npm test",
+    "pub": "npm run types && node scripts/update-exports.js && npm publish --tag beta",
+    "postinstall": "node scripts/postinstall.js",
+    "test": "node --test test/node/*.test.js && npx playwright test",
+    "test:unit": "node --test test/node/*.test.js",
+    "test:browser": "npx playwright test"
   },
   "files": [
     "core/*",
     "utils/*",
+    "node/*",
     "types/*",
+    "scripts/*",
     "README.md",
+    "AI_REFERENCE.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "module": "./core/index.js",
@@ -22,37 +33,57 @@
       "types": "./types/core/index.d.ts",
       "default": "./core/index.js"
     },
-    "./core/Symbiote.js": {
-      "types": "./types/core/Symbiote.d.ts",
-      "default": "./core/Symbiote.js"
+    "./core/AppRouter.js": {
+      "types": "./types/core/AppRouter.d.ts",
+      "default": "./core/AppRouter.js"
     },
     "./core/PubSub.js": {
       "types": "./types/core/PubSub.d.ts",
       "default": "./core/PubSub.js"
     },
-    "./core/html.js": {
-      "types": "./types/core/html.d.ts",
-      "default": "./core/html.js"
+    "./core/Symbiote.js": {
+      "types": "./types/core/Symbiote.d.ts",
+      "default": "./core/Symbiote.js"
+    },
+    "./core/animateOut.js": {
+      "types": "./types/core/animateOut.d.ts",
+      "default": "./core/animateOut.js"
     },
     "./core/css.js": {
       "types": "./types/core/css.d.ts",
       "default": "./core/css.js"
     },
+    "./core/dictionary.js": {
+      "types": "./types/core/dictionary.d.ts",
+      "default": "./core/dictionary.js"
+    },
+    "./core/html.js": {
+      "types": "./types/core/html.d.ts",
+      "default": "./core/html.js"
+    },
+    "./core/itemizeProcessor-keyed.js": {
+      "types": "./types/core/itemizeProcessor-keyed.d.ts",
+      "default": "./core/itemizeProcessor-keyed.js"
+    },
+    "./core/itemizeProcessor.js": {
+      "types": "./types/core/itemizeProcessor.d.ts",
+      "default": "./core/itemizeProcessor.js"
+    },
+    "./core/ownElements.js": {
+      "types": "./types/core/ownElements.d.ts",
+      "default": "./core/ownElements.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
     },
-    "./core/AppRouter.js": {
-      "types": "./types/core/AppRouter.d.ts",
-      "default": "./core/AppRouter.js"
+    "./core/tpl-processors.js": {
+      "types": "./types/core/tpl-processors.d.ts",
+      "default": "./core/tpl-processors.js"
     },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
       "default": "./utils/UID.js"
-    },
-    "./utils/setNestedProp.js": {
-      "types": "./types/utils/setNestedProp.d.ts",
-      "default": "./utils/setNestedProp.js"
     },
     "./utils/dom-helpers.js": {
       "types": "./types/utils/dom-helpers.d.ts",
@@ -62,9 +93,21 @@
       "types": "./types/utils/kebabToCamel.d.ts",
       "default": "./utils/kebabToCamel.js"
     },
+    "./utils/parseCssPropertyValue.js": {
+      "types": "./types/utils/parseCssPropertyValue.d.ts",
+      "default": "./utils/parseCssPropertyValue.js"
+    },
+    "./utils/prepareStyleSheet.js": {
+      "types": "./types/utils/prepareStyleSheet.d.ts",
+      "default": "./utils/prepareStyleSheet.js"
+    },
     "./utils/reassignDictionary.js": {
       "types": "./types/utils/reassignDictionary.d.ts",
       "default": "./utils/reassignDictionary.js"
+    },
+    "./utils/setNestedProp.js": {
+      "types": "./types/utils/setNestedProp.d.ts",
+      "default": "./utils/setNestedProp.js"
     }
   },
   "publishConfig": {
@@ -76,11 +119,15 @@
   "homepage": "https://rnd-pro.com/symbiote/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/symbiotejs/symbiote.js.git"
+    "url": "git+https://github.com/symbiotejs/symbiote.js.git"
   },
   "keywords": [
     "web components",
+    "SSR",
+    "server side rendering for web components",
     "ui library",
+    "data flow",
+    "design system",
     "symbiote.js",
     "symbiote",
     "widget",
@@ -104,6 +151,16 @@
     "JSDA"
   ],
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "@playwright/test": "^1.58.2",
+    "linkedom": "^0.18.12",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "linkedom": ">=0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "linkedom": {
+      "optional": true
+    }
   }
 }

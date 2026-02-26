@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote Browser Tests</title>
+</head>
+<body>
+
+<test-counter id="tc"></test-counter>
+<test-label id="tl"></test-label>
+
+<script type="module">
+  import Symbiote, { html } from '/core/Symbiote.js';
+
+  class TestCounter extends Symbiote {
+    init$ = {
+      count: 0,
+      increment: () => {
+        this.$.count++;
+      },
+    }
+  }
+
+  TestCounter.template = html`
+    <span id="value" ${{textContent: 'count'}}></span>
+    <button id="btn" ${{onclick: 'increment'}}>+</button>
+  `;
+
+  TestCounter.reg('test-counter');
+
+  class TestLabel extends Symbiote {
+    init$ = {
+      text: 'hello',
+    }
+  }
+
+  TestLabel.template = html`
+    <span id="output" ${{textContent: 'text'}}></span>
+  `;
+
+  TestLabel.reg('test-label');
+
+  window.__TEST_READY = true;
+</script>
+
+</body>
+</html>

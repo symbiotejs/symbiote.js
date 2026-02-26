@@ -1,15 +1,14 @@
 export class AppRouter {
-    static "__#3@#onPopstate": () => void;
-    static "__#3@#separator": string;
-    static "__#3@#routingEventName": string;
     static appMap: {
         [x: string]: {
             title?: string;
             default?: boolean;
             error?: boolean;
+            pattern?: string;
+            load?: () => Promise<any>;
+            __loaded?: boolean;
         };
     };
-    static "__#3@#print"(msg: any): void;
     static setDefaultTitle(title: string): void;
     static setRoutingMap(map: {
         [x: string]: {};
@@ -20,13 +19,24 @@ export class AppRouter {
         route: any;
         options: {};
     };
-    static notify(): void;
+    static notify(): Promise<void>;
     static reflect(route: string, options?: {
         [x: string]: any;
     }): void;
-    static applyRoute(route: string, options?: {
+    static navigate(route: string, options?: {
         [x: string]: any;
     }): void;
+    static beforeRoute(fn: (to: {
+        route: string;
+        options: {
+            [x: string]: any;
+        };
+    }, from: {
+        route: string;
+        options: {
+            [x: string]: any;
+        };
+    } | null) => string | boolean | void | Promise<string | boolean | void>): () => void;
     static setSeparator(char: string): void;
     static get separator(): string;
     static initRoutingCtx(ctxName: string, routingMap: {
@@ -34,9 +44,11 @@ export class AppRouter {
             title?: string;
             default?: boolean;
             error?: boolean;
+            pattern?: string;
+            load?: () => Promise<any>;
+            __loaded?: boolean;
         };
     }): PubSub<any>;
-    static "__#3@#initPopstateListener"(): void;
     static removePopstateListener(): void;
 }
 export default AppRouter;

@@ -1,8 +1,11 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
+import { ownElements, isOwnNode } from './ownElements.js';
 
 // Should go first among other processors:
 import { itemizeProcessor } from './itemizeProcessor.js';
+
+
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -10,10 +13,12 @@ import { itemizeProcessor } from './itemizeProcessor.js';
  * @param {T} fnCtx
  */
 function refProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.EL_REF_ATTR}]`)].forEach((/** @type {HTMLElement} */ el) => {
+  ownElements(fr, `[${DICT.EL_REF_ATTR}]`).forEach((/** @type {HTMLElement} */ el) => {
     let refName = el.getAttribute(DICT.EL_REF_ATTR);
     fnCtx.ref[refName] = el;
-    el.removeAttribute(DICT.EL_REF_ATTR);
+    if (!globalThis.__SYMBIOTE_SSR) {
+      el.removeAttribute(DICT.EL_REF_ATTR);
+    }
   });
 }
 
@@ -23,7 +28,7 @@ function refProcessor(fr, fnCtx) {
  * @param {T} fnCtx
  */
 function domBindProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.BIND_ATTR}]`)].forEach((el) => {
+  ownElements(fr, `[${DICT.BIND_ATTR}]`).forEach((el) => {
     let subStr = el.getAttribute(DICT.BIND_ATTR);
     let keyValArr = subStr.split(';');
     keyValArr.forEach((keyValStr) => {
@@ -57,7 +62,19 @@ function domBindProcessor(fr, fnCtx) {
             fnCtx.add(valKey, fnCtx.getAttribute(valKey.replace(DICT.ATTR_BIND_PX, '')));
           } else {
             fnCtx.add(valKey, null);
+            // Dev-only: warn about bindings that aren't in init$ (likely typos)
+            if (fnCtx.Symbiote?.devMode && !prop.startsWith('on')) {
+              let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
+              console.warn(
+                `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
+                + `Known keys: [${known.join(', ')}]`
+              );
+            }
           }
+        }
+        // In case of event handler is null, bind to fallback method (if defined):
+        if (prop.startsWith('on') && fnCtx.localCtx.read(valKey) === null && typeof fnCtx[valKey] === 'function') {
+          fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx), true);
         }
         fnCtx.sub(valKey, (val) => {
           if (castType === 'double') {
@@ -73,25 +90,29 @@ function domBindProcessor(fr, fnCtx) {
             }
           } else {
             if (!setNestedProp(el, prop, val)) {
-              // Custom element instances are not constructed properly at this time, so:
+              // Custom element instances are not constructed properly at this moment, so:
               if (!el[DICT.SET_LATER_KEY]) {
                 el[DICT.SET_LATER_KEY] = Object.create(null);
               }
               el[DICT.SET_LATER_KEY][prop] = val;
             }
           }
-        }, !(fnCtx.ssrMode && (prop === 'textContent' || isAttr)));
+        }, !(fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR && (prop === 'textContent' || isAttr)));
       }
     });
-    el.removeAttribute(DICT.BIND_ATTR);
+    if (!globalThis.__SYMBIOTE_SSR) {
+      el.removeAttribute(DICT.BIND_ATTR);
+    }
   });
 }
 
 function getTextNodesWithTokens(el) {
+  let isCustomEl = el instanceof HTMLElement && el.localName?.includes('-');
   let node;
   let result = [];
   let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
     acceptNode: (txt) => {
+      if (isCustomEl && !isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
       return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR) 
         && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN) 
         && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN) 
@@ -110,6 +131,10 @@ function getTextNodesWithTokens(el) {
  * @param {T} fnCtx
  */
 const txtNodesProcessor = function (fr, fnCtx) {
+  // Skip TreeWalker entirely if no {{ tokens in the fragment
+  if (!fr.textContent?.includes(DICT.TEXT_NODE_OPEN_TOKEN)) {
+    return;
+  }
   let txtNodes = getTextNodesWithTokens(fr);
   txtNodes.forEach((/** @type {Text} */ txtNode) => {
     let tokenNodes = [];

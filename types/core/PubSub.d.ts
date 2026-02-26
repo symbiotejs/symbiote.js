@@ -1,6 +1,4 @@
 export class PubSub<T extends Record<string, unknown>> {
-    static "__#1@#warn"(actionName: string, prop: any): void;
-    static "__#1@#processComputed"(instCtx: PubSub<any>, actProp: unknown): void;
     static registerCtx<S extends Record<string, unknown>>(schema: S, uid?: string | Symbol): PubSub<S>;
     static deleteCtx(uid: string | Symbol): void;
     static getCtx(uid: string | Symbol, notify?: boolean): PubSub<any>;
@@ -14,7 +12,7 @@ export class PubSub<T extends Record<string, unknown>> {
     pub(prop: keyof T, val: unknown): void;
     get proxy(): T;
     multiPub(updObj: T): void;
-    notify(prop: keyof T): void;
+    notify(prop: keyof T, val: any): void;
     sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean): {
         remove: () => void;
         callback: (val: unknown) => void;
@@ -25,6 +23,7 @@ export class PubSub<T extends Record<string, unknown>> {
 }
 export namespace PubSub {
     let globalStore: Map<string | Symbol, PubSub<any>>;
+    let devMode: boolean;
 }
 export default PubSub;
 //# sourceMappingURL=PubSub.d.ts.map

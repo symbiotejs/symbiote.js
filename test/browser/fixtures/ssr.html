@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SSR Hydration Test</title>
+</head>
+<body>
+
+<div id="ssr-mount"></div>
+
+<script>
+  if (window.__SSR_MARKUP) {
+    document.getElementById('ssr-mount').innerHTML = window.__SSR_MARKUP;
+  }
+</script>
+
+<script type="module">
+  await import('../helpers/ssr-components.js');
+  window.__HYDRATED = true;
+</script>
+
+</body>
+</html>

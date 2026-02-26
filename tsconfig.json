@@ -25,7 +25,8 @@
   },
   "include": [
     "core",
-    "utils"
+    "utils",
+    "node" 
   ],
   "exclude": [
     "node_modules",

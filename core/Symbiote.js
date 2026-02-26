@@ -1,5 +1,6 @@
 import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
 import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
@@ -13,12 +14,13 @@ export { UID, PubSub, DICT }
 
 let autoTagsCount = 0;
 
+// @ts-ignore - Trusted Types is a browser API, not in standard TS defs
+const trustedHTML = globalThis.trustedTypes ? trustedTypes.createPolicy('symbiote', { createHTML: (s) => s }) : { createHTML: (s) => s };
+
 /** @template S */
 export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
   #initialized;
-  /** @type {String} */
-  #autoCtxName;
   /** @type {String} */
   #cachedCtxName;
   /** @type {PubSub} */
@@ -26,10 +28,12 @@ export class Symbiote extends HTMLElement {
   #stateProxy;
   /** @type {Boolean} */
   #dataCtxInitialized;
-  #disconnectTimeout;
+  #destroyTimeout;
   #cssDataCache;
   #computedStyle;
   #boundCssProps;
+  /** @type {Map<string, {ctx: PubSub, name: string}>} */
+  #parsedPropCache;
 
   /** @type {typeof Symbiote} */
   // @ts-expect-error
@@ -37,6 +41,18 @@ export class Symbiote extends HTMLElement {
 
   /** @type {HTMLTemplateElement} */
   static __tpl;
+
+  /** @type {Boolean} */
+  static #devMode = false;
+
+  static set devMode(val) {
+    Symbiote.#devMode = val;
+    PubSub.devMode = val;
+  }
+
+  static get devMode() {
+    return Symbiote.#devMode;
+  }
 
   get Symbiote() {
     return Symbiote;
@@ -79,32 +95,37 @@ export class Symbiote extends HTMLElement {
           // @ts-expect-error
           template = customTpl.content.cloneNode(true);
         } else {
-          console.warn(`Symbiote template "${customTplSelector}" is not found...`);
+          console.warn(`[Symbiote] <${this.localName}>: custom template "${customTplSelector}" not found.`);
         }
       }
     }
-    if (this.processInnerHtml || this.ssrMode) {
-      for (let fn of this.tplProcessors) {
+    let clientSSR = this.ssrMode && !globalThis.__SYMBIOTE_SSR;
+    if (this.processInnerHtml || clientSSR) {
+      for (let fn of this.templateProcessors) {
         fn(this, this);
+        // Declarative Shadow DOM: also hydrate existing shadowRoot
+        if (clientSSR && this.shadowRoot) {
+          fn(this.shadowRoot, this);
+        }
       }
     }
-    if (template || this.#super.template) {
+    if (!clientSSR && (template || this.#super.template)) {
       if (this.#super.template && !this.#super.__tpl) {
         this.#super.__tpl = document.createElement('template');
-        this.#super.__tpl.innerHTML = this.#super.template;
+        this.#super.__tpl.innerHTML = trustedHTML.createHTML(this.#super.template);
       }
       if (template?.constructor === DocumentFragment) {
         fr = template;
       } else if (template?.constructor === String) {
         let tpl = document.createElement('template');
-        tpl.innerHTML = template;
+        tpl.innerHTML = trustedHTML.createHTML(template);
         // @ts-expect-error
         fr = tpl.content.cloneNode(true);
       } else if (this.#super.__tpl) {
         // @ts-expect-error
         fr = this.#super.__tpl.content.cloneNode(true);
       }
-      for (let fn of this.tplProcessors) {
+      for (let fn of this.templateProcessors) {
         fn(fr, this);
       }
     }
@@ -127,22 +148,14 @@ export class Symbiote extends HTMLElement {
     addFr();
   }
 
-  /**
-   * @template {Symbiote} T
-   * @param {(fr: DocumentFragment | T, fnCtx: T) => void} processorFn
-   */
-  addTemplateProcessor(processorFn) {
-    this.tplProcessors.add(processorFn);
-  }
-
   constructor() {
     super();
     /** @type {S} */
     this.init$ = Object.create(null);
     /** @type {Object<string, *>} */
     this.cssInit$ = Object.create(null);
-    /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: unknown) => void>} */
-    this.tplProcessors = new Set();
+    /** @type {Set<(fr: DocumentFragment | Symbiote, fnCtx: Symbiote) => void>} */
+    this.templateProcessors = new Set();
     /** @type {Object<string, any>} */
     this.ref = Object.create(null);
     this.allSubs = new Set();
@@ -159,20 +172,9 @@ export class Symbiote extends HTMLElement {
     /** @type {Boolean} */
     this.allowCustomTemplate = false;
     /** @type {Boolean} */
-    this.ctxOwner = false;
-    /** @type {Boolean} */
     this.isVirtual = false;
     /** @type {Boolean} */
     this.allowTemplateInits = true;
-  }
-
-  /** @returns {String} */
-  get autoCtxName() {
-    if (!this.#autoCtxName) {
-      this.#autoCtxName = UID.generate();
-      this.style.setProperty(DICT.CSS_CTX_PROP, `'${this.#autoCtxName}'`);
-    }
-    return this.#autoCtxName;
   }
 
   /** @returns {String} */
@@ -182,7 +184,7 @@ export class Symbiote extends HTMLElement {
 
   /** @returns {String} */
   get ctxName() {
-    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName || this.autoCtxName;
+    let ctxName = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim() || this.cssCtxName || this.#cachedCtxName;
     /**
      * Cache last ctx name to be able to access context when element becomes disconnected
      *
@@ -195,7 +197,7 @@ export class Symbiote extends HTMLElement {
   /** @returns {PubSub} */
   get localCtx() {
     if (!this.#localCtx) {
-      this.#localCtx = PubSub.registerCtx({});
+      this.#localCtx = new PubSub({});
     }
     return this.#localCtx;
   }
@@ -215,22 +217,28 @@ export class Symbiote extends HTMLElement {
     let ctx;
     /** @type {String} */
     let name;
-    if (prop.startsWith(DICT.SHARED_CTX_PX)) {
+    let first = prop.charCodeAt(0);
+    // Fast path for common local props (no prefix, no /)
+    // Char codes: * = 42, ^ = 94, @ = 64, + = 43, - = 45
+    if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+      return { ctx: fnCtx.localCtx, name: prop };
+    }
+    if (first === 42) {
       ctx = fnCtx.sharedCtx;
-      name = prop.replace(DICT.SHARED_CTX_PX, '');
-    } else if (prop.startsWith(DICT.PARENT_CTX_PX)) {
-      name = prop.replace(DICT.PARENT_CTX_PX, '');
+      name = prop.slice(1);
+    } else if (first === 94) {
+      name = prop.slice(1);
       let found = fnCtx;
       while (found && !found?.has?.(name)) {
         // @ts-expect-error
         found = found.parentElement || found.parentNode || found.host;
       }
       ctx = found?.localCtx || fnCtx.localCtx;
-    } else if (prop.includes(DICT.NAMED_CTX_SPLTR)) {
-      let pArr = prop.split(DICT.NAMED_CTX_SPLTR);
-      ctx = PubSub.getCtx(pArr[0]);
-      name = pArr[1];
-    } else if (prop.startsWith(DICT.CSS_DATA_PX)) {
+    } else if (prop.includes('/')) {
+      let slashIdx = prop.indexOf('/');
+      ctx = PubSub.getCtx(prop.slice(0, slashIdx));
+      name = prop.slice(slashIdx + 1);
+    } else if (first === 45 && prop.charCodeAt(1) === 45) {
       ctx = fnCtx.localCtx;
       name = prop;
       if (!ctx.has(name)) {
@@ -240,10 +248,7 @@ export class Symbiote extends HTMLElement {
       ctx = fnCtx.localCtx;
       name = prop;
     }
-    return {
-      ctx,
-      name,
-    };
+    return { ctx, name };
   }
 
   /**
@@ -262,7 +267,7 @@ export class Symbiote extends HTMLElement {
     let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
-      window.setTimeout(() => {
+      window.queueMicrotask(() => {
         this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
       });
     } else {
@@ -309,11 +314,21 @@ export class Symbiote extends HTMLElement {
       let o = Object.create(null);
       this.#stateProxy = new Proxy(o, {
         set: (obj, /** @type {String} */ prop, val) => {
-          let parsed = Symbiote.#parseProp(prop, this);
-          parsed.ctx.pub(parsed.name, val);
+          // Fast path: local prop (no prefix, no /)
+          let first = prop.charCodeAt(0);
+          if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+            this.localCtx.pub(prop, val);
+          } else {
+            let parsed = Symbiote.#parseProp(prop, this);
+            parsed.ctx.pub(parsed.name, val);
+          }
           return true;
         },
         get: (obj, /** @type {String} */ prop) => {
+          let first = prop.charCodeAt(0);
+          if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
+            return this.localCtx.read(prop);
+          }
           let parsed = Symbiote.#parseProp(prop, this);
           return parsed.ctx.read(parsed.name);
         },
@@ -332,15 +347,11 @@ export class Symbiote extends HTMLElement {
       /** @type {unknown[]} */
       let primArr = [String, Number, Boolean];
       if (forcePrimitives || !primArr.includes(val?.constructor)) {
-        this.$[key] = val;
+        this.localCtx.pub(key, val);
       } else {
-        this.$[key] !== val && (this.$[key] = val);
+        this.localCtx.read(key) !== val && this.localCtx.pub(key, val);
       }
     }
-  }
-
-  get #ctxOwner() {
-    return this.ctxOwner || (this.hasAttribute(DICT.CTX_OWNER_ATTR) && this.getAttribute(DICT.CTX_OWNER_ATTR) !== 'false');
   }
 
   initAttributeObserver() {
@@ -350,7 +361,7 @@ export class Symbiote extends HTMLElement {
           if (mr.type === 'attributes') {
             let propName = DICT.ATTR_BIND_PX + mr.attributeName;
             if (this.has(propName)) {
-              this.$[propName] = this.getAttribute(mr.attributeName);
+              this.localCtx.pub(propName, this.getAttribute(mr.attributeName));
             }
           }
         }
@@ -373,7 +384,26 @@ export class Symbiote extends HTMLElement {
     }
     for (let prop in this.init$) {
       if (prop.startsWith(DICT.SHARED_CTX_PX)) {
-        this.sharedCtx.add(prop.replace(DICT.SHARED_CTX_PX, ''), this.init$[prop], this.#ctxOwner);
+        let sharedName = prop.replace(DICT.SHARED_CTX_PX, '');
+        let sharedVal = this.init$[prop];
+        if (!this.ctxName) {
+          if (Symbiote.devMode) {
+            console.warn(
+              `[Symbiote] "${this.localName}" uses *${sharedName} without ctx attribute or --ctx CSS variable. `
+              + 'Set ctx="name" or --ctx to share state.'
+            );
+          }
+        } else {
+          if (Symbiote.devMode && this.sharedCtx.has(sharedName)) {
+            let existing = this.sharedCtx.read(sharedName);
+            if (existing !== sharedVal && typeof sharedVal !== 'function') {
+              console.warn(
+                `[Symbiote] Shared prop "${sharedName}" already has value. Keeping existing.`
+              );
+            }
+          }
+          this.sharedCtx.add(sharedName, sharedVal);
+        }
       } else if (prop.startsWith(DICT.ATTR_BIND_PX)) {
         this.localCtx.add(prop, (this.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')) || this.init$[prop]));
         this.initAttributeObserver();
@@ -408,8 +438,8 @@ export class Symbiote extends HTMLElement {
     if (this.#noInit) {
       return;
     }
-    if (this.#disconnectTimeout) {
-      window.clearTimeout(this.#disconnectTimeout);
+    if (this.#destroyTimeout) {
+      window.clearTimeout(this.#destroyTimeout);
     }
     if (!this.connectedOnce) {
       let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
@@ -425,7 +455,7 @@ export class Symbiote extends HTMLElement {
       }
       this.initChildren = [...this.childNodes];
       for (let proc of PROCESSORS) {
-        this.addTemplateProcessor(proc);
+        this.templateProcessors.add(proc);
       }
       if (this.pauseRender) {
         this.#initCallback();
@@ -452,6 +482,15 @@ export class Symbiote extends HTMLElement {
 
   destroyCallback() {}
 
+  /**
+   * Animate an element out, then remove it.
+   * Sets `[leaving]` attribute, waits for CSS `transitionend`, then calls `.remove()`.
+   * @param {HTMLElement} el
+   * @returns {Promise<void>}
+   */
+  static animateOut = animateOut;
+
+  destructionDelay = 100;
   disconnectedCallback() {
     // if element wasn't connected, there is no need to disconnect it
     if (!this.connectedOnce) {
@@ -461,10 +500,10 @@ export class Symbiote extends HTMLElement {
     if (!this.readyToDestroy) {
       return;
     }
-    if (this.#disconnectTimeout) {
-      window.clearTimeout(this.#disconnectTimeout);
+    if (this.#destroyTimeout) {
+      window.clearTimeout(this.#destroyTimeout);
     }
-    this.#disconnectTimeout = window.setTimeout(() => {
+    this.#destroyTimeout = window.setTimeout(() => {
       this.destroyCallback();
       if (this.attributeMutationObserver) {
         this.attributeMutationObserver.disconnect();
@@ -473,16 +512,17 @@ export class Symbiote extends HTMLElement {
         sub.remove();
         this.allSubs.delete(sub);
       }
-      this.#localCtx && PubSub.deleteCtx(this.#localCtx.uid);
-      for (let proc of this.tplProcessors) {
-        this.tplProcessors.delete(proc);
+      this.#localCtx = null;
+      for (let proc of this.templateProcessors) {
+        this.templateProcessors.delete(proc);
       }
-    }, 100);
+    }, this.destructionDelay);
   }
 
   /**
    * @param {String} [tagName]
    * @param {Boolean} [isAlias]
+   * @returns {typeof Symbiote}
    */
   static reg(tagName, isAlias = false) {
     if (!tagName) {
@@ -495,17 +535,14 @@ export class Symbiote extends HTMLElement {
     if (registeredClass) {
       if (!isAlias && registeredClass !== this) {
         console.warn(
-          [
-            `Element with tag name "${tagName}" already registered.`,
-            `You're trying to override it with another class "${this.name}".`,
-            `This is most likely a mistake.`,
-            `New element will not be registered.`,
-          ].join('\n')
+          `[Symbiote] <${tagName}> is already registered (class: ${registeredClass.name}).\n`
+          + `Attempted re-registration with class "${this.name}" — skipped.`
         );
       }
-      return;
+      return this;
     }
     window.customElements.define(tagName, isAlias ? class extends this {} : this);
+    return this;
   }
 
   static get is() {
@@ -533,7 +570,7 @@ export class Symbiote extends HTMLElement {
     let $prop = this.#super.__attrDesc?.[name];
     if ($prop) {
       if (this.#dataCtxInitialized) {
-        this.$[$prop] = newVal;
+        this.localCtx.pub($prop, newVal);
       } else {
         this.init$[$prop] = newVal;
       }
@@ -558,7 +595,7 @@ export class Symbiote extends HTMLElement {
       try {
         this.#cssDataCache[propName] = parseCssPropertyValue(val);
       } catch (e) {
-        !silentCheck && console.warn(`CSS Data error: ${propName}`);
+        !silentCheck && console.warn(`[Symbiote] <${this.localName}>: CSS data parse error for "${propName}". Check that the CSS custom property is defined.`);
         this.#cssDataCache[propName] = null;
       }
     }
@@ -579,7 +616,7 @@ export class Symbiote extends HTMLElement {
     this.dropCssDataCache();
     this.#boundCssProps?.forEach((ctxProp) => {
       let val = this.getCssData(this.#extractCssName(ctxProp), true);
-      val !== null && this.$[ctxProp] !== val && (this.$[ctxProp] = val);
+      val !== null && this.localCtx.read(ctxProp) !== val && (this.localCtx.pub(ctxProp, val));
     });
   };
 
@@ -617,7 +654,7 @@ export class Symbiote extends HTMLElement {
       set: (val) => {
         this[localPropName] = val;
         if (isAsync) {
-          window.setTimeout(() => {
+          window.queueMicrotask(() => {
             handler?.(val);
           });
         } else {

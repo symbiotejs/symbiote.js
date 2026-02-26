@@ -7,7 +7,6 @@ export namespace DICT {
     let COMPUTED_PX: string;
     let CSS_DATA_PX: string;
     let CTX_NAME_ATTR: string;
-    let CTX_OWNER_ATTR: string;
     let CSS_CTX_PROP: string;
     let EL_REF_ATTR: string;
     let AUTO_TAG_PX: string;

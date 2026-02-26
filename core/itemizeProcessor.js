@@ -1,4 +1,6 @@
 import { DICT } from './dictionary.js';
+import { animateOut } from './animateOut.js';
+import { ownElements } from './ownElements.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -6,7 +8,7 @@ import { DICT } from './dictionary.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  [...fr.querySelectorAll(`[${DICT.LIST_ATTR}]`)].filter((el) => {
+  ownElements(fr, `[${DICT.LIST_ATTR}]`).filter((el) => {
       return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
     }).forEach((el) => {
       let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
@@ -52,7 +54,7 @@ export function itemizeProcessor(fr, fnCtx) {
               }
             } else {
               if (!fragment) {
-                fragment = new DocumentFragment();
+                fragment = document.createDocumentFragment();
               }
               let repeatItem = new itemClass();
               Object.assign((repeatItem?.init$ || repeatItem), item);
@@ -62,7 +64,7 @@ export function itemizeProcessor(fr, fnCtx) {
           fragment && el.appendChild(fragment);
           let oversize = currentList.slice(items.length, currentList.length);
           for (let exItm of oversize) {
-            exItm.remove();
+            animateOut(exItm);
           }
         };
         if (data.constructor === Array) {
@@ -79,11 +81,12 @@ export function itemizeProcessor(fr, fnCtx) {
           }
           fillItems(items);
         } else {
-          console.warn('Symbiote list data type error:');
-          console.log(data);
+          console.warn(`[Symbiote] <${fnCtx.localName}>: itemize data must be Array or Object, got ${typeof data}:`, data);
         }
       });
-      el.removeAttribute(DICT.LIST_ATTR);
-      el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+      if (!globalThis.__SYMBIOTE_SSR) {
+        el.removeAttribute(DICT.LIST_ATTR);
+        el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
+      }
     });
 }

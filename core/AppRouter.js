@@ -3,7 +3,28 @@ import PubSub from './PubSub.js';
 export class AppRouter {
 
   /**
-   * @typedef {{title?: String, default?: Boolean, error?: Boolean}} RouteDescriptor
+   * @typedef {{
+   *   title?: String,
+   *   default?: Boolean,
+   *   error?: Boolean,
+   *   pattern?: String,
+   *   load?: () => Promise<*>,
+   *   __loaded?: Boolean,
+   * }} RouteDescriptor
+   */
+
+  /**
+   * @typedef {{
+   *   route: String,
+   *   options: Object<string, any>,
+   * }} RouteState
+   */
+
+  /**
+   * @callback RouteGuard
+   * @param {RouteState} to
+   * @param {RouteState | null} from
+   * @returns {string | boolean | void | Promise<string | boolean | void>}
    */
 
   /** @type {() => void} */
@@ -14,9 +35,17 @@ export class AppRouter {
   static #routingEventName;
   /** @type {Object<string, RouteDescriptor>} */
   static appMap = Object.create(null);
+  /** @type {RouteGuard[]} */
+  static #guards = [];
+  /** @type {RouteState | null} */
+  static #currentState = null;
+  /** @type {boolean} */
+  static #usePathMode = false;
+  /** @type {Array<{regex: RegExp, keys: string[], route: string}>} */
+  static #compiledPatterns = [];
 
   static #print(msg) {
-    console.warn(msg);
+    console.warn(`[Symbiote > AppRouter] ${msg}`);
   }
 
   /** @param {String} title */
@@ -28,12 +57,48 @@ export class AppRouter {
   static setRoutingMap(map) {
     Object.assign(this.appMap, map);
     for (let route in this.appMap) {
-      if (!this.defaultRoute && this.appMap[route].default === true) {
+      let desc = this.appMap[route];
+      if (!this.defaultRoute && desc.default === true) {
         this.defaultRoute = route;
-      } else if (!this.errorRoute && this.appMap[route].error === true) {
+      } else if (!this.errorRoute && desc.error === true) {
         this.errorRoute = route;
       }
+      if (desc.pattern) {
+        this.#usePathMode = true;
+      }
     }
+    if (this.#usePathMode) {
+      this.#compilePatterns();
+    }
+  }
+
+  /**
+   * Compiles route patterns into regex matchers.
+   * Pattern syntax: `/users/:id/posts/:postId` → regex with named groups
+   */
+  static #compilePatterns() {
+    this.#compiledPatterns = [];
+    for (let route in this.appMap) {
+      let desc = this.appMap[route];
+      if (!desc.pattern) continue;
+      let keys = [];
+      let regexStr = desc.pattern.replace(/:([^/]+)/g, (_, key) => {
+        keys.push(key);
+        return '([^/]+)';
+      });
+      this.#compiledPatterns.push({
+        regex: new RegExp(`^${regexStr}$`),
+        keys,
+        route,
+      });
+    }
+    // Sort by specificity: longer patterns first, patterns without params first
+    this.#compiledPatterns.sort((a, b) => {
+      if (a.keys.length !== b.keys.length) {
+        return a.keys.length - b.keys.length;
+      }
+      return b.regex.source.length - a.regex.source.length;
+    });
   }
 
   /** @param {String} name */
@@ -48,6 +113,13 @@ export class AppRouter {
   }
 
   static readAddressBar() {
+    if (this.#usePathMode) {
+      return this.#readPath();
+    }
+    return this.#readQuery();
+  }
+
+  static #readQuery() {
     let result = {
       route: null,
       options: {},
@@ -59,36 +131,118 @@ export class AppRouter {
       } else if (part.includes('=')) {
         let pair = part.split('=');
         result.options[pair[0]] = decodeURI(pair[1]);
-      } else {
+      } else if (part) {
         result.options[part] = true;
       }
     });
     return result;
   }
 
-  static notify() {
+  static #readPath() {
+    let pathname = window.location.pathname;
+    let result = {
+      route: null,
+      options: {},
+    };
+
+    for (let compiled of this.#compiledPatterns) {
+      let match = pathname.match(compiled.regex);
+      if (match) {
+        result.route = compiled.route;
+        for (let i = 0; i < compiled.keys.length; i++) {
+          result.options[compiled.keys[i]] = decodeURIComponent(match[i + 1]);
+        }
+        // Also parse query string for additional options
+        let searchParams = new URLSearchParams(window.location.search);
+        searchParams.forEach((value, key) => {
+          result.options[key] = value;
+        });
+        return result;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * @param {RouteState} to
+   * @returns {Promise<string | boolean | void>}
+   */
+  static async #runGuards(to) {
+    let from = this.#currentState;
+    for (let guard of this.#guards) {
+      let result = await guard(to, from);
+      if (result === false) return false;
+      if (typeof result === 'string') return result;
+    }
+  }
+
+  static async notify() {
     let routeBase = this.readAddressBar();
     let routeScheme = this.appMap[routeBase.route];
-    if (routeScheme && routeScheme.title) {
-      document.title = routeScheme.title;
-    }
-    if (routeBase.route === null && this.defaultRoute) {
-      this.applyRoute(this.defaultRoute);
+
+    if (routeBase.route === null) {
+      // Path mode: null = no pattern matched = 404
+      // Query mode: null = empty URL = go to default
+      if (this.#usePathMode && this.errorRoute) {
+        this.navigate(this.errorRoute);
+      } else if (this.defaultRoute) {
+        this.navigate(this.defaultRoute);
+      } else {
+        this.#print('No route matched and no default/error route configured.');
+      }
       return;
     } else if (!routeScheme && this.errorRoute) {
-      this.applyRoute(this.errorRoute);
+      this.navigate(this.errorRoute);
       return;
     } else if (!routeScheme && this.defaultRoute) {
-      this.applyRoute(this.defaultRoute);
+      this.navigate(this.defaultRoute);
       return;
     } else if (!routeScheme) {
       this.#print(`Route "${routeBase.route}" not found...`);
       return;
     }
+
+    // Run guards
+    if (this.#guards.length) {
+      let guardResult = await this.#runGuards(routeBase);
+      if (guardResult === false) return;
+      if (typeof guardResult === 'string') {
+        this.navigate(guardResult);
+        return;
+      }
+    }
+
+    // Lazy load if needed
+    if (routeScheme.load && !routeScheme.__loaded) {
+      try {
+        await routeScheme.load();
+        routeScheme.__loaded = true;
+      } catch (err) {
+        this.#print(`Failed to load route "${routeBase.route}": ${err}`);
+        if (this.errorRoute) {
+          this.navigate(this.errorRoute);
+        }
+        return;
+      }
+    }
+
+    if (routeScheme.title) {
+      document.title = routeScheme.title;
+    }
+
+    this.#currentState = routeBase;
+
+    let schemeOptions = {};
+    for (let key in routeScheme) {
+      if (key === 'pattern' || key === 'load' || key === '__loaded' || key === 'default' || key === 'error') continue;
+      schemeOptions[key] = routeScheme[key];
+    }
+
     let event = new CustomEvent(AppRouter.routingEventName, {
       detail: {
         route: routeBase.route,
-        options: {...(routeScheme || {}), ...routeBase.options},
+        options: {...schemeOptions, ...routeBase.options},
       },
     });
     window.dispatchEvent(event);
@@ -104,19 +258,37 @@ export class AppRouter {
       this.#print('Wrong route: ' + route);
       return;
     }
-    let routeStr = '?' + route;
-    for (let prop in options) {
-      if (options[prop] === true) {
-        routeStr += this.separator + prop;
-      } else {
-        routeStr += this.separator + prop + '=' + `${options[prop]}`;
+
+    let url;
+    if (this.#usePathMode && routeScheme.pattern) {
+      url = routeScheme.pattern.replace(/:([^/]+)/g, (_, key) => {
+        let val = options[key];
+        delete options[key];
+        return encodeURIComponent(val ?? '');
+      });
+      // Append remaining options as query string
+      let remaining = Object.entries(options).filter(([, v]) => v !== undefined);
+      if (remaining.length) {
+        url += '?' + remaining.map(([k, v]) =>
+          v === true ? k : `${k}=${encodeURIComponent(v)}`
+        ).join('&');
+      }
+    } else {
+      url = '?' + route;
+      for (let prop in options) {
+        if (options[prop] === true) {
+          url += this.separator + prop;
+        } else {
+          url += this.separator + prop + '=' + `${options[prop]}`;
+        }
       }
     }
+
     let title = routeScheme.title || this.defaultTitle || '';
     try {
-      window.history.pushState(null, title, routeStr);
+      window.history.pushState(null, title, url);
     } catch (err) {
-      console.warn('AppRouter: History API is not available.');
+      console.warn('[Symbiote > AppRouter] History API is not available.');
     }
     document.title = title;
   }
@@ -125,9 +297,25 @@ export class AppRouter {
    * @param {String} route
    * @param {Object<string, any>} [options]
    */
-  static applyRoute(route, options = {}) {
+  static navigate(route, options = {}) {
     this.reflect(route, options);
     this.notify();
+  }
+
+  /**
+   * Register a route guard. Guards run before navigation.
+   * Return `false` to cancel, a route string to redirect, or nothing to proceed.
+   * @param {RouteGuard} fn
+   * @returns {() => void} unsubscribe function
+   */
+  static beforeRoute(fn) {
+    this.#guards.push(fn);
+    return () => {
+      let idx = this.#guards.indexOf(fn);
+      if (idx !== -1) {
+        this.#guards.splice(idx, 1);
+      }
+    };
   }
 
   /** @param {String} char */
