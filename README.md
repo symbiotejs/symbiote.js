@@ -356,7 +356,7 @@ Symbiote and Lit have similar base sizes, but Symbiote's **5.9 kb** includes mor
 
 All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 
-## Docs
+## Docs & Examples
 
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
