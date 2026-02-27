@@ -44,6 +44,7 @@
 
 ## Additional Resources
 
+- [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [AI Reference](../AI_REFERENCE.md) — Comprehensive API reference for AI assistants
 - [Changelog](../CHANGELOG.md)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)

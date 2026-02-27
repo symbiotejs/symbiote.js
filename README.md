@@ -359,6 +359,7 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 ## Docs
 
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
+- [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [AI Reference](https://github.com/symbiotejs/symbiote.js/blob/main/AI_REFERENCE.md)
 - [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
