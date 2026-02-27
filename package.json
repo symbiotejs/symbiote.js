@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js",
     "prepublishOnly": "npm test",
-    "pub": "npm run types && node scripts/update-exports.js && npm publish --tag beta",
+    "pub": "npm run types && node scripts/update-exports.js && npm publish",
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/node/*.test.js && npx playwright test",
     "test:unit": "node --test test/node/*.test.js",
