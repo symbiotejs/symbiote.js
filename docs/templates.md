@@ -61,18 +61,29 @@ MyComponent.template = html`
 ```
 The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
 
-### Event handler resolution (3.x)
+### Class property fallback (3.x)
 
-For `on*` bindings, Symbiote first looks for the key in `init$` (reactive state). If not found, it falls back to a **class method** with the same name:
+For any binding key not found in `init$`, Symbiote falls back to a **class property** (own instance property) with the same name. Functions are automatically bound to the component instance:
 ```js
 class MyComp extends Symbiote {
-  // Approach 1: state property (arrow function)
-  init$ = { onClick: () => console.log('clicked') };
+  // Approach 1: state property in init$
+  init$ = { count: 0 };
 
-  // Approach 2: class method (fallback)
+  // Approach 2: class property (fallback)
+  label = 'Click me';
   onSubmit() { console.log('submitted'); }
 }
+
+MyComp.template = html`
+  <span ${{textContent: 'label'}}></span>
+  <button ${{onclick: 'onSubmit'}}>{{count}}</button>
+`;
 ```
+
+> Value properties are checked via `Object.hasOwn` (inherited `HTMLElement` properties like `title`, `hidden`, etc. are never used). Prototype methods are also picked up as fallback handlers.
+
+> [!TIP]
+> Use class property fallback for **simple components** — it keeps the code compact and readable.  For **complex components** with many reactive properties, prefer `init$` to explicitly separate reactive state from regular class properties.
 
 ## Binding to nested properties
 

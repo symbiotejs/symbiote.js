@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.1.0
+
+### Changed
+
+- **Class property fallback (generalized).**
+  Bindings not found in `init$` now fall back to own class properties (checked via `Object.hasOwn`), not just `on*` event handlers. Functions are auto-bound to the component instance. Inherited `HTMLElement` properties are never picked up.
+  ```js
+  class MyComp extends Symbiote {
+    label = 'Click me';
+    onSubmit() { console.log('submitted'); }
+  }
+  ```
+  Previously only `on*` handlers supported this fallback.
+
 ## 3.0.0
 
 ### ⚠️ Breaking Changes
@@ -128,9 +142,10 @@
   { pattern: '/settings', load: () => import('./pages/settings.js') }
   ```
 
-- **Event handler method fallback.**
-  `on*` bindings fall back to class methods when no `init$` property found:
+- **Class property fallback.**
+  Bindings not in `init$` fall back to own class properties/methods:
   ```js
+  label = 'Click me';
   onSubmit() { console.log('submitted'); }
   ```
 

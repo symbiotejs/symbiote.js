@@ -17,7 +17,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
 - **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
 - **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
-- **on-event-handlers fallback** — event handlers now able to be described as direct class methods.
+- **Class property fallback** — binding keys not in `init$` fall back to own class properties/methods.
 - And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).
 
 ## Quick start

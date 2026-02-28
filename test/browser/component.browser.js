@@ -28,4 +28,16 @@ test.describe('Symbiote basic component', () => {
     });
     expect(await page.textContent('#output')).toBe('world');
   });
+
+  test('should use class property fallback for values and handlers', async ({ page }) => {
+    // Class property value used as initial binding value
+    expect(await page.textContent('#fb-label')).toBe('fallback-value');
+
+    // Class method used as onclick handler fallback
+    await page.click('#fb-btn');
+    expect(await page.textContent('#fb-label')).toBe('clicked-1');
+
+    await page.click('#fb-btn');
+    expect(await page.textContent('#fb-label')).toBe('clicked-2');
+  });
 });

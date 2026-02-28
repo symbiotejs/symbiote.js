@@ -1,7 +1,7 @@
 # Symbiote.js — AI Context Reference (v3.x)
 
 > **Purpose**: Authoritative reference for AI code assistants. All information is derived from source code analysis of [symbiote.js](https://github.com/symbiotejs/symbiote.js).
-> Current version: **3.0.0-rc.1**. Zero dependencies. ~6 KB gzip.
+> Current version: **3.1.0**. Zero dependencies. ~6 KB gzip.
 
 ---
 
@@ -99,16 +99,19 @@ Binds `propName` from component state to the text content of a text node. Works 
 ```
 The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
 
-**Event handler resolution (3.x):** For `on*` bindings, Symbiote first looks for the key in `init$` (reactive state). If not found, it falls back to a **class method** with the same name. Both approaches work:
+**Class property fallback (3.x):** For any binding key not found in `init$`, Symbiote checks own instance properties first (`Object.hasOwn` — safe from inherited `HTMLElement` collisions), then prototype methods. Functions are automatically `.bind()`-ed to the component instance:
 ```js
 class MyComp extends Symbiote {
-  // Approach 1: state property (arrow function)
-  init$ = { onClick: () => console.log('clicked') };
+  // Approach 1: state property in init$
+  init$ = { count: 0 };
 
-  // Approach 2: class method (fallback)
+  // Approach 2: class property / method (fallback)
+  label = 'Click me';
   onSubmit() { console.log('submitted'); }
 }
 ```
+
+> **Recommendation:** Use class property fallback for **simple components** — keeps code compact. For **complex components** with many reactive properties, prefer `init$` to explicitly separate reactive state from regular class properties.
 
 ### Nested property binding
 ```html

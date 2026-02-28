@@ -112,11 +112,12 @@ my-item {
 
 See [Animations documentation](./animations.md).
 
-### Event handler method fallback
+### Class property fallback
 
-`on*` bindings fall back to class methods when no `init$` property found:
+Bindings fall back to own class properties when no `init$` key found. Functions are auto-bound to the instance:
 ```js
 class MyComp extends Symbiote {
+  label = 'Click me';
   onSubmit() { console.log('submitted'); }
 }
 ```

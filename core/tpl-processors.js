@@ -60,10 +60,15 @@ function domBindProcessor(fr, fnCtx) {
         if (!fnCtx.has(valKey) && fnCtx.allowTemplateInits) {
           if (valKey.startsWith(DICT.ATTR_BIND_PX)) {
             fnCtx.add(valKey, fnCtx.getAttribute(valKey.replace(DICT.ATTR_BIND_PX, '')));
+          } else if (Object.hasOwn(fnCtx, valKey) && fnCtx[valKey] !== undefined) {
+            let ownVal = fnCtx[valKey];
+            fnCtx.add(valKey, typeof ownVal === 'function' ? ownVal.bind(fnCtx) : ownVal);
+          } else if (typeof fnCtx[valKey] === 'function') {
+            fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx));
           } else {
             fnCtx.add(valKey, null);
             // Dev-only: warn about bindings that aren't in init$ (likely typos)
-            if (fnCtx.Symbiote?.devMode && !prop.startsWith('on')) {
+            if (fnCtx.Symbiote?.devMode) {
               let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
               console.warn(
                 `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
@@ -71,10 +76,6 @@ function domBindProcessor(fr, fnCtx) {
               );
             }
           }
-        }
-        // In case of event handler is null, bind to fallback method (if defined):
-        if (prop.startsWith('on') && fnCtx.localCtx.read(valKey) === null && typeof fnCtx[valKey] === 'function') {
-          fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx), true);
         }
         fnCtx.sub(valKey, (val) => {
           if (castType === 'double') {
@@ -159,6 +160,11 @@ const txtNodesProcessor = function (fr, fnCtx) {
         if (prop.startsWith(DICT.ATTR_BIND_PX)) {
           fnCtx.add(prop, fnCtx.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')));
           fnCtx.initAttributeObserver();
+        } else if (Object.hasOwn(fnCtx, prop) && fnCtx[prop] !== undefined) {
+          let ownVal = fnCtx[prop];
+          fnCtx.add(prop, typeof ownVal === 'function' ? ownVal.bind(fnCtx) : ownVal);
+        } else if (typeof fnCtx[prop] === 'function') {
+          fnCtx.add(prop, fnCtx[prop].bind(fnCtx));
         } else {
           fnCtx.add(prop, null);
         }

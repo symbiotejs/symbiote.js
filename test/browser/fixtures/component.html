@@ -8,6 +8,7 @@
 
 <test-counter id="tc"></test-counter>
 <test-label id="tl"></test-label>
+<test-fallback id="tf"></test-fallback>
 
 <script type="module">
   import Symbiote, { html } from '/core/Symbiote.js';
@@ -39,6 +40,22 @@
   `;
 
   TestLabel.reg('test-label');
+
+  class TestFallback extends Symbiote {
+    label = 'fallback-value';
+    clickCount = 0;
+    onBtnClick() {
+      this.clickCount++;
+      this.$.label = 'clicked-' + this.clickCount;
+    }
+  }
+
+  TestFallback.template = html`
+    <span id="fb-label" ${{textContent: 'label'}}></span>
+    <button id="fb-btn" ${{onclick: 'onBtnClick'}}>go</button>
+  `;
+
+  TestFallback.reg('test-fallback');
 
   window.__TEST_READY = true;
 </script>
