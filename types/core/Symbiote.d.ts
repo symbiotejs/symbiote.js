@@ -65,9 +65,8 @@ export class Symbiote<S> extends HTMLElement {
     #private;
 }
 export default Symbiote;
-import { UID } from '../utils/UID.js';
 import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
-export { UID, PubSub, DICT };
+export { PubSub, DICT };
 //# sourceMappingURL=Symbiote.d.ts.map
