@@ -32,6 +32,11 @@ export function itemizeProcessor(fr, fnCtx) {
         el.firstChild.remove();
       }
       let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
+      if (!fnCtx.has(repeatDataKey) && fnCtx.allowTemplateInits) {
+        if (Object.hasOwn(fnCtx, repeatDataKey) && fnCtx[repeatDataKey] !== undefined) {
+          fnCtx.add(repeatDataKey, fnCtx[repeatDataKey]);
+        }
+      }
       fnCtx.sub(repeatDataKey, (data) => {
         if (!data) {
           while (el.firstChild) {

@@ -290,4 +290,11 @@ test.describe('Symbiote class', () => {
     });
     expect(await page.textContent('#css-color')).toBe('blue');
   });
+
+  // ── Itemize class property fallback ──
+
+  test('itemize should use class property fallback for data source', async ({ page }) => {
+    let items = await page.$$eval('#itemize-fb-list li', (els) => els.map((e) => e.textContent));
+    expect(items).toEqual(['Alpha', 'Beta', 'Gamma']);
+  });
 });
