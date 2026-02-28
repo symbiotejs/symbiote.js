@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/@symbiotejs%2Fsymbiote.svg)](https://badge.fury.io/js/@symbiotejs%2Fsymbiote)
+[![npm version](https://img.shields.io/npm/v/@symbiotejs/symbiote)](https://www.npmjs.com/package/@symbiotejs/symbiote)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # Symbiote.js
