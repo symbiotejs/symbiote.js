@@ -64,6 +64,10 @@
       "types": "./types/core/html.d.ts",
       "default": "./core/html.js"
     },
+    "./core/initPropFallback.js": {
+      "types": "./types/core/initPropFallback.d.ts",
+      "default": "./core/initPropFallback.js"
+    },
     "./core/itemizeProcessor-keyed.js": {
       "types": "./types/core/itemizeProcessor-keyed.d.ts",
       "default": "./core/itemizeProcessor-keyed.js"
@@ -91,6 +95,10 @@
     "./utils/dom-helpers.js": {
       "types": "./types/utils/dom-helpers.d.ts",
       "default": "./utils/dom-helpers.js"
+    },
+    "./utils/index.js": {
+      "types": "./types/utils/index.d.ts",
+      "default": "./utils/index.js"
     },
     "./utils/kebabToCamel.js": {
       "types": "./types/utils/kebabToCamel.d.ts",

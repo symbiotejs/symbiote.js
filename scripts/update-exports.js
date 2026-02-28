@@ -26,12 +26,15 @@ async function run() {
       types: './types/core/index.d.ts',
       default: './core/index.js',
     },
+    './utils': {
+      default: './utils/index.js',
+    },
   };
 
   for (let dir of DIRS) {
     let modules = await getModules(dir);
     for (let mod of modules) {
-      if (mod === './core/index.js') continue;
+      if (mod === './core/index.js' || mod === './utils/index.js') continue;
       let dtsPath = `./types/${dir}/${basename(mod, '.js')}.d.ts`;
       if (!existsSync(join(ROOT, dtsPath))) continue;
       exports[mod] = {
