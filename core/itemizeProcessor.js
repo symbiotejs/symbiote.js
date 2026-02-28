@@ -1,6 +1,7 @@
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
 import { ownElements } from './ownElements.js';
+import { initPropFallback } from './initPropFallback.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -33,9 +34,7 @@ export function itemizeProcessor(fr, fnCtx) {
       }
       let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
       if (!fnCtx.has(repeatDataKey) && fnCtx.allowTemplateInits) {
-        if (Object.hasOwn(fnCtx, repeatDataKey) && fnCtx[repeatDataKey] !== undefined) {
-          fnCtx.add(repeatDataKey, fnCtx[repeatDataKey]);
-        }
+        initPropFallback(fnCtx, repeatDataKey);
       }
       fnCtx.sub(repeatDataKey, (data) => {
         if (!data) {

@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.2.0
+
+### Added
+
+- **Itemize class property fallback.**
+  The `itemize` data source property now supports class property fallback, consistent with `domBindProcessor` and `txtNodesProcessor`.
+
+### Changed
+
+- **Utils moved to separate entry point.**
+  `UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary` are no longer exported from the main `@symbiotejs/symbiote` entry point. Import from `@symbiotejs/symbiote/utils` instead:
+  ```js
+  import { UID, create } from '@symbiotejs/symbiote/utils';
+  ```
+  Individual deep imports (`@symbiotejs/symbiote/utils/UID.js`, etc.) continue to work.
+
+- **`initPropFallback` extracted to shared module.**
+  Duplicated fallback initialization logic across template processors consolidated into `core/initPropFallback.js`.
+
 ## 3.1.0
 
 ### Changed

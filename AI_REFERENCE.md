@@ -1,7 +1,7 @@
 # Symbiote.js — AI Context Reference (v3.x)
 
 > **Purpose**: Authoritative reference for AI code assistants. All information is derived from source code analysis of [symbiote.js](https://github.com/symbiotejs/symbiote.js).
-> Current version: **3.1.0**. Zero dependencies. ~6 KB gzip.
+> Current version: **3.2.0**. Zero dependencies. ~6 KB gzip.
 
 ---
 
@@ -22,8 +22,11 @@ import { html } from '@symbiotejs/symbiote/core/html.js';
 import { css } from '@symbiotejs/symbiote/core/css.js';
 ```
 
-### Full export list (index.js)
-`Symbiote` (default), `html`, `css`, `PubSub`, `AppRouter`, `DICT`, `UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
+### Core exports (index.js)
+`Symbiote` (default), `html`, `css`, `PubSub`, `DICT`, `animateOut`
+
+### Utils exports (`@symbiotejs/symbiote/utils`)
+`UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
 
 ---
 
@@ -734,13 +737,13 @@ const tag = MyComponent.is; // 'my-component'
 ## Utilities
 
 ```js
-import { UID } from '@symbiotejs/symbiote';
+import { UID } from '@symbiotejs/symbiote/utils';
 UID.generate('XXXXX-XXX'); // e.g. 'aB3kD-z9Q'
 
-import { create, applyStyles, applyAttributes } from '@symbiotejs/symbiote';
+import { create, applyStyles, applyAttributes } from '@symbiotejs/symbiote/utils';
 let el = create({ tag: 'div', attributes: { id: 'x' }, styles: { color: 'red' }, children: [...] });
 
-import { reassignDictionary } from '@symbiotejs/symbiote';
+import { reassignDictionary } from '@symbiotejs/symbiote/utils';
 reassignDictionary({ BIND_ATTR: 'data-bind' }); // customize internal attribute names
 ```
 

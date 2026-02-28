@@ -1,10 +1,12 @@
 import { DICT } from './dictionary.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { ownElements, isOwnNode } from './ownElements.js';
+import { initPropFallback } from './initPropFallback.js';
 
 // Should go first among other processors:
 import { itemizeProcessor } from './itemizeProcessor.js';
 
+export { initPropFallback };
 
 
 /**
@@ -58,23 +60,14 @@ function domBindProcessor(fr, fnCtx) {
           valKey = valKey.replace('!', '');
         }
         if (!fnCtx.has(valKey) && fnCtx.allowTemplateInits) {
-          if (valKey.startsWith(DICT.ATTR_BIND_PX)) {
-            fnCtx.add(valKey, fnCtx.getAttribute(valKey.replace(DICT.ATTR_BIND_PX, '')));
-          } else if (Object.hasOwn(fnCtx, valKey) && fnCtx[valKey] !== undefined) {
-            let ownVal = fnCtx[valKey];
-            fnCtx.add(valKey, typeof ownVal === 'function' ? ownVal.bind(fnCtx) : ownVal);
-          } else if (typeof fnCtx[valKey] === 'function') {
-            fnCtx.add(valKey, fnCtx[valKey].bind(fnCtx));
-          } else {
-            fnCtx.add(valKey, null);
-            // Dev-only: warn about bindings that aren't in init$ (likely typos)
-            if (fnCtx.Symbiote?.devMode) {
-              let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
-              console.warn(
-                `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
-                + `Known keys: [${known.join(', ')}]`
-              );
-            }
+          initPropFallback(fnCtx, valKey);
+          // Dev-only: warn about bindings that aren't in init$ (likely typos)
+          if (fnCtx.localCtx.read(valKey) === null && fnCtx.Symbiote?.devMode) {
+            let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
+            console.warn(
+              `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
+              + `Known keys: [${known.join(', ')}]`
+            );
           }
         }
         fnCtx.sub(valKey, (val) => {
@@ -157,17 +150,7 @@ const txtNodesProcessor = function (fr, fnCtx) {
       let prop = tNode.textContent.replace(DICT.TEXT_NODE_OPEN_TOKEN, '').replace(DICT.TEXT_NODE_CLOSE_TOKEN, '');
       tNode.textContent = '';
       if (!fnCtx.has(prop) && fnCtx.allowTemplateInits) {
-        if (prop.startsWith(DICT.ATTR_BIND_PX)) {
-          fnCtx.add(prop, fnCtx.getAttribute(prop.replace(DICT.ATTR_BIND_PX, '')));
-          fnCtx.initAttributeObserver();
-        } else if (Object.hasOwn(fnCtx, prop) && fnCtx[prop] !== undefined) {
-          let ownVal = fnCtx[prop];
-          fnCtx.add(prop, typeof ownVal === 'function' ? ownVal.bind(fnCtx) : ownVal);
-        } else if (typeof fnCtx[prop] === 'function') {
-          fnCtx.add(prop, fnCtx[prop].bind(fnCtx));
-        } else {
-          fnCtx.add(prop, null);
-        }
+        initPropFallback(fnCtx, prop);
       }
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;
@@ -177,3 +160,4 @@ const txtNodesProcessor = function (fr, fnCtx) {
 };
 
 export default [itemizeProcessor, refProcessor, domBindProcessor, txtNodesProcessor];
+

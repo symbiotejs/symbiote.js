@@ -1,7 +1,6 @@
 import PubSub from './PubSub.js';
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
-import { UID } from '../utils/UID.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
 
@@ -10,7 +9,7 @@ import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 export { html } from './html.js';
 export { css } from './css.js';
-export { UID, PubSub, DICT }
+export { PubSub, DICT }
 
 let autoTagsCount = 0;
 

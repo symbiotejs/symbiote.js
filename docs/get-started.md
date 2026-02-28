@@ -128,9 +128,13 @@ That's it! Open this HTML file in your browser and check the result.
 
 > **IMPORTANT**: `template`, `rootStyles` and `shadowStyles` are **static property setters** — they must be assigned **outside** the class body. Using `static template = html\`...\`` inside the class **will NOT work**.
 
-## Full export list
+## Export structure
 
-`Symbiote` (default), `html`, `css`, `PubSub`, `AppRouter`, `DICT`, `UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
+### Core (`@symbiotejs/symbiote`)
+`Symbiote` (default), `html`, `css`, `PubSub`, `DICT`, `animateOut`
+
+### Utils (`@symbiotejs/symbiote/utils`)
+`UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
 
 Individual module imports (tree-shaking):
 ```js
