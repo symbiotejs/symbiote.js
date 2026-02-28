@@ -161,18 +161,15 @@ The CSS approach is useful when:
 Then use the `*` token to define shared properties:
 ```js
 class UploadBtn extends Symbiote {
-  init$ = {
-    '*files': [],
-    onUpload: () => {
-      this.$['*files'] = [...this.$['*files'], newFile];
-    },
+  init$ = { '*files': [] }
+
+  onUpload() {
+    this.$['*files'] = [...this.$['*files'], newFile];
   }
 }
 
 class FileList extends Symbiote {
-  init$ = {
-    '*files': [],  // same shared prop — first-registered value wins
-  }
+  init$ = { '*files': [] }  // same shared prop — first-registered value wins
 }
 ```
 

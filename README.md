@@ -29,11 +29,9 @@ No install needed — run this directly in a browser:
   import Symbiote, { html } from 'https://esm.run/@symbiotejs/symbiote';
 
   class MyCounter extends Symbiote {
-    init$ = {
-      count: 0,
-      increment: () => {
-        this.$.count++;
-      },
+    count = 0;
+    increment() {
+      this.$.count++;
     }
   }
 
@@ -116,12 +114,10 @@ http.createServer(async (req, res) => {
 
 ```js
 class TodoItem extends Symbiote {
-  init$ = {
-    text: '',
-    done: false,
-    toggle: () => {
-      this.$.done = !this.$.done;
-    },
+  text = '';
+  done = false;
+  toggle() {
+    this.$.done = !this.$.done;
   }
 }
 
@@ -153,7 +149,7 @@ export default html`
 ```
 
 The `html` function supports two interpolation modes:
-- **Object** → reactive binding: `${{textContent: 'myProp'}}`
+- **Object** → reactive binding: `${{onclick: 'handler'}}`
 - **String/number** → native concatenation: `${pageTitle}`
 
 ### Itemize (lists)
@@ -167,9 +163,10 @@ class TaskList extends Symbiote {
       { name: 'Buy groceries' },
       { name: 'Write docs' },
     ],
-    onItemClick: () => {
-      console.log('clicked!');
-    },
+  }
+
+  onItemClick() {
+    console.log('clicked!');
   }
 }
 
@@ -224,25 +221,19 @@ Inspired by native HTML `name` attributes — like how `<input name="group">` gr
 
 ```js
 class UploadBtn extends Symbiote {
-  init$ = {
-    '*files': [],
-    onUpload: () => {
-      ...
-      this.$['*files'] = [...this.$['*files'], newFile];
-    },
+  init$ = { '*files': [] }
+
+  onUpload() {
+    this.$['*files'] = [...this.$['*files'], newFile];
   }
 }
 
 class FileList extends Symbiote {
-  init$ = {
-    '*files': [],
-  }
+  init$ = { '*files': [] }
 }
 
 class StatusBar extends Symbiote {
-  init$ = {
-    '*files': [],
-  }
+  init$ = { '*files': [] }
 }
 ```
 
@@ -328,7 +319,7 @@ class MyWidget extends Symbiote {
 }
 
 MyWidget.template = html`
-  <span ${{textContent: '--label'}}></span>
+  <span>{{--label}}</span>
 `;
 ```
 

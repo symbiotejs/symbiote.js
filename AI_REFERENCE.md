@@ -33,25 +33,13 @@ Symbiote extends `HTMLElement`. Every component is a Custom Element.
 
 ```js
 class MyComponent extends Symbiote {
-  // Initial reactive state (key-value pairs)
-  init$ = {
-    name: 'World',
-    count: 0,
-    onBtnClick: () => {
-      this.$.count++;
-    },
-  };
+  // Class properties as initial values (fallback)
+  name = 'World';
+  count = 0;
 
-  // Called once after init$ is processed but BEFORE template is rendered
-  initCallback() {}
-
-  // Called once AFTER template is rendered and attached to DOM
-  renderCallback() {
-    // Safe to access this.ref, this.$, DOM children here
+  onBtnClick() {
+    this.$.count++;
   }
-
-  // Called when element is disconnected and readyToDestroy is true
-  destroyCallback() {}
 }
 
 // Template — assigned via static property SETTER, outside the class body
@@ -69,6 +57,13 @@ MyComponent.reg('my-component');
 > You **MUST** assign it **outside** the class body: `MyComponent.template = html\`...\``.
 > Using `static template = html\`...\`` inside the class declaration **will NOT work**.
 > Templates are plain HTML strings, NOT JSX. Use the `html` tagged template literal.
+
+### Lifecycle callbacks (override in subclass)
+| Method | When called |
+|--------|------------|
+| `initCallback()` | Once, after state initialized, before render (if `pauseRender=true`) or normally after render |
+| `renderCallback()` | Once, after template is rendered and attached to DOM |
+| `destroyCallback()` | On disconnect, after 100ms delay, only if `readyToDestroy=true` |
 
 ### Usage in HTML
 ```html
@@ -95,7 +90,7 @@ Binds `propName` from component state to the text content of a text node. Works 
 ### Property binding (element's own properties)
 ```html
 <button ${{onclick: 'handlerName'}}>Click</button>
-<div ${{textContent: 'myProp'}}></div>
+<div>{{myProp}}</div>
 ```
 The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
 
@@ -158,16 +153,16 @@ Prefixes control which data context a binding resolves to:
 | `^` | Parent inherited | `{{^parentProp}}` | Walk up DOM ancestry to find nearest component that has this prop |
 | `*` | Shared context | `{{*sharedProp}}` | Shared context scoped by `ctx` attribute or CSS `--ctx` |
 | `/` | Named context | `{{APP/myProp}}` | Global named context identified by key before `/` |
-| `--` | CSS Data | `${{textContent: '--my-css-var'}}` | Read value from CSS custom property |
+| `--` | CSS Data | `{{--my-css-var}}` | Read value from CSS custom property |
 | `+` | Computed | (in init$) `'+sum': () => ...` | Function recalculated when local dependencies change (auto-tracked) |
 
 ### Examples in init$
 ```js
 init$ = {
-  localProp: 'hello',           // local
-  '*sharedProp': 'shared value', // shared context
-  'APP/globalProp': 42,          // named context "APP"
-  '+computed': () => this.$.a + this.$.b, // local computed (auto-tracked)
+  localProp: 'hello',           // local (prefer class properties for simple cases)
+  '*sharedProp': 'shared value', // shared context (requires init$)
+  'APP/globalProp': 42,          // named context (requires init$)
+  '+computed': () => this.$.a + this.$.b, // local computed (requires init$)
 };
 ```
 
@@ -280,18 +275,15 @@ Components grouped by the `ctx` HTML attribute (or `--ctx` CSS custom property) 
 
 ```js
 class UploadBtn extends Symbiote {
-  init$ = {
-    '*files': [],
-    onUpload: () => {
-      this.$['*files'] = [...this.$['*files'], newFile];
-    },
+  init$ = { '*files': [] }
+
+  onUpload() {
+    this.$['*files'] = [...this.$['*files'], newFile];
   }
 }
 
 class FileList extends Symbiote {
-  init$ = {
-    '*files': [],  // same shared prop — first-registered value wins
-  }
+  init$ = { '*files': [] }  // same shared prop — first-registered value wins
 }
 ```
 
@@ -437,10 +429,11 @@ class MyList extends Symbiote {
       { name: 'Alice', role: 'Admin' },
       { name: 'Bob', role: 'User' },
     ],
-    onItemClick: (e) => {
-      console.log('clicked');
-    },
-  };
+  }
+
+  onItemClick(e) {
+    console.log('clicked');
+  }
 }
 
 MyList.template = html`
@@ -713,7 +706,7 @@ class MyComponent extends Symbiote {
 
 Or in template:
 ```html
-<div ${{textContent: '--my-css-prop'}}>...</div>
+<div>{{--my-css-prop}}</div>
 ```
 
 Update with: `this.updateCssData()` / `this.dropCssDataCache()`.

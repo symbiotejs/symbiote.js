@@ -14,7 +14,7 @@ class MyWidget extends Symbiote {
 }
 
 MyWidget.template = html`
-  <span ${{textContent: '--label'}}></span>
+  <span>{{--label}}</span>
 `;
 ```
 

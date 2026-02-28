@@ -92,11 +92,8 @@ user-card {
 For additional item functionality, define the item component separately:
 ```js
 class UserCard extends Symbiote {
-
-  init$ = {
-    firstName: '',
-    secondName: '',
-  };
+  firstName = '';
+  secondName = '';
 
   initCallback() {
     this.onclick = () => {
@@ -212,12 +209,8 @@ Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-
 List nesting is fully supported. To render hierarchical data, define a custom item component that contains its own `itemize`:
 ```js
 class CategoryItem extends Symbiote {
-
-  init$ = {
-    name: '',
-    items: [],
-  };
-
+  name = '';
+  init$ = { items: [] }
 }
 
 CategoryItem.template = html`

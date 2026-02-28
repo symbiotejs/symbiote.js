@@ -96,15 +96,10 @@ Create the HTML file `my-app.html`:
   import Symbiote, { html, css } from '@symbiotejs/symbiote';
 
   class MyComponent extends Symbiote {
-
-    // Initiate state:
-    init$ = {
-      count: 0,
-      increment: () => {
-        this.$.count++;
-      },
+    count = 0;
+    increment() {
+      this.$.count++;
     }
-
   }
 
   // Define template:

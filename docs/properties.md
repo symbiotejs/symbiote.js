@@ -2,16 +2,23 @@
 
 ## Property initialization
 
-To initiate component properties, use the `init$` property map:
+For simple components, define properties as class fields — Symbiote picks them up automatically via fallback:
 ```js
 class MyComponent extends Symbiote {
+  myProp = 'some value';
+  someOtherProp = 123;
+  oneMoreProp = true;
+}
+```
 
+For complex components with shared context, computed props, or many reactive properties, use `init$` to explicitly declare state:
+```js
+class MyComponent extends Symbiote {
   init$ = {
     myProp: 'some value',
-    someOtherProp: 123,
-    oneMoreProp: true,
+    '*sharedProp': [],
+    '+computed': () => this.$.myProp.length,
   }
-
 }
 ```
 The `init$` map should be a flat object that provides access to all values by top-level keys. Nested property key access (e.g. `'obj.prop'`) is **not supported** — use flat names instead.
@@ -21,10 +28,7 @@ The `init$` map should be a flat object that provides access to all values by to
 Use the `$` proxy (a standard JavaScript `Proxy` object) to access property values:
 ```js
 class MyComponent extends Symbiote {
-
-  init$ = {
-    time: Date.now(),
-  }
+  time = Date.now();
 
   renderCallback() {
     // Write a new value:
@@ -33,7 +37,6 @@ class MyComponent extends Symbiote {
     // Read current value:
     console.log(this.$.time);
   }
-
 }
 ```
 

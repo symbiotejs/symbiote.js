@@ -33,15 +33,11 @@ This dual-mode design means `html` works for both component templates and full-p
 import Symbiote, { html } from '@symbiotejs/symbiote';
 
 class MyComponent extends Symbiote {
-
-  init$ = {
-    name: 'John',
-    btnTxt: 'Click me!',
-    onBtnClick: () => {
-      console.log('Button clicked!');
-    },
+  name = 'John';
+  btnTxt = 'Click me!';
+  onBtnClick() {
+    console.log('Button clicked!');
   }
-
 }
 
 MyComponent.template = html`
@@ -56,7 +52,7 @@ Text node bindings use double braces syntax — `{{myProp}}`. Multiple bindings 
 ```js
 MyComponent.template = html`
   <button ${{onclick: 'handlerName'}}>Click</button>
-  <div ${{textContent: 'myProp'}}></div>
+  <div>{{myProp}}</div>
 `;
 ```
 The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
@@ -137,7 +133,7 @@ html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
 | `^` | Parent inherited | `{{^parentProp}}` |
 | `*` | Shared context | `{{*sharedProp}}` |
 | `/` | Named context | `{{APP/myProp}}` |
-| `--` | CSS Data | `${{textContent: '--my-css-var'}}` |
+| `--` | CSS Data | `{{--my-css-var}}` |
 | `+` | Computed | `'+sum': () => ...` |
 
 > More details in the [Context](./context.md) section.
