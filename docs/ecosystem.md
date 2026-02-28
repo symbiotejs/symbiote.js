@@ -1,6 +1,8 @@
 # Ecosystem
 
-Here we provide a set of basic recommendations for the development environment setup. These are only recommendations — you can choose any approach that fits your experience or needs.
+Symbiote.js is a close-to-platform solution — it doesn't require any specific tooling, compilation step, or proprietary build pipeline to work. Because it relies on modern web standards (Custom Elements, ESM, template literals, native CSS), it naturally integrates with any web development tool, library, or framework that follows the same standards. Popular JavaScript and CSS libraries, design systems, state management solutions, testing tools — all of them work with Symbiote.js out of the box. In practice, **the entire modern web ecosystem is already your ecosystem**.
+
+Below we provide a set of basic recommendations for the development environment setup. These are only recommendations — you can choose any approach that fits your experience or needs.
 
 ## Template syntax highlight
 
