@@ -158,13 +158,10 @@ Render lists from data arrays with efficient diffing:
 
 ```js
 class TaskList extends Symbiote {
-  init$ = {
-    tasks: [
-      { name: 'Buy groceries' },
-      { name: 'Write docs' },
-    ],
-  }
-
+  tasks = [
+    { name: 'Buy groceries' },
+    { name: 'Write docs' },
+  ];
   onItemClick() {
     console.log('clicked!');
   }
