@@ -1,5 +1,9 @@
+[![Tests](https://github.com/symbiotejs/symbiote.js/actions/workflows/tests.yml/badge.svg)](https://github.com/symbiotejs/symbiote.js/actions/workflows/tests.yml)
 [![npm version](https://img.shields.io/npm/v/@symbiotejs/symbiote)](https://www.npmjs.com/package/@symbiotejs/symbiote)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![npm downloads](https://img.shields.io/npm/dm/@symbiotejs/symbiote)](https://www.npmjs.com/package/@symbiotejs/symbiote)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@symbiotejs/symbiote)](https://bundlephobia.com/package/@symbiotejs/symbiote)
+![types](https://img.shields.io/badge/types-JSDoc+d.ts-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
 
 # Symbiote.js
 
