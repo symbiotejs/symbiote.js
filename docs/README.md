@@ -49,3 +49,7 @@
 - [Changelog](../CHANGELOG.md)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)
 - [GitHub Discussions](https://github.com/symbiotejs/symbiote.js/discussions)
+
+---
+
+© [rnd-pro.com](https://rnd-pro.com) — MIT License

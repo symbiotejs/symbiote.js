@@ -356,3 +356,7 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 - [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
 **Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
+
+---
+
+© [rnd-pro.com](https://rnd-pro.com) — MIT License
