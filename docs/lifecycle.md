@@ -68,6 +68,23 @@ class MyComponent extends Symbiote {
 }
 ```
 
+## Exit animations
+
+`animateOut(el)` delays element removal until CSS transitions finish. This works with the destruction lifecycle — the `[leaving]` attribute is set, the transition plays, and only then the element is removed from the DOM and destroyed:
+
+```css
+my-item {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  &[leaving] { opacity: 0; }
+}
+```
+
+The itemize API uses `animateOut` automatically for item removal.
+
+> More details in the [Animations](./animations.md) section.
+
 ---
 
 Next: [Flags →](./flags.md)
