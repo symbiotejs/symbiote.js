@@ -155,9 +155,30 @@ Templates can be written as plain HTML without any JavaScript context:
 <div bind="onclick: handler; @hidden: !flag"></div>
 ```
 
-## Light DOM Slots
+## Shadow DOM slots
 
-[Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with external markup.
+> [Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with external markup.
+
+Shadow DOM slots work out of the box, as expected by standard. No additional processors needed. To enable Shadow DOM, set the `renderShadow` flag in your component or define shadow styles:
+```js
+class MyComponent extends Symbiote {
+  renderShadow = true;
+}
+
+// Or just define shadow styles:
+MyComponent.shadowStyles = css`
+  :host {
+    display: block;
+  }
+`;
+
+// Then you can use standard Shadow DOM slots:
+MyComponent.template = html`
+  <slot></slot>
+`;
+```
+
+## Light DOM Slots (Symbiote.js feature, non-standard)
 
 Since version 2.x, light DOM slot processing must be imported and added explicitly:
 ```js
@@ -182,27 +203,6 @@ Usage:
   <h1 slot="header">Title</h1>
   <p>Default slot content</p>
 </my-wrapper>
-```
-
-## Shadow DOM slots
-
-> Shadow DOM slots work out of the box, as expected by standard. No additional processors needed. To enable Shadow DOM, set the `renderShadow` flag in your component or define shadow styles:
-```js
-class MyComponent extends Symbiote {
-  renderShadow = true;
-}
-
-// Or just define shadow styles:
-MyComponent.shadowStyles = css`
-  :host {
-    display: block;
-  }
-`;
-
-// Then you can use standard Shadow DOM slots:
-MyComponent.template = html`
-  <slot></slot>
-`;
 ```
 
 ## Element references
