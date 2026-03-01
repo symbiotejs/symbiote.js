@@ -1,6 +1,6 @@
 # Templates
 
-The core template mechanic in Symbiote.js is native browser HTML-string parsing via standard DOM API methods. That's the fastest way to create a component template instance in the object model representation.
+The core template mechanic in Symbiote.js is native browser HTML-string parsing via standard DOM API methods. This is the fastest way to create a component template instance in the object model representation.
 
 ## `html` helper
 
@@ -22,6 +22,14 @@ The `html` function supports two interpolation modes:
 
 - **Object** → converted to `bind="prop:key;"` attribute (reactive binding)
 - **String / number** → concatenated as-is (native interpolation, useful for SSR page shells)
+
+Example:
+```js
+const btnText = 'Click me!';
+const myTemplate = html`
+  <button ${{onclick: 'onBtnClick'}}>${btnText}</button>
+`;
+```
 
 This dual-mode design means `html` works for both component templates and full-page SSR output — no separate "server-only template" function is needed.
 
@@ -45,17 +53,18 @@ MyComponent.template = html`
   <button ${{onclick: 'onBtnClick'}}>{{btnTxt}}</button>
 `;
 ```
-Text node bindings use double braces syntax — `{{myProp}}`. Multiple bindings in one text node are supported: `{{first}} - {{second}}`.
+Text node bindings use double braces syntax — `{{myProp}}`. For each text node binding, its own text node (`Text()`) will be created.
 
-## Binding to element properties
+More about standard [Text Nodes](https://developer.mozilla.org/en-US/docs/Web/API/Text).
+
+## Binding to template element's own properties
 
 ```js
 MyComponent.template = html`
   <button ${{onclick: 'handlerName'}}>Click</button>
-  <div>{{myProp}}</div>
 `;
 ```
-The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names. Values are component state property names (strings).
+The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names; values are component reactive state property names (as strings).
 
 ### Class property fallback (3.x)
 
@@ -71,26 +80,26 @@ class MyComp extends Symbiote {
 }
 
 MyComp.template = html`
-  <span ${{textContent: 'label'}}></span>
+  <label>{{label}}</label>
   <button ${{onclick: 'onSubmit'}}>{{count}}</button>
 `;
 ```
 
-> Value properties are checked via `Object.hasOwn` (inherited `HTMLElement` properties like `title`, `hidden`, etc. are never used). Prototype methods are also picked up as fallback handlers.
+> Value properties are checked via `Object.hasOwn`, so inherited `HTMLElement` properties like `title`, `hidden`, etc. are never picked up. Prototype methods are also resolved as fallback handlers.
 
 > [!TIP]
 > Use class property fallback for **simple components** — it keeps the code compact and readable.  For **complex components** with many reactive properties, prefer `init$` to explicitly separate reactive state from regular class properties.
 
-## Binding to nested properties
+## Binding to element's nested properties
 
-Symbiote.js allows binding to nested properties of elements:
+Symbiote.js allows binding to nested properties of template elements:
 ```js
 MyComponent.template = html`
   <div ${{'style.color': 'myCssValue'}}>Some text...</div>
 `;
 ```
 
-You can also bind to a nested component's state directly, using the `$` proxy:
+You can also bind to a nested component's reactive state directly, using the `$` proxy key:
 ```js
 MyComponent.template = html`
   <my-component ${{'$.nestedPropName': 'propName'}}></my-component>
@@ -109,7 +118,7 @@ MyComponent.template = html`
 ```
 The `@` prefix means "bind to HTML attribute" (not DOM property). For boolean attributes: `true` → attribute present, `false` → attribute removed.
 
-> `@` is for binding syntax only — do NOT use it as a regular HTML attribute prefix.
+> `@` is for binding syntax only — do NOT use it as a regular HTML attribute prefix (`<div ${{'@hidden': 'isHidden'}}></div>` will be rendered as `<div hidden></div>` if `isHidden` is `true`, and as `<div></div>` if `isHidden` is `false`).
 
 ## Type casting
 
@@ -120,7 +129,7 @@ Inversion:
 html`<div ${{'@hidden': '!showContent'}}> ... </div>`;
 ```
 
-Double inversion (cast to boolean):
+Double inversion is supported:
 ```js
 html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
 ```
@@ -140,17 +149,17 @@ html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
 
 ## Loose-coupling alternative
 
-Templates can be written as plain HTML without any JavaScript context — the `html` helper generates this automatically:
+Templates can be written as plain HTML without any JavaScript context:
 ```html
 <div bind="textContent: myProp"></div>
 <div bind="onclick: handler; @hidden: !flag"></div>
 ```
 
-## Slots
+## Light DOM Slots
 
 [Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with external markup.
 
-Since 2.x, slot processing must be imported and added explicitly:
+Since version 2.x, light DOM slot processing must be imported and added explicitly:
 ```js
 import { slotProcessor } from '@symbiotejs/symbiote/core/slotProcessor.js';
 
@@ -175,20 +184,37 @@ Usage:
 </my-wrapper>
 ```
 
+## Shadow DOM slots
+
+> Shadow DOM slots work out of the box, as expected by standard. No additional processors needed. To enable Shadow DOM, set the `renderShadow` flag in your component or define shadow styles:
+```js
+class MyComponent extends Symbiote {
+  renderShadow = true;
+}
+
+// Or just define shadow styles:
+MyComponent.shadowStyles = css`
+  :host {
+    display: block;
+  }
+`;
+
+// Then you can use standard Shadow DOM slots:
+MyComponent.template = html`
+  <slot></slot>
+`;
+```
+
 ## Element references
 
 Use the `ref` attribute to get element references in your code:
 ```js
 html`
   <div>
-    <input ${{ref: 'nameInput'}}>
-    <button ${{ref: 'submitBtn', onclick: 'onSubmit'}}>Submit</button>
+    <input ref="nameInput">
+    <button ref="submitBtn" ${{onclick: 'onSubmit'}}>Submit</button>
   </div>
 `;
-```
-Or the plain HTML form:
-```html
-<div ref="myRef"></div>
 ```
 
 Reference names should be unique. Access them via `this.ref`:
@@ -206,12 +232,10 @@ class MyComponent extends Symbiote {
 To render efficient dynamic reactive lists, use the `itemize` API:
 ```js
 class MyComponent extends Symbiote {
-  init$ = {
-    listData: [
-      { firstName: 'John', secondName: 'Snow' },
-      { firstName: 'Jane', secondName: 'Stone' },
-    ],
-  }
+  listData = [
+    { firstName: 'John', secondName: 'Snow' },
+    { firstName: 'Jane', secondName: 'Stone' },
+  ];
 }
 
 MyComponent.template = html`
@@ -228,7 +252,7 @@ MyComponent.template = html`
 
 ## External customizable templates
 
-Symbiote.js allows components to connect templates defined in the common HTML document.
+Symbiote.js allows components to connect templates defined elsewhere in the HTML document.
 
 Set the `allowCustomTemplate` flag:
 ```js
@@ -237,7 +261,7 @@ class MyComponent extends Symbiote {
 }
 ```
 
-Define templates in markup:
+Define templates somewhere in HTML markup:
 ```html
 <template id="first">
   <h1>{{headingText}}</h1>
