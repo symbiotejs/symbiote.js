@@ -31,7 +31,7 @@ class MyComponent extends Symbiote {
 
 By default, components are destroyed when disconnected from DOM (after a 100ms delay). This delay allows synchronous DOM moves (e.g. list reordering) without triggering destruction.
 
-If you do **NOT** plan to permanently remove your component from DOM, disable destruction:
+If you do **NOT** plan to permanently remove your component from DOM or keep it just in memory, disable destruction:
 ```js
 class MyComponent extends Symbiote {
 
@@ -53,7 +53,7 @@ class MyComponent extends Symbiote {
 }
 ```
 
-This is useful when components might be temporarily removed and re-added to the DOM (animations, transitions, etc.).
+This is useful when components might be temporarily removed and re-added to the DOM (animations, transitions, sorting, caching, etc.) or for some in-memory calculations.
 
 ### `destroyCallback()`
 
