@@ -166,8 +166,11 @@ class TaskList extends Symbiote {
     { name: 'Buy groceries' },
     { name: 'Write docs' },
   ];
-  onItemClick() {
-    console.log('clicked!');
+  init$ = {
+    // Needs to be defined in init$ for bubbling binding to work
+    onItemClick: () => {
+      console.log('clicked!');
+    },
   }
 }
 
@@ -180,11 +183,11 @@ TaskList.template = html`
 `;
 ```
 
-Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's.
+Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
 
 ### Bubbling binding (`^`)
 
-The `^` prefix works in any nested component template — it walks up the DOM tree to find the nearest ancestor component that owns the property:
+The `^` prefix works in any nested component template — it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
 
 ```html
 <!-- Text binding to parent property: -->
@@ -193,6 +196,8 @@ The `^` prefix works in any nested component template — it walks up the DOM tr
 <!-- Handler binding to parent method: -->
 <button ${{onclick: '^parentHandler'}}>Click</button>
 ```
+
+> **Note:** Class property fallbacks are not checked by the `^` walk — the parent must define the property in `init$`.
 
 ### Named data contexts
 

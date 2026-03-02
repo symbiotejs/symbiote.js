@@ -108,7 +108,18 @@ MyComponent.template = html`
   <button ${{onclick: '^onButtonClicked'}}>Click me!</button>
 `;
 ```
-Symbiote walks up the DOM tree until it finds the component with `onButtonClicked` defined.
+Symbiote walks up the DOM tree until it finds the component with `onButtonClicked` registered in its data context.
+
+> [!IMPORTANT]
+> The `^` lookup only checks the parent's **data context** (properties registered via `init$` or `add$()`). Class property fallbacks are **not** resolved during this walk. Always define `^`-targeted properties in the parent's `init$`:
+> ```js
+> class ParentComponent extends Symbiote {
+>   init$ = {
+>     onButtonClicked: () => { console.log('clicked'); },
+>     parentTitle: 'Hello',
+>   }
+> }
+> ```
 
 This is useful for composition, customization, and responsibility splitting:
 ```js

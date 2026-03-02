@@ -27,7 +27,7 @@ MyComponent.template = html`
 
 The `itemize` value points to a key in the component's data context. You can use any type of data context token or a computed list property:
 
-Inherited:
+Inherited (parent must define `userList` in `init$`):
 ```js
 html`<div itemize="^userList">...item template</div>`;
 ```
@@ -61,7 +61,7 @@ MyComponent.template = html`
 > **CRITICAL**: Items inside `itemize` are full Symbiote components with their own state scope.
 > - `{{name}}` — binds to the **item's** own property
 > - `${{onclick: 'handler'}}` — binds to the **item** component's own method/property
-> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property
+> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property (must be in parent's `init$`)
 > - **Failure to use `^` for parent handlers will result in broken event bindings**
 
 By default, all list items are Symbiote components wrapped with a corresponding custom element. If you don't need an extra container for styling, use `display: contents` CSS — this is added to each item by default when you don't set custom tag names.

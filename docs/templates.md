@@ -145,6 +145,8 @@ html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
 | `--` | CSS Data | `{{--my-css-var}}` |
 | `+` | Computed | `'+sum': () => ...` |
 
+> The `^` prefix resolves properties registered in the parent's data context (`init$` or `add$()`). Class property fallbacks are **not** checked during the parent walk.
+
 > More details in the [Context](./context.md) section.
 
 ## Loose-coupling alternative

@@ -153,7 +153,7 @@ Prefixes control which data context a binding resolves to:
 | Prefix | Meaning | Example | Description |
 |--------|---------|---------|-------------|
 | _(none)_ | Local state | `{{count}}` | Current component's local context |
-| `^` | Parent inherited | `{{^parentProp}}` | Walk up DOM ancestry to find nearest component that has this prop |
+| `^` | Parent inherited | `{{^parentProp}}` | Walk up DOM ancestry to find nearest component that has this prop in its data context (`init$` / `add$()`) |
 | `*` | Shared context | `{{*sharedProp}}` | Shared context scoped by `ctx` attribute or CSS `--ctx` |
 | `/` | Named context | `{{APP/myProp}}` | Global named context identified by key before `/` |
 | `--` | CSS Data | `{{--my-css-var}}` | Read value from CSS custom property |
@@ -454,7 +454,7 @@ MyList.template = html`
 > **CRITICAL**: Inside itemize templates, items are full Symbiote components with their own state scope.
 > - `{{name}}` — item's own property
 > - `${{onclick: 'handler'}}` — binds to the item component's own method/property
-> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property
+> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property (must be in parent's `init$`)
 > - Failure to use `^` for parent handlers will result in broken event bindings
 
 ### Custom item component
@@ -798,3 +798,4 @@ Symbiote.devMode = true;
 9. **DON'T** use CSS frameworks (Tailwind, etc.) — use native CSS with custom properties
 10. **DON'T** use `require()` — ESM only (import/export)
 11. **DON'T** use `*prop` without `ctx` attribute or `--ctx` CSS variable — shared context won't be created
+12. **DON'T** rely on class property fallbacks for `^`-targeted properties — the `^` walk only checks the parent's data context (`init$` / `add$()`), not own class properties
