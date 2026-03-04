@@ -20,6 +20,7 @@ export class Symbiote<S> extends HTMLElement {
     initCallback(): void;
     renderCallback(): void;
     render(template?: string | DocumentFragment, shadow?: boolean): void;
+    ssrMode: boolean;
     init$: S;
     cssInit$: {
         [x: string]: any;
@@ -33,7 +34,7 @@ export class Symbiote<S> extends HTMLElement {
     renderShadow: boolean;
     readyToDestroy: boolean;
     processInnerHtml: boolean;
-    ssrMode: boolean;
+    isoMode: boolean;
     allowCustomTemplate: boolean;
     isVirtual: boolean;
     allowTemplateInits: boolean;
