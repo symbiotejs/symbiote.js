@@ -146,7 +146,9 @@ export class Symbiote extends HTMLElement {
 
     if (this.#super.shadowStyleSheets) {
       shadow = true; // is needed for cases when Shadow DOM was created manually for some other purposes
-      this.shadowRoot.adoptedStyleSheets = [...this.#super.shadowStyleSheets];
+      if (!clientSSR) {
+        this.shadowRoot.adoptedStyleSheets = [...this.#super.shadowStyleSheets];
+      }
     }
     addFr();
   }
@@ -466,14 +468,18 @@ export class Symbiote extends HTMLElement {
         this.#initCallback();
       } else {
         if (this.#super.rootStyleSheets) {
-          /** @type {Document | ShadowRoot} */
-          // @ts-expect-error
-          let root = this.getRootNode();
-          if (!root) {
-            return;
+          // Skip adopted sheets when hydrating SSR (inline <style> tags already present):
+          let hydrating = this.ssrMode || (this.isoMode && this.childNodes.length > 0);
+          if (!hydrating) {
+            /** @type {Document | ShadowRoot} */
+            // @ts-expect-error
+            let root = this.getRootNode();
+            if (!root) {
+              return;
+            }
+            let styleSet = new Set([...root.adoptedStyleSheets, ...this.#super.rootStyleSheets]);
+            root.adoptedStyleSheets = [...styleSet];
           }
-          let styleSet = new Set([...root.adoptedStyleSheets, ...this.#super.rootStyleSheets]);
-          root.adoptedStyleSheets = [...styleSet];
         }
         this.render();
       }
