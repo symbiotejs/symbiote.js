@@ -4,6 +4,16 @@ Symbiote.js provides a simple SSR solution via `node/SSR.js`. It doesn't need a 
 
 Requirements: [linkedom](https://github.com/WebReflection/linkedom) (optional peer dependency).
 
+### Install linkedom
+
+```
+npm install linkedom
+```
+
+> [!NOTE]
+> Minimum supported version is `0.16.0`. linkedom is listed as an optional peer dependency, so it won't be installed automatically with Symbiote.js — you need to add it yourself when using SSR features.
+
+
 ```js
 import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
 ```
