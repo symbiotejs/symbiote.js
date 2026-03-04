@@ -95,16 +95,32 @@ http.createServer(async (req, res) => {
 | Method | Description |
 |--------|-------------|
 | `SSR.init()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver/adoptedStyleSheets, patches globals |
-| `SSR.processHtml(html)` | `async` — parses HTML string, renders all custom elements, returns processed HTML. Auto-inits if needed |
-| `SSR.renderToString(tagName, attrs?)` | Creates element, triggers `connectedCallback`, serializes to HTML string |
-| `SSR.renderToStream(tagName, attrs?)` | Async generator — yields HTML chunks (same output as `renderToString`, streamed for lower TTFB) |
+| `SSR.processHtml(html, options?)` | `async` — parses HTML string, renders all custom elements, returns processed HTML. Auto-inits if needed |
+| `SSR.renderToString(tagName, attrs?, options?)` | Creates element, triggers `connectedCallback`, serializes to HTML string |
+| `SSR.renderToStream(tagName, attrs?, options?)` | Async generator — yields HTML chunks (same output as `renderToString`, streamed for lower TTFB) |
 | `SSR.destroy()` | Removes global patches, cleans up document |
+
+**Options:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `nonce` | `string` | CSP nonce value to add to generated `<style>` tags. See [Security → CSP nonce](./security.md#csp-nonce-for-ssr-styles) |
 
 ## Styles in SSR output
 
 - **rootStyles** → `<style>` tag as the first child of the component (light DOM, deduplicated per constructor)
 - **shadowStyles** → `<style>` inside the Declarative Shadow DOM `<template>`
 - Both are supported simultaneously on the same component
+
+### CSP nonce
+
+Pass `{ nonce }` to add a `nonce` attribute to all generated `<style>` tags for [CSP compliance](./security.md#csp-nonce-for-ssr-styles):
+```js
+let html = await SSR.processHtml('<my-app></my-app>', { nonce: 'abc123' });
+// <style nonce="abc123">...</style>
+```
+
+On the client, styles are applied via `adoptedStyleSheets` — no nonce needed.
 
 ## Shadow DOM output
 

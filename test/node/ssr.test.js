@@ -184,6 +184,31 @@ describe('SSR Engine', async () => {
     assert.ok(!result.includes('shadowrootmode'), 'Should not use DSD for rootStyles');
   });
 
+  it('should add nonce to rootStyles <style> tags via renderToString', async () => {
+    let result = SSR.renderToString('ssr-styled', {}, { nonce: 'test123' });
+    assert.ok(result.includes('nonce="test123"'), `Expected nonce attribute in output: ${result}`);
+    assert.ok(result.includes('<style nonce="test123">'), 'Should add nonce to style tag');
+  });
+
+  it('should add nonce to shadow <style> tags via renderToString', async () => {
+    let result = SSR.renderToString('ssr-shadow', {}, { nonce: 'shadow-n' });
+    assert.ok(result.includes('<style nonce="shadow-n">'), `Expected nonce on shadow style: ${result}`);
+  });
+
+  it('should not add nonce attribute when nonce is not provided', async () => {
+    let result = SSR.renderToString('ssr-styled');
+    assert.ok(!result.includes('nonce='), 'Should not contain nonce when not provided');
+  });
+
+  it('should add nonce to <style> tags via renderToStream', async () => {
+    let chunks = [];
+    for await (let chunk of SSR.renderToStream('ssr-styled', {}, { nonce: 'stream-n' })) {
+      chunks.push(chunk);
+    }
+    let result = chunks.join('');
+    assert.ok(result.includes('<style nonce="stream-n">'), `Expected nonce in streamed output: ${result}`);
+  });
+
   // Keep error test last — it destroys/reinits SSR, wiping customElements registry
   it('should throw if init was not called', async () => {
     SSR.destroy();
@@ -244,6 +269,20 @@ describe('SSR.processHtml', async () => {
     let result = await SSR.processHtml('<proc-outer></proc-outer>');
     assert.ok(result.includes('outside'), 'Should render outer component');
     assert.ok(result.includes('inside'), 'Should render inner component');
+  });
+
+  it('should add nonce to <style> tags via processHtml', async () => {
+    const { default: Symbiote, html, css } = await import('../../core/Symbiote.js');
+
+    class ProcStyled extends Symbiote {
+      init$ = { val: 'nonce-test' };
+    }
+    ProcStyled.template = html`<span ${{textContent: 'val'}}></span>`;
+    ProcStyled.rootStyles = css`proc-styled { display: flex; }`;
+    ProcStyled.reg('proc-styled');
+
+    let result = await SSR.processHtml('<proc-styled></proc-styled>', { nonce: 'proc-n' });
+    assert.ok(result.includes('<style nonce="proc-n">'), `Expected nonce in processHtml output: ${result}`);
   });
 });
 

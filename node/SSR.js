@@ -66,14 +66,16 @@ function resolveTextTokens(text, node) {
  * Serialize a custom element to HTML with DSD and rootStyles support.
  * @param {HTMLElement} el
  * @param {Set<Function>} emittedStyles - track which constructors already emitted rootStyles
+ * @param {string} [nonce] - CSP nonce for inline style tags
  * @returns {string}
  */
-function serializeElement(el, emittedStyles) {
+function serializeElement(el, emittedStyles, nonce) {
   let tagName = el.localName;
   let attrsStr = serializeAttrs(el);
   let ctor = /** @type {any} */ (el).constructor;
 
   let innerContent = '';
+  let nonceAttr = nonce ? ` nonce="${nonce}"` : '';
 
   // Light DOM rootStyles — inject <style> (once per constructor):
   if (ctor.rootStyleSheets && !emittedStyles.has(ctor)) {
@@ -81,7 +83,7 @@ function serializeElement(el, emittedStyles) {
     for (let sheet of ctor.rootStyleSheets) {
       let cssText = extractCSS(sheet);
       if (cssText) {
-        innerContent += `<style>${cssText}</style>`;
+        innerContent += `<style${nonceAttr}>${cssText}</style>`;
       }
     }
   }
@@ -95,19 +97,19 @@ function serializeElement(el, emittedStyles) {
       for (let sheet of ctor.shadowStyleSheets) {
         let cssText = extractCSS(sheet);
         if (cssText) {
-          shadowHTML += `<style>${cssText}</style>`;
+          shadowHTML += `<style${nonceAttr}>${cssText}</style>`;
         }
       }
     }
     for (let child of el.shadowRoot.childNodes) {
-      shadowHTML += serializeNode(child, shadowEmitted);
+      shadowHTML += serializeNode(child, shadowEmitted, nonce);
     }
     innerContent += `<template shadowrootmode="open">${shadowHTML}</template>`;
   }
 
   // Light DOM content:
   for (let child of el.childNodes) {
-    innerContent += serializeNode(child, emittedStyles);
+    innerContent += serializeNode(child, emittedStyles, nonce);
   }
 
   return `<${tagName}${attrsStr}>${innerContent}</${tagName}>`;
@@ -132,12 +134,13 @@ function serializeAttrs(el) {
  * Serialize a DOM node to HTML string.
  * @param {Node} node
  * @param {Set<Function>} emittedStyles
+ * @param {string} [nonce] - CSP nonce for inline style tags
  * @returns {string}
  */
-function serializeNode(node, emittedStyles) {
+function serializeNode(node, emittedStyles, nonce) {
   // Custom element — recurse:
   if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
-    return serializeElement(/** @type {HTMLElement} */ (node), emittedStyles);
+    return serializeElement(/** @type {HTMLElement} */ (node), emittedStyles, nonce);
   }
   // Regular element:
   if (node.nodeType === 1) {
@@ -145,7 +148,7 @@ function serializeNode(node, emittedStyles) {
     let attrsStr = serializeAttrs(el);
     let childHTML = '';
     for (let child of el.childNodes) {
-      childHTML += serializeNode(child, emittedStyles);
+      childHTML += serializeNode(child, emittedStyles, nonce);
     }
     return `<${el.localName}${attrsStr}>${childHTML}</${el.localName}>`;
   }
@@ -164,12 +167,15 @@ function serializeNode(node, emittedStyles) {
  * Stream-serialize an element, yielding chunks.
  * @param {HTMLElement} el
  * @param {Set<Function>} emittedStyles
+ * @param {string} [nonce] - CSP nonce for inline style tags
  * @returns {AsyncGenerator<string>}
  */
-async function* streamElement(el, emittedStyles) {
+async function* streamElement(el, emittedStyles, nonce) {
   let tagName = el.localName;
   let attrsStr = serializeAttrs(el);
   let ctor = /** @type {any} */ (el).constructor;
+
+  let nonceAttr = nonce ? ` nonce="${nonce}"` : '';
 
   yield `<${tagName}${attrsStr}>`;
 
@@ -179,7 +185,7 @@ async function* streamElement(el, emittedStyles) {
     for (let sheet of ctor.rootStyleSheets) {
       let cssText = extractCSS(sheet);
       if (cssText) {
-        yield `<style>${cssText}</style>`;
+        yield `<style${nonceAttr}>${cssText}</style>`;
       }
     }
   }
@@ -193,19 +199,19 @@ async function* streamElement(el, emittedStyles) {
       for (let sheet of ctor.shadowStyleSheets) {
         let cssText = extractCSS(sheet);
         if (cssText) {
-          yield `<style>${cssText}</style>`;
+          yield `<style${nonceAttr}>${cssText}</style>`;
         }
       }
     }
     for (let child of el.shadowRoot.childNodes) {
-      yield* streamNode(child, shadowEmitted);
+      yield* streamNode(child, shadowEmitted, nonce);
     }
     yield '</template>';
   }
 
   // Light DOM content:
   for (let child of el.childNodes) {
-    yield* streamNode(child, emittedStyles);
+    yield* streamNode(child, emittedStyles, nonce);
   }
 
   yield `</${tagName}>`;
@@ -215,11 +221,12 @@ async function* streamElement(el, emittedStyles) {
  * Stream-serialize a DOM node.
  * @param {Node} node
  * @param {Set<Function>} emittedStyles
+ * @param {string} [nonce] - CSP nonce for inline style tags
  * @returns {AsyncGenerator<string>}
  */
-async function* streamNode(node, emittedStyles) {
+async function* streamNode(node, emittedStyles, nonce) {
   if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
-    yield* streamElement(/** @type {HTMLElement} */ (node), emittedStyles);
+    yield* streamElement(/** @type {HTMLElement} */ (node), emittedStyles, nonce);
     return;
   }
   if (node.nodeType === 1) {
@@ -228,7 +235,7 @@ async function* streamNode(node, emittedStyles) {
     if (el.childNodes.length) {
       yield `<${el.localName}${attrsStr}>`;
       for (let child of el.childNodes) {
-        yield* streamNode(child, emittedStyles);
+        yield* streamNode(child, emittedStyles, nonce);
       }
       yield `</${el.localName}>`;
     } else {
@@ -348,15 +355,18 @@ export class SSR {
    * Initializes and destroys the SSR environment automatically.
    *
    * @param {string} html - Any HTML string containing custom element tags
+   * @param {{ nonce?: string }} [options] - SSR options
    * @returns {Promise<string>} Processed HTML with rendered components
    *
    * @example
    * ```js
    * await import('./my-components.js');
    * let result = await SSR.processHtml('<div><my-header></my-header><main>content</main></div>');
+   * // With CSP nonce:
+   * let safe = await SSR.processHtml('<my-app></my-app>', { nonce: 'abc123' });
    * ```
    */
-  static async processHtml(html) {
+  static async processHtml(html, options = {}) {
     let autoInited = !SSR.#doc;
     if (autoInited) {
       await SSR.init();
@@ -365,7 +375,7 @@ export class SSR {
     let emittedStyles = new Set();
     let result = '';
     for (let child of SSR.#doc.body.childNodes) {
-      result += serializeNode(child, emittedStyles);
+      result += serializeNode(child, emittedStyles, options.nonce);
     }
     SSR.#doc.body.innerHTML = '';
     if (autoInited) {
@@ -380,9 +390,10 @@ export class SSR {
    *
    * @param {string} tagName - Custom element tag name
    * @param {Object<string, string>} [attrs] - Attributes to set on the element
+   * @param {{ nonce?: string }} [options] - SSR options
    * @returns {string}
    */
-  static renderToString(tagName, attrs = {}) {
+  static renderToString(tagName, attrs = {}, options = {}) {
     if (!SSR.#doc) {
       throw new Error('[Symbiote SSR] Call SSR.init() before renderToString()');
     }
@@ -391,7 +402,7 @@ export class SSR {
       el.setAttribute(key, String(val));
     }
     SSR.#doc.body.appendChild(el);
-    let html = serializeElement(el, new Set());
+    let html = serializeElement(el, new Set(), options.nonce);
     el.remove();
     return html;
   }
@@ -402,9 +413,10 @@ export class SSR {
    *
    * @param {string} tagName - Custom element tag name
    * @param {Object<string, string>} [attrs] - Attributes to set on the element
+   * @param {{ nonce?: string }} [options] - SSR options
    * @returns {AsyncGenerator<string>}
    */
-  static async *renderToStream(tagName, attrs = {}) {
+  static async *renderToStream(tagName, attrs = {}, options = {}) {
     if (!SSR.#doc) {
       throw new Error('[Symbiote SSR] Call SSR.init() before renderToStream()');
     }
@@ -413,7 +425,7 @@ export class SSR {
       el.setAttribute(key, String(val));
     }
     SSR.#doc.body.appendChild(el);
-    yield* streamElement(el, new Set());
+    yield* streamElement(el, new Set(), options.nonce);
     el.remove();
   }
 }
