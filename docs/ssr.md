@@ -178,7 +178,29 @@ MyComponent.reg('my-component');
 2. **Client**: Component with `ssrMode = true` skips template injection, attaches bindings to pre-rendered DOM
 3. State mutations on client update DOM reactively
 
-For components that may or may not be server-rendered, use `isoMode = true` instead of `ssrMode`. It detects children automatically: hydrates if pre-rendered content exists, renders from template otherwise.
+For components that may or may not be server-rendered, use `isoMode = true` instead of `ssrMode`. It detects children automatically: hydrates if pre-rendered content exists, renders from template otherwise:
+```js
+class MyComponent extends Symbiote {
+
+  isoMode = true;
+
+  init$ = {
+    count: 0,
+    increment: () => {
+      this.$.count++;
+    },
+  }
+
+}
+
+MyComponent.template = html`
+  <h2 ${{textContent: 'count'}} ref="count">0</h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+`;
+MyComponent.reg('my-component');
+```
+
+> `isoMode` is the recommended default for isomorphic components — it works correctly in both SSR and client-only scenarios without any conditional logic.
 
 ---
 
