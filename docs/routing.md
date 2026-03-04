@@ -6,6 +6,13 @@ Symbiote.js has a built-in SPA routing solution based on the standard [History A
 > ```js
 > import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
 > ```
+> Or use the `full` entry point to get everything in one import:
+> ```js
+> import Symbiote, { html, css, AppRouter } from '@symbiotejs/symbiote/full';
+> ```
+
+> [!TIP]
+> **Importmap users**: If you resolve `@symbiotejs/symbiote` and `AppRouter` via separate importmap entries (e.g. different CDN URLs), PubSub contexts will still work correctly — `PubSub.globalStore` is shared via `globalThis.__SYMBIOTE_PUBSUB_STORE` across all module copies.
 
 ## Path-based routing (recommended)
 
@@ -177,6 +184,29 @@ AppRouter.setDefaultTitle('My App');
 ### AppRouter.removePopstateListener()
 
 Remove the popstate event listener.
+
+## SSR & isomorphic usage
+
+`AppRouter` is SSR-safe. In Node.js or linkedom environments, `initRoutingCtx()` creates the PubSub context (so `{{R/title}}` bindings resolve during server rendering) while browser-only APIs are skipped automatically:
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+
+await SSR.init();
+
+// Works in both browser and SSR — creates the 'R' context:
+AppRouter.initRoutingCtx('R', {
+  home: { pattern: '/', title: 'Home', default: true },
+  about: { pattern: '/about', title: 'About' },
+});
+
+await import('./my-app.js');
+let html = SSR.renderToString('my-app');
+SSR.destroy();
+```
+
+In SSR, `navigate()`, `reflect()`, and `notify()` are no-ops — they return immediately without errors.
 
 ---
 
