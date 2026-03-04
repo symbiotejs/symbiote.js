@@ -10,7 +10,7 @@ import { existsSync } from 'fs';
 import { join, extname, basename } from 'path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const DIRS = ['core', 'utils'];
+const DIRS = ['core', 'utils', 'node'];
 
 async function getModules(dir) {
   let fullDir = join(ROOT, dir);
@@ -29,12 +29,15 @@ async function run() {
     './utils': {
       default: './utils/index.js',
     },
+    './node': {
+      default: './node/index.js',
+    },
   };
 
   for (let dir of DIRS) {
     let modules = await getModules(dir);
     for (let mod of modules) {
-      if (mod === './core/index.js' || mod === './utils/index.js') continue;
+      if (mod === './core/index.js' || mod === './utils/index.js' || mod === './node/index.js') continue;
       let dtsPath = `./types/${dir}/${basename(mod, '.js')}.d.ts`;
       if (!existsSync(join(ROOT, dtsPath))) continue;
       exports[mod] = {

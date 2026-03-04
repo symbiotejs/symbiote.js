@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -35,6 +35,9 @@
     },
     "./utils": {
       "default": "./utils/index.js"
+    },
+    "./node": {
+      "default": "./node/index.js"
     },
     "./core/AppRouter.js": {
       "types": "./types/core/AppRouter.d.ts",
@@ -115,6 +118,10 @@
     "./utils/setNestedProp.js": {
       "types": "./types/utils/setNestedProp.d.ts",
       "default": "./utils/setNestedProp.js"
+    },
+    "./node/SSR.js": {
+      "types": "./types/node/SSR.d.ts",
+      "default": "./node/SSR.js"
     }
   },
   "publishConfig": {
