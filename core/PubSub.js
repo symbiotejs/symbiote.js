@@ -389,7 +389,7 @@ export class PubSub {
 }
 
 /** @type {Map<String | Symbol, PubSub>} */
-PubSub.globalStore = new Map();
+PubSub.globalStore = globalThis.__SYMBIOTE_PUBSUB_STORE || (globalThis.__SYMBIOTE_PUBSUB_STORE = new Map());
 
 /** @type {Boolean} */
 PubSub.devMode = false;

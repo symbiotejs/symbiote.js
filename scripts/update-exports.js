@@ -29,6 +29,10 @@ async function run() {
     './utils': {
       default: './utils/index.js',
     },
+    './full': {
+      types: './types/core/full.d.ts',
+      default: './core/full.js',
+    },
     './node': {
       default: './node/index.js',
     },

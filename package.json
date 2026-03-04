@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -36,6 +36,10 @@
     "./utils": {
       "default": "./utils/index.js"
     },
+    "./full": {
+      "types": "./types/core/full.d.ts",
+      "default": "./core/full.js"
+    },
     "./node": {
       "default": "./node/index.js"
     },
@@ -62,6 +66,10 @@
     "./core/dictionary.js": {
       "types": "./types/core/dictionary.d.ts",
       "default": "./core/dictionary.js"
+    },
+    "./core/full.js": {
+      "types": "./types/core/full.d.ts",
+      "default": "./core/full.js"
     },
     "./core/html.js": {
       "types": "./types/core/html.d.ts",
