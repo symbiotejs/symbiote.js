@@ -98,6 +98,10 @@ export class Symbiote extends HTMLElement {
         }
       }
     }
+    // Resolve isoMode: hydrate if children exist, render template otherwise
+    if (this.isoMode && !globalThis.__SYMBIOTE_SSR) {
+      this.ssrMode = this.childNodes.length > 0;
+    }
     let clientSSR = this.ssrMode && !globalThis.__SYMBIOTE_SSR;
     if (this.processInnerHtml || clientSSR) {
       for (let fn of this.templateProcessors) {
@@ -168,6 +172,8 @@ export class Symbiote extends HTMLElement {
     this.processInnerHtml = false;
     /** @type {Boolean} */
     this.ssrMode = false;
+    /** @type {Boolean} */
+    this.isoMode = false;
     /** @type {Boolean} */
     this.allowCustomTemplate = false;
     /** @type {Boolean} */

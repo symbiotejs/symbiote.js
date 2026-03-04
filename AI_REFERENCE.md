@@ -318,6 +318,7 @@ Both components access the same `*files` state — no parent component, no prop 
 | `readyToDestroy` | `true` | Allow cleanup on disconnect |
 | `processInnerHtml` | `false` | Process existing inner HTML with template processors |
 | `ssrMode` | `false` | **Client-only.** Hydrate server-rendered HTML: skips template injection, attaches bindings to existing DOM. Supports both light DOM and Declarative Shadow DOM. Ignored when `__SYMBIOTE_SSR` is active (server side) |
+| `isoMode` | `false` | **Client-only.** Isomorphic mode: if component has children at connect time, behaves as `ssrMode = true` (hydrate). If no children, renders template normally. Same component works for both SSR and client-only scenarios |
 | `allowCustomTemplate` | `false` | Allow `use-template="#selector"` attribute |
 | `isVirtual` | `false` | Replace element with its template fragment |
 | `allowTemplateInits` | `true` | Auto-add props found in template but not in init$ |

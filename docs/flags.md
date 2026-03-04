@@ -8,6 +8,7 @@ Flags are settings that enable or disable specific features or behaviors.
 |------|---------|-------------|
 | `renderShadow` | `false` | Render template into Shadow DOM |
 | `ssrMode` | `false` | Hydrate server-rendered HTML |
+| `isoMode` | `false` | Isomorphic mode: hydrate if children exist, render template otherwise |
 | `isVirtual` | `false` | Replace element with its template fragment |
 | `allowCustomTemplate` | `false` | Allow `use-template` attribute |
 | `pauseRender` | `false` | Skip automatic rendering |
@@ -42,6 +43,19 @@ class MyComponent extends Symbiote {
 In 3.x, `ssrMode` supports both light DOM and Declarative Shadow DOM hydration. Template injection is skipped; bindings attach to existing DOM.
 
 > **Note**: `ssrMode` is a client-side flag. It is separate from `__SYMBIOTE_SSR` (server-side global). See [SSR](./ssr.md) for details.
+
+## isoMode
+
+Isomorphic rendering flag. If the component has children when it connects on the client (server-rendered content), it behaves like `ssrMode = true` — hydrates existing DOM. If the component has **no children**, it renders the template normally:
+```js
+class MyComponent extends Symbiote {
+
+  isoMode = true;
+
+}
+```
+
+This is useful for components that may or may not be server-rendered — the same component code works in both scenarios without conditional logic.
 
 ## isVirtual
 

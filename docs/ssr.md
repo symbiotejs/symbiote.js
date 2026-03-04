@@ -119,6 +119,7 @@ Shadow components produce Declarative Shadow DOM markup with styles inlined:
 |------|-------|---------|
 | `__SYMBIOTE_SSR` | Server (global) | Preserves binding attributes (`bind`, `ref`, `itemize`) in HTML output. Bypasses `ssrMode` effects |
 | `ssrMode` | Client (instance) | Skips template injection, hydrates existing DOM with bindings |
+| `isoMode` | Client (instance) | Isomorphic mode: hydrates if children exist, renders template otherwise |
 
 ## Client-side hydration
 
@@ -150,6 +151,8 @@ MyComponent.reg('my-component');
 1. **Server**: `SSR.processHtml()` / `SSR.renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
 2. **Client**: Component with `ssrMode = true` skips template injection, attaches bindings to pre-rendered DOM
 3. State mutations on client update DOM reactively
+
+For components that may or may not be server-rendered, use `isoMode = true` instead of `ssrMode`. It detects children automatically: hydrates if pre-rendered content exists, renders from template otherwise.
 
 ---
 

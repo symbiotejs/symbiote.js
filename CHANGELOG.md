@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3.0
+
+### Added
+
+- **`isoMode` flag for isomorphic rendering.**
+  `isoMode = true` enables automatic detection: if the component has children at connect time (server-rendered content), it hydrates existing DOM like `ssrMode`. If no children exist, it renders the template normally. Same component code works for both SSR and client-only scenarios.
+
 ## 3.2.0
 
 ### Added

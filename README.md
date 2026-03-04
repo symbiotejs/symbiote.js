@@ -16,6 +16,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 ## What's new in 3.x
 
 - **Server-Side Rendering** — render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
+- **Isomorphic components** — `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
 - **Computed properties** — reactive derived state with microtask batching.
 - **Path-based router** — optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
 - **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
@@ -74,7 +75,7 @@ let html = await SSR.processHtml('<my-app>slot content</my-app>');
 SSR.destroy();                 // cleanup
 ```
 
-On the client, components with `ssrMode = true` skip template injection and attach bindings to the existing DOM. State mutations work immediately — no hydration step, no reconciliation, no diffing.
+On the client, components with `ssrMode = true` skip template injection and attach bindings to the existing DOM. State mutations work immediately — no hydration step, no reconciliation, no diffing. For isomorphic components that may or may not be server-rendered, use `isoMode = true` — it detects children automatically.
 
 ### Streaming
 

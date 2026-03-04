@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>isoMode Test</title>
+</head>
+<body>
+
+<div id="iso-mount"></div>
+
+<script>
+  if (window.__SSR_MARKUP) {
+    document.getElementById('iso-mount').innerHTML = window.__SSR_MARKUP;
+  }
+</script>
+
+<script type="module">
+  await import('../helpers/iso-components.js');
+  window.__HYDRATED = true;
+</script>
+
+</body>
+</html>
