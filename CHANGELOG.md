@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.3.4
+
+### Fixed
+
+- **PubSub context isolation with importmaps.**
+  `PubSub.globalStore` now uses `globalThis.__SYMBIOTE_PUBSUB_STORE`, so multiple copies of PubSub loaded from different URLs (e.g. via importmap) share the same context registry. Fixes `Router/title` and similar named context bindings not working when AppRouter is resolved separately.
+
+### Added
+
+- **`@symbiotejs/symbiote/full` entry point.**
+  Re-exports everything from the main entry point plus `AppRouter`, guaranteeing a single PubSub module:
+  ```js
+  import Symbiote, { html, css, AppRouter } from '@symbiotejs/symbiote/full';
+  ```
+
+- **AppRouter SSR support.**
+  `AppRouter.initRoutingCtx()` now works in Node.js and linkedom SSR environments — creates the PubSub context without errors, skipping browser-only APIs (`window`, `history`, events). Enables isomorphic code that uses AppRouter on both server and client.
+
 ## 3.3.0
 
 ### Added

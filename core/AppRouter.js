@@ -44,6 +44,10 @@ export class AppRouter {
   /** @type {Array<{regex: RegExp, keys: string[], route: string}>} */
   static #compiledPatterns = [];
 
+  static get #isBrowser() {
+    return typeof window !== 'undefined' && !globalThis.__SYMBIOTE_SSR;
+  }
+
   static #print(msg) {
     console.warn(`[Symbiote > AppRouter] ${msg}`);
   }
@@ -178,6 +182,7 @@ export class AppRouter {
   }
 
   static async notify() {
+    if (!this.#isBrowser) return;
     let routeBase = this.readAddressBar();
     let routeScheme = this.appMap[routeBase.route];
 
@@ -253,6 +258,7 @@ export class AppRouter {
    * @param {Object<string, any>} [options]
    */
   static reflect(route, options = {}) {
+    if (!this.#isBrowser) return;
     let routeScheme = this.appMap[route];
     if (!routeScheme) {
       this.#print('Wrong route: ' + route);
@@ -344,15 +350,17 @@ export class AppRouter {
       },
       ctxName
     );
-    window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
-      routingCtx.multiPub({
-        options: e.detail.options,
-        title: e.detail.options?.title || this.defaultTitle || '',
-        route: e.detail.route,
+    if (this.#isBrowser) {
+      window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
+        routingCtx.multiPub({
+          options: e.detail.options,
+          title: e.detail.options?.title || this.defaultTitle || '',
+          route: e.detail.route,
+        });
       });
-    });
-    AppRouter.notify();
-    this.#initPopstateListener();
+      AppRouter.notify();
+      this.#initPopstateListener();
+    }
     return routingCtx;
   }
 
@@ -367,6 +375,7 @@ export class AppRouter {
   }
 
   static removePopstateListener() {
+    if (!this.#isBrowser) return;
     window.removeEventListener('popstate', this.#onPopstate);
     this.#onPopstate = null;
   }
