@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3.5
+
+### Fixed
+
+- **AppRouter: SSR context populated with default route.**
+  `initRoutingCtx()` in SSR now populates the PubSub context with the default route's `route`, `title`, and `options` instead of leaving them as `null`. Components can access `this.$['R/route']` during server rendering.
+
 ## 3.3.4
 
 ### Fixed

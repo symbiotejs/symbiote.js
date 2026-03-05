@@ -19,13 +19,13 @@ describe('AppRouter (SSR / Node.js)', () => {
     assert.strictEqual(PubSub.getCtx(ctxKey), ctx);
   });
 
-  it('context should have route/options/title properties', () => {
+  it('context should have default route/options/title properties', () => {
     let ctx = AppRouter.initRoutingCtx(ctxKey, {
       home: { title: 'Home', default: true },
     });
-    assert.strictEqual(ctx.read('route'), null);
-    assert.strictEqual(ctx.read('options'), null);
-    assert.strictEqual(ctx.read('title'), null);
+    assert.strictEqual(ctx.read('route'), 'home');
+    assert.deepStrictEqual(ctx.read('options'), {});
+    assert.strictEqual(ctx.read('title'), 'Home');
   });
 
   it('notify should not throw in Node.js', () => {

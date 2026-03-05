@@ -360,6 +360,13 @@ export class AppRouter {
       });
       AppRouter.notify();
       this.#initPopstateListener();
+    } else if (this.defaultRoute) {
+      let defaultDesc = this.appMap[this.defaultRoute];
+      routingCtx.multiPub({
+        route: this.defaultRoute,
+        options: {},
+        title: defaultDesc?.title || this.defaultTitle || '',
+      });
     }
     return routingCtx;
   }
