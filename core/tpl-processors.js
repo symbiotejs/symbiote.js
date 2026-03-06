@@ -70,6 +70,9 @@ function domBindProcessor(fr, fnCtx) {
             );
           }
         }
+        let initVal = fnCtx.$[valKey];
+        let skipInit = fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR
+          && (isAttr || (typeof initVal !== 'function' && (initVal === null || typeof initVal !== 'object')));
         fnCtx.sub(valKey, (val) => {
           if (castType === 'double') {
             val = !!val;
@@ -91,7 +94,7 @@ function domBindProcessor(fr, fnCtx) {
               el[DICT.SET_LATER_KEY][prop] = val;
             }
           }
-        }, !(fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR && (prop === 'textContent' || isAttr)));
+        }, !skipInit);
       }
     });
     if (!globalThis.__SYMBIOTE_SSR) {

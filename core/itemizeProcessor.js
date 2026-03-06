@@ -21,6 +21,8 @@ export function itemizeProcessor(fr, fnCtx) {
         itemClass = class extends fnCtx.Symbiote {
           constructor() {
             super();
+            this.ssrMode = fnCtx.ssrMode;
+            this.isoMode = fnCtx.isoMode;
             if (!itemTag) {
               this.style.display = 'contents';
             }
@@ -29,8 +31,10 @@ export function itemizeProcessor(fr, fnCtx) {
         itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
         itemClass.reg(itemTag);
       }
-      while (el.firstChild) {
-        el.firstChild.remove();
+      if (!(fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR)) {
+        while (el.firstChild) {
+          el.firstChild.remove();
+        }
       }
       let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
       if (!fnCtx.has(repeatDataKey) && fnCtx.allowTemplateInits) {

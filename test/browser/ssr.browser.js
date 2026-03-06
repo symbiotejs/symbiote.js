@@ -113,4 +113,76 @@ test.describe('SSR → Browser hydration', () => {
     let span = page.locator('#ssr-mount ssr-leaf span');
     await expect(span).toHaveText('Updated leaf');
   });
+
+  test('innerHTML binding should preserve SSR content without re-render', async ({ page }) => {
+    await loadWithSSR(page, ssrMarkup);
+
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('#ssr-mount ssr-inner-html div');
+      return el?.innerHTML;
+    });
+
+    expect(result).toBe('<em>server rendered</em>');
+  });
+
+  test('innerHTML binding should react to state changes', async ({ page }) => {
+    await loadWithSSR(page, ssrMarkup);
+
+    await page.evaluate(() => {
+      let comp = document.querySelector('#ssr-mount ssr-inner-html');
+      comp.$.richContent = '<strong>updated</strong>';
+    });
+
+    let div = page.locator('#ssr-mount ssr-inner-html div');
+    await expect(div).toContainText('updated');
+
+    let html = await div.innerHTML();
+    expect(html).toBe('<strong>updated</strong>');
+  });
+
+  test('SSR markup should contain itemize list items', () => {
+    expect(ssrMarkup).toContain('Item A');
+    expect(ssrMarkup).toContain('Item B');
+    expect(ssrMarkup).toContain('Item C');
+  });
+
+  test('itemize list should preserve SSR content during hydration', async ({ page }) => {
+    let tagged = ssrMarkup.replace(
+      /(<li [^>]*>Item A)/,
+      '<li data-ssr="true" bind="textContent:label;">Item A'
+    );
+
+    await loadWithSSR(page, tagged);
+
+    let result = await page.evaluate(() => {
+      let items = document.querySelectorAll('#ssr-mount ssr-list li');
+      return {
+        count: items.length,
+        texts: [...items].map((li) => li.textContent),
+        firstIsOriginal: items[0]?.getAttribute('data-ssr') === 'true',
+      };
+    });
+
+    expect(result.count).toBe(3);
+    expect(result.texts).toEqual(['Item A', 'Item B', 'Item C']);
+    expect(result.firstIsOriginal).toBe(true);
+  });
+
+  test('itemize list should react to state changes', async ({ page }) => {
+    await loadWithSSR(page, ssrMarkup);
+
+    await page.evaluate(() => {
+      let list = document.querySelector('#ssr-mount ssr-list');
+      list.$.items = [
+        { label: 'Updated A' },
+        { label: 'Updated B' },
+      ];
+    });
+
+    let items = page.locator('#ssr-mount ssr-list li');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(0)).toHaveText('Updated A');
+    await expect(items.nth(1)).toHaveText('Updated B');
+  });
 });
+

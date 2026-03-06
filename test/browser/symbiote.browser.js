@@ -297,4 +297,57 @@ test.describe('Symbiote class', () => {
     let items = await page.$$eval('#itemize-fb-list li', (els) => els.map((e) => e.textContent));
     expect(items).toEqual(['Alpha', 'Beta', 'Gamma']);
   });
+
+  // ── Itemize reactivity ──
+
+  test('itemize should render initial list from init$', async ({ page }) => {
+    let items = await page.$$eval('#itemize-list li', (els) => els.map((e) => e.textContent));
+    expect(items).toEqual(['Apple', 'Banana', 'Cherry']);
+  });
+
+  test('itemize should update existing items in place', async ({ page }) => {
+    await page.evaluate(() => {
+      let el = document.querySelector('#itemize-el');
+      el.$.fruits = [
+        { name: 'Apricot' },
+        { name: 'Blueberry' },
+        { name: 'Cranberry' },
+      ];
+    });
+    let items = await page.$$eval('#itemize-list li', (els) => els.map((e) => e.textContent));
+    expect(items).toEqual(['Apricot', 'Blueberry', 'Cranberry']);
+  });
+
+  test('itemize should shrink the list when fewer items', async ({ page }) => {
+    await page.evaluate(() => {
+      let el = document.querySelector('#itemize-el');
+      el.$.fruits = [{ name: 'Solo' }];
+    });
+    let items = await page.$$eval('#itemize-list li', (els) => els.map((e) => e.textContent));
+    expect(items).toEqual(['Solo']);
+  });
+
+  test('itemize should grow the list when more items', async ({ page }) => {
+    await page.evaluate(() => {
+      let el = document.querySelector('#itemize-el');
+      el.$.fruits = [
+        { name: 'Apple' },
+        { name: 'Banana' },
+        { name: 'Cherry' },
+        { name: 'Date' },
+        { name: 'Elderberry' },
+      ];
+    });
+    let items = await page.$$eval('#itemize-list li', (els) => els.map((e) => e.textContent));
+    expect(items).toEqual(['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry']);
+  });
+
+  test('itemize should clear the list when data is null', async ({ page }) => {
+    await page.evaluate(() => {
+      let el = document.querySelector('#itemize-el');
+      el.$.fruits = null;
+    });
+    let count = await page.$$eval('#itemize-list li', (els) => els.length);
+    expect(count).toBe(0);
+  });
 });

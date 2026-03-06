@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.3.6
+
+### Improved
+
+- **SSR hydration: generic property preservation.**
+  During SSR/ISO hydration, all primitive-valued bindings (`textContent`, `innerHTML`, `style.*`, `value`, etc.) now skip the initial write, preserving server-rendered DOM. Function bindings (event handlers) and non-null object bindings (component state) still fire immediately. Previously only `textContent` and attribute bindings were preserved.
+
+- **SSR hydration: Itemize API support.**
+  Auto-generated itemize item components now inherit `ssrMode`/`isoMode` from the parent. Server-rendered list items are preserved during hydration instead of being cleared and re-created.
+
 ## 3.3.5
 
 ### Fixed
