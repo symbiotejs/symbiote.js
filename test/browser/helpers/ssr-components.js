@@ -37,6 +37,7 @@ SsrRoot.template = html`
   <ssr-middle></ssr-middle>
   <ssr-inner-html></ssr-inner-html>
   <ssr-list></ssr-list>
+  <ssr-nested-list></ssr-nested-list>
 `;
 SsrRoot.reg('ssr-root');
 
@@ -67,3 +68,24 @@ SsrList.template = html`
   </ul>
 `;
 SsrList.reg('ssr-list');
+
+export class SsrNestedList extends Symbiote {
+  ssrMode = true;
+  init$ = {
+    entries: [
+      { label: 'Entry 1' },
+      { label: 'Entry 2' },
+    ],
+  };
+}
+SsrNestedList.template = html`
+  <div itemize="entries">
+    <template>
+      <div class="entry">
+        <span ${{textContent: 'label'}}></span>
+        <ssr-leaf></ssr-leaf>
+      </div>
+    </template>
+  </div>
+`;
+SsrNestedList.reg('ssr-nested-list');

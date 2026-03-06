@@ -110,7 +110,7 @@ test.describe('SSR → Browser hydration', () => {
       leaf.$.leafText = 'Updated leaf';
     });
 
-    let span = page.locator('#ssr-mount ssr-leaf span');
+    let span = page.locator('#ssr-mount ssr-middle ssr-leaf span');
     await expect(span).toHaveText('Updated leaf');
   });
 
@@ -203,6 +203,41 @@ test.describe('SSR → Browser hydration', () => {
     await expect(items).toHaveCount(2);
     await expect(items.nth(0)).toHaveText('Updated A');
     await expect(items.nth(1)).toHaveText('Updated B');
+  });
+
+  test('dynamically added items should use original template, not SSR-expanded HTML', async ({ page }) => {
+    await loadWithSSR(page, ssrMarkup);
+
+    await page.evaluate(() => {
+      let comp = document.querySelector('#ssr-mount ssr-nested-list');
+      comp.$.entries = [
+        { label: 'Entry 1' },
+        { label: 'Entry 2' },
+        { label: 'New Entry' },
+      ];
+    });
+
+    let result = await page.evaluate(() => {
+      let container = document.querySelector('#ssr-mount ssr-nested-list div');
+      let wrappers = [...container.children];
+      let lastWrapper = wrappers[wrappers.length - 1];
+      let leaf = lastWrapper.querySelector('ssr-leaf');
+      return {
+        totalWrappers: wrappers.length,
+        lastLabel: lastWrapper.querySelector('span')?.textContent,
+        hasLeafComponent: !!leaf,
+        leafIsCustomElement: leaf?.constructor !== HTMLElement,
+      };
+    });
+
+    expect(result.totalWrappers).toBe(3);
+    expect(result.lastLabel).toBe('New Entry');
+    expect(result.hasLeafComponent).toBe(true);
+    expect(result.leafIsCustomElement).toBe(true);
+
+    // Verify the nested component rendered its own content
+    let leafSpan = page.locator('#ssr-mount ssr-nested-list ssr-leaf span').last();
+    await expect(leafSpan).toHaveText('leaf content');
   });
 });
 

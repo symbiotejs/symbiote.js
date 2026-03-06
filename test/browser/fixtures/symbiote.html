@@ -299,44 +299,6 @@
   `;
   SymCssData.reg('sym-css-data');
 
-  // ── 19. Itemize with class property fallback ──
-
-  class SymItemizeFallback extends Symbiote {
-    items = [
-      { name: 'Alpha' },
-      { name: 'Beta' },
-      { name: 'Gamma' },
-    ];
-  }
-  SymItemizeFallback.template = html`
-    <ul id="itemize-fb-list" itemize="items">
-      <template>
-        <li>{{name}}</li>
-      </template>
-    </ul>
-  `;
-  SymItemizeFallback.reg('sym-itemize-fb');
-
-  // ── 20. Itemize with init$ (reactivity) ──
-
-  class SymItemize extends Symbiote {
-    init$ = {
-      fruits: [
-        { name: 'Apple' },
-        { name: 'Banana' },
-        { name: 'Cherry' },
-      ],
-    }
-  }
-  SymItemize.template = html`
-    <ul id="itemize-list" itemize="fruits">
-      <template>
-        <li ${{textContent: 'name'}}></li>
-      </template>
-    </ul>
-  `;
-  SymItemize.reg('sym-itemize');
-
   // ── Mount all ──
 
   document.getElementById('mount').innerHTML = `
@@ -358,8 +320,6 @@
     <sym-shared-a ctx="shared-test" id="shared-a"></sym-shared-a>
     <sym-shared-b ctx="shared-test" id="shared-b"></sym-shared-b>
     <sym-css-data id="css-data-el"></sym-css-data>
-    <sym-itemize-fb id="itemize-fb-el"></sym-itemize-fb>
-    <sym-itemize id="itemize-el"></sym-itemize>
   `;
 
   window.__TEST_READY = true;

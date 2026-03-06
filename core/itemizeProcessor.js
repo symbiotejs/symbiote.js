@@ -15,6 +15,7 @@ export function itemizeProcessor(fr, fnCtx) {
       return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
     }).forEach((el) => {
       let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
+      let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
       let itemClass;
       if (itemTag) {
         itemClass = window.customElements.get(itemTag);
@@ -34,7 +35,14 @@ export function itemizeProcessor(fr, fnCtx) {
                 }
               }
             };
-            itemClass.template = el.children[0].innerHTML;
+            let tpl = document.createElement('template');
+            // @ts-expect-error
+            tpl.innerHTML = fnCtx.constructor.template;
+            let staticEl = tpl.content.querySelector(
+              `[${DICT.LIST_ATTR}="${repeatDataKey}"]`
+            );
+            itemClass.template = staticEl?.querySelector('template')?.innerHTML
+              || el.children[0].innerHTML;
             itemClass.reg(ssrTag);
           }
         } else {
@@ -55,7 +63,6 @@ export function itemizeProcessor(fr, fnCtx) {
           el.firstChild.remove();
         }
       }
-      let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
       if (!fnCtx.has(repeatDataKey) && fnCtx.allowTemplateInits) {
         initPropFallback(fnCtx, repeatDataKey);
       }

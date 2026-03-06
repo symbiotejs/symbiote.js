@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Itemize Tests</title>
+</head>
+<body>
+
+<div id="mount"></div>
+
+<script type="module">
+  import Symbiote, { html } from '/core/Symbiote.js';
+
+  // ── 1. Itemize with class property fallback ──
+
+  class SymItemizeFallback extends Symbiote {
+    items = [
+      { name: 'Alpha' },
+      { name: 'Beta' },
+      { name: 'Gamma' },
+    ];
+  }
+  SymItemizeFallback.template = html`
+    <ul id="itemize-fb-list" itemize="items">
+      <template>
+        <li>{{name}}</li>
+      </template>
+    </ul>
+  `;
+  SymItemizeFallback.reg('sym-itemize-fb');
+
+  // ── 2. Itemize with init$ (reactivity) ──
+
+  class SymItemize extends Symbiote {
+    init$ = {
+      fruits: [
+        { name: 'Apple' },
+        { name: 'Banana' },
+        { name: 'Cherry' },
+      ],
+    }
+  }
+  SymItemize.template = html`
+    <ul id="itemize-list" itemize="fruits">
+      <template>
+        <li ${{textContent: 'name'}}></li>
+      </template>
+    </ul>
+  `;
+  SymItemize.reg('sym-itemize');
+
+  // ── Mount ──
+
+  document.getElementById('mount').innerHTML = `
+    <sym-itemize-fb id="itemize-fb-el"></sym-itemize-fb>
+    <sym-itemize id="itemize-el"></sym-itemize>
+  `;
+
+  window.__TEST_READY = true;
+</script>
+
+</body>
+</html>
