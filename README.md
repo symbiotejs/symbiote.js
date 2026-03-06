@@ -11,7 +11,7 @@
 
 A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** gzipped.
 
-Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture.
+Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client — server-rendered pages hydrate automatically, no diffing, no mismatch errors.
 
 ## What's new in 3.x
 
@@ -61,57 +61,57 @@ npm i @symbiotejs/symbiote
 import Symbiote, { html, css } from '@symbiotejs/symbiote';
 ```
 
-## SSR — simpler than you'd expect
+## Isomorphic Web Components
 
-Symbiote's SSR doesn't need a virtual DOM, a reconciler, or framework-specific server packages. It's one class:
+One component. Server-rendered or client-rendered — automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
+
+```js
+class MyComponent extends Symbiote {
+  isoMode = true;
+  count = 0;
+  increment() {
+    this.$.count++;
+  }
+}
+
+MyComponent.template = html`
+  <h2>{{count}}</h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+`;
+MyComponent.reg('my-component');
+```
+
+This exact code runs **everywhere** — SSR on the server, hydration on the client, or pure client rendering. No framework split, no `'use client'` directives, no hydration mismatch errors.
+
+### SSR — one class, zero config
+
+Server rendering doesn't need a virtual DOM, a reconciler, or framework-specific packages:
 
 ```js
 import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
 
 await SSR.init();              // patches globals with linkedom
-await import('./my-app.js');   // your components register normally
+await import('./my-app.js');   // components register normally
 
-let html = await SSR.processHtml('<my-app>slot content</my-app>');
-SSR.destroy();                 // cleanup
+let html = await SSR.processHtml('<my-app></my-app>');
+SSR.destroy();
 ```
 
-On the client, components with `ssrMode = true` skip template injection and attach bindings to the existing DOM. State mutations work immediately — no hydration step, no reconciliation, no diffing. For isomorphic components that may or may not be server-rendered, use `isoMode = true` — it detects children automatically.
-
-### Streaming
-
-For large pages, stream HTML chunks instead of building a string:
-
-```js
-import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
-
-await SSR.init();
-await import('./my-app.js');
-
-http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.write('<!DOCTYPE html><html><body>');
-  for await (let chunk of SSR.renderToStream('my-app')) {
-    res.write(chunk);
-  }
-  res.end('</body></html>');
-}).listen(3000);
-```
+For large pages, stream HTML chunks with `SSR.renderToStream()` for faster TTFB. See [SSR docs](./docs/ssr.md) and [server setup recipes](./docs/ssr-server.md).
 
 ### How it compares
 
 | | **Symbiote.js** | **Next.js (React)** | **Lit** (`@lit-labs/ssr`) |
-|--|----------------|---------------------|--------------------------|
-| **Architecture** | Binding-based. Client attaches to existing DOM | Virtual DOM. Client re-renders and diffs against server HTML | Template-based with comment markers |
-| **Hydration** | `ssrMode = true` — one flag, no diffing | `hydrateRoot()` — must produce identical output or errors | Requires `ssr-client` + hydrate support module loaded before Lit |
-| **Packages** | 1 module (`node/SSR.js`) + `linkedom` peer dep | Next.js framework (full buy-in) | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
+|--|----------------|---------------------|----|
+| **Isomorphic code** | Same code, `isoMode` auto-detects | Server Components vs Client Components split | Same code, but load-order constraints |
+| **Hydration** | Binding-based — attaches to existing DOM, no diffing | `hydrateRoot()` — must produce identical output or errors | Requires `ssr-client` + hydrate support module |
+| **Packages** | 1 module + `linkedom` peer dep | Full framework buy-in | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
 | **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
-| **Mismatch handling** | Not needed — bindings attach to whatever DOM exists | Hard errors or visual glitches if server/client output differs | N/A |
-| **Component code** | Same code, no changes | Server Components vs Client Components split | Same code, but load-order constraints |
+| **Mismatch handling** | Not needed — bindings attach to whatever DOM exists | Hard errors if server/client output differs | N/A |
 | **Template output** | Clean HTML with `bind=` attributes | HTML with framework markers | HTML with `<!--lit-part-->` comment markers |
-| **Bundle impact** | Zero — SSR module is server-only | React runtime required on client | Zero — SSR packages are server-only |
 | **Lock-in** | None — standard Web Components | Full framework commitment | Lit-specific, but Web Components |
 
-**Key insight:** Symbiote's SSR is simpler because it doesn't try to reconcile server and client output. The server produces HTML with binding attributes preserved. The client reads those attributes and adds reactivity. No comparison, no diffing, no mismatch errors.
+**Key insight:** There are no hydration mismatches because there's no diffing. The server produces HTML with binding attributes. The client reads those attributes and adds reactivity. That's it.
 
 ## Core concepts
 
