@@ -152,48 +152,15 @@ Shadow components produce Declarative Shadow DOM markup with styles inlined:
 
 ## Client-side hydration
 
-On the client, components with `ssrMode = true` skip template injection and attach bindings to the pre-rendered DOM. State mutations update DOM reactively — no reconciliation, no diffing:
+Use `isoMode = true` to make components work in both SSR and client-only scenarios. It detects children automatically: hydrates pre-rendered content when it exists, renders from template otherwise. No conditional logic needed:
+
 ```js
 class MyComponent extends Symbiote {
-
-  ssrMode = true;
-
-  init$ = {
-    count: 0,
-    increment: () => {
-      this.$.count++;
-    },
-  }
-
-  renderCallback() {
-    // Initialize from server-rendered value:
-    this.$.count = parseFloat(this.ref.count.textContent);
-  }
-
-}
-
-MyComponent.reg('my-component');
-```
-
-### Hydration flow
-
-1. **Server**: `SSR.processHtml()` / `SSR.renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
-2. **Client**: Component with `ssrMode = true` skips template injection, attaches bindings to pre-rendered DOM
-3. State mutations on client update DOM reactively
-
-For components that may or may not be server-rendered, use `isoMode = true` instead of `ssrMode`. It detects children automatically: hydrates if pre-rendered content exists, renders from template otherwise:
-```js
-class MyComponent extends Symbiote {
-
   isoMode = true;
-
-  init$ = {
-    count: 0,
-    increment: () => {
-      this.$.count++;
-    },
+  count = 0;
+  increment() {
+    this.$.count++;
   }
-
 }
 
 MyComponent.template = html`
@@ -203,7 +170,25 @@ MyComponent.template = html`
 MyComponent.reg('my-component');
 ```
 
-> `isoMode` is the recommended default for isomorphic components — it works correctly in both SSR and client-only scenarios without any conditional logic.
+> [!TIP]
+> `isoMode` is the recommended default for isomorphic components. It works correctly whether the component was server-rendered or created dynamically on the client.
+
+### Hydration flow
+
+1. **Server**: `SSR.processHtml()` / `SSR.renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
+2. **Client**: `isoMode` detects pre-rendered children → attaches bindings to existing DOM (no template injection)
+3. State mutations on client update DOM reactively
+
+### `ssrMode` — strict SSR-only
+
+For components that are **always** server-rendered and never created client-side, you can use `ssrMode = true` instead. Unlike `isoMode`, it unconditionally skips template injection — the component must have pre-rendered content:
+
+```js
+class MyComponent extends Symbiote {
+  ssrMode = true;
+  // ...
+}
+```
 
 ---
 
