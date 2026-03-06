@@ -147,6 +147,9 @@ Shadow components produce Declarative Shadow DOM markup with styles inlined:
 | `ssrMode` | Client (instance) | Skips template injection, hydrates existing DOM with bindings |
 | `isoMode` | Client (instance) | Isomorphic mode: hydrates if children exist, renders template otherwise |
 
+> [!IMPORTANT]
+> **SSR rendering is synchronous.** Async subscription callbacks (e.g. with `await import(...)`) will not affect SSR output — the HTML is serialized before the callback resolves. Any state that must appear in SSR output should be initialized synchronously via class properties or `init$`.
+
 ## Client-side hydration
 
 On the client, components with `ssrMode = true` skip template injection and attach bindings to the pre-rendered DOM. State mutations update DOM reactively — no reconciliation, no diffing:
