@@ -31,6 +31,7 @@
 
 - [**Routing**](./routing.md) — SPA routing with path patterns, guards, lazy loading
 - [**SSR**](./ssr.md) — Server-side rendering, streaming, hydration
+- [**SSR and Your Server Setup**](./ssr-server.md) — Static build, streaming, Express or Fastify
 - [**Animations**](./animations.md) — CSS-driven exit transitions
 
 ## Development

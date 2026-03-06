@@ -192,4 +192,4 @@ class MyComponent extends Symbiote {
 
 ---
 
-Next: [Animations →](./animations.md)
+Next: [SSR and Your Server Setup →](./ssr-server.md) · [Animations →](./animations.md)
