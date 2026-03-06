@@ -9,6 +9,8 @@ import { initPropFallback } from './initPropFallback.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
+  let clientSSR = fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR;
+
   ownElements(fr, `[${DICT.LIST_ATTR}]`).filter((el) => {
       return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
     }).forEach((el) => {
@@ -18,20 +20,37 @@ export function itemizeProcessor(fr, fnCtx) {
         itemClass = window.customElements.get(itemTag);
       }
       if (!itemClass) {
-        itemClass = class extends fnCtx.Symbiote {
-          constructor() {
-            super();
-            this.ssrMode = fnCtx.ssrMode;
-            this.isoMode = fnCtx.isoMode;
-            if (!itemTag) {
-              this.style.display = 'contents';
-            }
+        // During hydration, adopt existing SSR item tag and derive template
+        if (clientSSR && el.children.length > 0) {
+          let ssrTag = el.children[0].localName;
+          itemClass = window.customElements.get(ssrTag);
+          if (!itemClass) {
+            itemClass = class extends fnCtx.Symbiote {
+              constructor() {
+                super();
+                this.isoMode = true;
+                if (!itemTag) {
+                  this.style.display = 'contents';
+                }
+              }
+            };
+            itemClass.template = el.children[0].innerHTML;
+            itemClass.reg(ssrTag);
           }
-        };
-        itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
-        itemClass.reg(itemTag);
+        } else {
+          itemClass = class extends fnCtx.Symbiote {
+            constructor() {
+              super();
+              if (!itemTag) {
+                this.style.display = 'contents';
+              }
+            }
+          };
+          itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
+          itemClass.reg(itemTag);
+        }
       }
-      if (!(fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR)) {
+      if (!clientSSR) {
         while (el.firstChild) {
           el.firstChild.remove();
         }
@@ -91,7 +110,7 @@ export function itemizeProcessor(fr, fnCtx) {
         } else {
           console.warn(`[Symbiote] <${fnCtx.localName}>: itemize data must be Array or Object, got ${typeof data}:`, data);
         }
-      });
+      }, !clientSSR);
       if (!globalThis.__SYMBIOTE_SSR) {
         el.removeAttribute(DICT.LIST_ATTR);
         el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);

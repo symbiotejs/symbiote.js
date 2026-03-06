@@ -168,6 +168,26 @@ test.describe('SSR → Browser hydration', () => {
     expect(result.firstIsOriginal).toBe(true);
   });
 
+  test('itemize hydration should not duplicate items or wrappers', async ({ page }) => {
+    await loadWithSSR(page, ssrMarkup);
+
+    let result = await page.evaluate(() => {
+      let ul = document.querySelector('#ssr-mount ssr-list ul');
+      let wrappers = [...ul.children].filter((c) => c.localName !== 'template');
+      let allLi = ul.querySelectorAll('li');
+      return {
+        wrapperCount: wrappers.length,
+        liCount: allLi.length,
+        wrapperTag: wrappers[0]?.localName,
+        wrappersConsistent: wrappers.every((w) => w.localName === wrappers[0]?.localName),
+      };
+    });
+
+    expect(result.wrapperCount).toBe(3);
+    expect(result.liCount).toBe(3);
+    expect(result.wrappersConsistent).toBe(true);
+  });
+
   test('itemize list should react to state changes', async ({ page }) => {
     await loadWithSSR(page, ssrMarkup);
 

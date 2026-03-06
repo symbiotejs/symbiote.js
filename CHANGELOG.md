@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3.7
+
+### Fixed
+
+- **SSR hydration: Itemize list duplication.**
+  Fixed itemize SSR hydration creating duplicate items. The processor now adopts the existing SSR item tag name and element class, skips the initial subscription fire, and sets `isoMode` on the item class so upgraded elements hydrate their existing content instead of re-rendering.
+
 ## 3.3.6
 
 ### Improved
