@@ -87,6 +87,10 @@
       "types": "./types/core/itemizeProcessor.d.ts",
       "default": "./core/itemizeProcessor.js"
     },
+    "./core/itemizeSetup.js": {
+      "types": "./types/core/itemizeSetup.d.ts",
+      "default": "./core/itemizeSetup.js"
+    },
     "./core/ownElements.js": {
       "types": "./types/core/ownElements.d.ts",
       "default": "./core/ownElements.js"
