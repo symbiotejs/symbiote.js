@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keyed Itemize Tests</title>
+</head>
+<body>
+
+<div id="mount"></div>
+
+<script type="module">
+  import Symbiote, { html } from '/core/Symbiote.js';
+  import { itemizeProcessor } from '/core/itemizeProcessor-keyed.js';
+  import { itemizeProcessor as defaultProcessor } from '/core/itemizeProcessor.js';
+
+  class KeyedList extends Symbiote {
+    constructor() {
+      super();
+      this.templateProcessors.delete(defaultProcessor);
+      this.templateProcessors = new Set([itemizeProcessor, ...this.templateProcessors]);
+    }
+    init$ = {
+      items: [
+        { id: 'a', name: 'Alpha' },
+        { id: 'b', name: 'Beta' },
+        { id: 'c', name: 'Gamma' },
+        { id: 'd', name: 'Delta' },
+        { id: 'e', name: 'Epsilon' },
+      ],
+    };
+  }
+  KeyedList.template = html`
+    <ul id="keyed-list" itemize="items">
+      <template>
+        <li ${{textContent: 'name'}}></li>
+      </template>
+    </ul>
+  `;
+  KeyedList.reg('keyed-list');
+
+  document.getElementById('mount').innerHTML = `
+    <keyed-list id="keyed-el"></keyed-list>
+  `;
+
+  window.__TEST_READY = true;
+</script>
+
+</body>
+</html>

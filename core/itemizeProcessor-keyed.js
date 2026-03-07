@@ -1,6 +1,5 @@
-import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
-import { ownElements } from './ownElements.js';
+import { setupItemize } from './itemizeSetup.js';
 
 /**
  * Optimized itemize template processor.
@@ -30,31 +29,7 @@ import { ownElements } from './ownElements.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  ownElements(fr, `[${DICT.LIST_ATTR}]`).filter((el) => {
-    return !el.matches(`[${DICT.LIST_ATTR}] [${DICT.LIST_ATTR}]`);
-  }).forEach((el) => {
-    let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
-    let itemClass;
-    if (itemTag) {
-      itemClass = window.customElements.get(itemTag);
-    }
-    if (!itemClass) {
-      itemClass = class extends fnCtx.Symbiote {
-        constructor() {
-          super();
-          if (!itemTag) {
-            this.style.display = 'contents';
-          }
-        }
-      };
-      itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
-      itemClass.reg(itemTag);
-    }
-    while (el.firstChild) {
-      el.firstChild.remove();
-    }
-    let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
-
+  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR }) => {
     /** @type {*[]} */
     let prevData = [];
 
@@ -180,8 +155,9 @@ export function itemizeProcessor(fr, fnCtx) {
             }
           }
 
-          for (let key of toRemove) {
-            animateOut(children[prevKeyToIdx.get(key)]);
+          let removeEls = [...toRemove].map((key) => children[prevKeyToIdx.get(key)]);
+          for (let el of removeEls) {
+            animateOut(el);
           }
 
           for (let i = 0; i < newChildren.length; i++) {
@@ -226,10 +202,6 @@ export function itemizeProcessor(fr, fnCtx) {
       }
 
       prevData = items;
-    });
-    if (!globalThis.__SYMBIOTE_SSR) {
-      el.removeAttribute(DICT.LIST_ATTR);
-      el.removeAttribute(DICT.LIST_ITEM_TAG_ATTR);
-    }
+    }, !clientSSR);
   });
 }

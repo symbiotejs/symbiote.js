@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.3.9
+
+### Improved
+
+- **DRY itemize processors.** Extracted shared setup logic (element discovery, SSR hydration, class creation, template derivation, attribute cleanup) into `itemizeSetup.js`. Both `itemizeProcessor.js` and `itemizeProcessor-keyed.js` now use the same setup, eliminating code duplication.
+
+- **Keyed processor SSR support.** `itemizeProcessor-keyed.js` now inherits all SSR hydration fixes: `clientSSR` detection, SSR tag adoption, `isoMode` on items, static template derivation, conditional child clearing, and `initPropFallback`.
+
+### Fixed
+
+- **Keyed processor: live HTMLCollection bug.** Fixed `animateOut` failing when removing multiple items by key — the live `HTMLCollection` shifted indices during removal. Elements are now snapshotted before removal.
+
+## 3.3.8
+
+### Fixed
+
+- **SSR hydration: Itemize template derivation.** Dynamically added itemize items now use the original template (parsed from `fnCtx.constructor.template`) instead of SSR-expanded `innerHTML`. This preserves nested custom elements (e.g. icons) in new items added after hydration.
+
 ## 3.3.7
 
 ### Fixed
