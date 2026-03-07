@@ -55,6 +55,9 @@ MyComponent.template = html`
 ```
 Text node bindings use double braces syntax — `{{myProp}}`. For each text node binding, its own text node (`Text()`) will be created.
 
+> [!IMPORTANT]
+> **SSR / ISO limitation:** `{{prop}}` bindings work by splitting DOM text nodes at runtime — they produce **no HTML attributes** in SSR output. This means the server renders the initial value correctly, but the client hydration pass has no marker to re-attach the binding. For hydratable text, use `${{textContent: 'prop'}}` instead. Enable `devMode` to get a warning when this occurs.
+
 More about standard [Text Nodes](https://developer.mozilla.org/en-US/docs/Web/API/Text).
 
 ## Binding to template element's own properties

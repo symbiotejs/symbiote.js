@@ -24,6 +24,7 @@ These additional warnings are enabled only when `devMode = true`:
 - **Unresolved binding keys** — warns when a template binding auto-initializes to `null` (likely a typo)
 - **`*prop` without context** — warns when `*`-prefixed properties are used without a `ctx` attribute or `--ctx` CSS variable (shared context won't be created)
 - **`*prop` conflict** — warns when a later component tries to set a different initial value for the same shared property
+- **`{{prop}}` in SSR/ISO mode** — warns that text-node bindings produce no hydration attributes; use `${{textContent: 'prop'}}` for hydratable text
 
 ## Usage
 

@@ -179,6 +179,9 @@ MyComponent.reg('my-component');
 2. **Client**: `isoMode` detects pre-rendered children → attaches bindings to existing DOM (no template injection)
 3. State mutations on client update DOM reactively
 
+> [!WARNING]
+> **Text-node bindings (`{{prop}}`) are not hydratable.** They produce no `bind=` attribute in SSR output, so the client has no marker to re-attach the binding. The server-rendered value will display correctly, but won't update on the client. Use `${{textContent: 'prop'}}` for text that must stay reactive after hydration. Enable `devMode` to see warnings for this.
+
 ### `ssrMode` — strict SSR-only
 
 For components that are **always** server-rendered and never created client-side, you can use `ssrMode = true` instead. Unlike `isoMode`, it unconditionally skips template injection — the component must have pre-rendered content:

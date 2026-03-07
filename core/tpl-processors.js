@@ -155,6 +155,13 @@ const txtNodesProcessor = function (fr, fnCtx) {
       if (!fnCtx.has(prop) && fnCtx.allowTemplateInits) {
         initPropFallback(fnCtx, prop);
       }
+      if (fnCtx.Symbiote?.devMode && (fnCtx.ssrMode || fnCtx.isoMode)) {
+        console.warn(
+          `[Symbiote dev] <${fnCtx.localName}>: text-node binding "{{${prop}}}" has no hydration attribute. `
+          + 'In ssrMode/isoMode it will be rendered by the server but won\'t update on the client. '
+          + 'Use property binding (${{textContent: \'' + prop + '\'}}) for hydratable text.'
+        );
+      }
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;
       });

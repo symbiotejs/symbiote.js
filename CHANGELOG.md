@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.0
+
+### Added
+
+- **DevMode warning for `{{prop}}` in SSR/ISO mode.** Text-node bindings produce no `bind=` attribute in SSR output, so they render correctly on the server but cannot be hydrated on the client. When `devMode = true` and the component has `ssrMode` or `isoMode` enabled, a `console.warn` now suggests using `${{textContent: 'prop'}}` for hydratable text.
+
 ## 3.3.9
 
 ### Improved
