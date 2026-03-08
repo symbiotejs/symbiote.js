@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.1
+
+### Fixed
+
+- **SSR: `{{prop}}` text-node bindings with class property fallback.** `resolveTextTokens` now checks own class properties and prototype methods when the prop is not in `init$`. Previously, linkedom's `DocumentFragment.textContent` returning `null` caused `txtNodesProcessor` to skip processing, and the serializer fallback only resolved `init$` props — leaving raw `{{prop}}` tokens in SSR output.
+
 ## 3.4.0
 
 ### Added

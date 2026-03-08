@@ -58,7 +58,15 @@ function resolveTextTokens(text, node) {
   let ctx = /** @type {any} */ (el).localCtx;
   return text.replace(/\{\{([^}]+)\}\}/g, (match, prop) => {
     let val = ctx.has(prop) ? ctx.read(prop) : undefined;
-    return val !== undefined && val !== null ? String(val) : match;
+    // Fallback to own class properties (mirrors initPropFallback logic):
+    if (val === undefined || val === null) {
+      if (Object.hasOwn(el, prop) && el[prop] !== undefined) {
+        val = el[prop];
+      } else if (typeof el[prop] === 'function') {
+        val = el[prop]();
+      }
+    }
+    return val !== undefined && val !== null ? String(val) : '';
   });
 }
 

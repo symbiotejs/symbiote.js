@@ -209,7 +209,23 @@ describe('SSR Engine', async () => {
     assert.ok(result.includes('<style nonce="stream-n">'), `Expected nonce in streamed output: ${result}`);
   });
 
-  // Keep error test last — it destroys/reinits SSR, wiping customElements registry
+  it('should render {{prop}} text-node bindings with class field fallback', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrTxtNode extends Symbiote {
+      init$ = { fromInit: 'InitValue' };
+      fromField = 'FieldValue';
+    }
+    SsrTxtNode.template = html`<div>{{fromInit}} and {{fromField}}</div>`;
+    SsrTxtNode.reg('ssr-txt-node');
+
+    let result = SSR.renderToString('ssr-txt-node');
+    assert.ok(result.includes('InitValue'), `Expected "InitValue" in output: ${result}`);
+    assert.ok(result.includes('FieldValue'), `Expected "FieldValue" in output: ${result}`);
+    assert.ok(!result.includes('{{'), `Unexpected raw token in output: ${result}`);
+  });
+
+
   it('should throw if init was not called', async () => {
     SSR.destroy();
     assert.throws(() => {
