@@ -120,8 +120,9 @@ export class Symbiote extends HTMLElement {
         this.#super.__tpl = document.createElement('template');
         this.#super.__tpl.innerHTML = trustedHTML.createHTML(this.#super.template);
       }
-      if (template?.constructor === DocumentFragment) {
-        fr = template;
+      // @ts-expect-error - nodeType works for both DOM nodes and linkedom fragments
+      if (template?.nodeType === 11) {
+        fr = /** @type {DocumentFragment} */ (template);
       } else if (template?.constructor === String) {
         let tpl = document.createElement('template');
         tpl.innerHTML = trustedHTML.createHTML(template);

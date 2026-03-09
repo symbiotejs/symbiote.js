@@ -6,6 +6,8 @@
 
 - **SSR: `isVirtual` components.** `renderToString` and `renderToStream` now detect `isVirtual` elements and serialize the replacement template nodes instead of the detached custom element wrapper. Previously, virtual components produced an empty `<tag-name></tag-name>` in SSR output.
 
+- **SSR: `allowCustomTemplate` with `use-template` attribute.** `DocumentFragment` detection in `render()` used `constructor === DocumentFragment`, which fails in linkedom where `template.content.cloneNode()` returns a fragment with a different internal constructor. Changed to `nodeType === 11` — spec-correct and works in both browser and linkedom. Previously, custom templates were silently ignored during SSR.
+
 ## 3.4.3
 
 ### Fixed

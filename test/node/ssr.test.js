@@ -278,6 +278,32 @@ describe('SSR Engine', async () => {
     assert.ok(!result.includes('</ssr-virtual>'), `Should NOT contain closing tag: ${result}`);
   });
 
+  it('should render allowCustomTemplate with use-template attribute', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrCustomTpl extends Symbiote {
+      allowCustomTemplate = true;
+      init$ = {
+        msg: 'custom tpl content',
+      };
+    }
+    SsrCustomTpl.template = html`<span>default</span>`;
+    SsrCustomTpl.reg('ssr-custom-tpl');
+
+    // Place a <template> in the document for the component to find:
+    let tpl = document.createElement('template');
+    tpl.setAttribute('id', 'my-tpl');
+    tpl.innerHTML = '<div bind="textContent: msg;"></div>';
+    document.body.appendChild(tpl);
+
+    let result = SSR.renderToString('ssr-custom-tpl', { 'use-template': 'template#my-tpl' });
+    assert.ok(result.includes('custom tpl content'), `Expected "custom tpl content" in output: ${result}`);
+    assert.ok(result.includes('<div'), 'Should contain custom template element');
+    assert.ok(!result.includes('default'), `Should NOT contain default template: ${result}`);
+
+    tpl.remove();
+  });
+
   it('should throw if init was not called', async () => {
     SSR.destroy();
     assert.throws(() => {
