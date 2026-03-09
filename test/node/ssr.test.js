@@ -226,6 +226,39 @@ describe('SSR Engine', async () => {
   });
 
 
+  it('should render component with shared ctx props (*prop) and ctx attribute', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrShared extends Symbiote {
+      init$ = {
+        '*sharedVal': 'hello from shared',
+      };
+    }
+    SsrShared.template = html`<span ${{textContent: '*sharedVal'}}></span>`;
+    SsrShared.reg('ssr-shared');
+
+    class SsrSharedReader extends Symbiote {
+      init$ = {
+        '*sharedVal': '',
+      };
+    }
+    SsrSharedReader.template = html`<em ${{textContent: '*sharedVal'}}></em>`;
+    SsrSharedReader.reg('ssr-shared-reader');
+
+    let result = await SSR.processHtml(
+      '<ssr-shared ctx="test-ctx"></ssr-shared><ssr-shared-reader ctx="test-ctx"></ssr-shared-reader>'
+    );
+    assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
+    assert.ok(result.includes('ctx="test-ctx"'), `Expected ctx attribute in output: ${result}`);
+    // Both components should read the shared value:
+    assert.ok(result.includes('<span'), 'Should contain first component content');
+    assert.ok(result.includes('<em'), 'Should contain second component content');
+    assert.ok(
+      (result.match(/hello from shared/g) || []).length === 2,
+      `Expected shared value in both components: ${result}`
+    );
+  });
+
   it('should throw if init was not called', async () => {
     SSR.destroy();
     assert.throws(() => {

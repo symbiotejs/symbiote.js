@@ -56,6 +56,9 @@ Call `this.updateCssData()` to re-read CSS custom properties after runtime CSS c
 
 Call `this.dropCssDataCache()` to clear the cached CSS data.
 
+> [!WARNING]
+> **CSS data bindings and SSR.** Computed styles (`getComputedStyle`) are not available during server-side rendering. In `ssrMode` / `isoMode` components, CSS data properties will use their init value (from `cssInit$` or empty string). Enable `devMode` to see warnings for this.
+
 ## Why CSS as data?
 
 - **Browser-native**: CSS custom properties are a platform feature for passing context down the DOM cascade — no JS library needed.

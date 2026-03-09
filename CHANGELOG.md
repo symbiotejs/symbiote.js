@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.4.3
+
+### Fixed
+
+- **SSR: shared context props (`*prop`) with `ctx` attribute.** `getCssData()` attempted `window.getComputedStyle()` during server-side rendering, which is unavailable in linkedom. Now returns `null` immediately when `globalThis.__SYMBIOTE_SSR` is set, skipping all computed CSS reads on the server.
+
+### Added
+
+- **DevMode warning for CSS data bindings in SSR/ISO mode.** When `devMode = true` and the component has `ssrMode` or `isoMode`, a `console.warn` fires for each `bindCssData` call — computed styles are unavailable during SSR, so the init value is used instead.
+
 ## 3.4.2
 
 ### Fixed

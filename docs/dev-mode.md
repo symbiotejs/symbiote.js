@@ -25,6 +25,7 @@ These additional warnings are enabled only when `devMode = true`:
 - **`*prop` without context** — warns when `*`-prefixed properties are used without a `ctx` attribute or `--ctx` CSS variable (shared context won't be created)
 - **`*prop` conflict** — warns when a later component tries to set a different initial value for the same shared property
 - **`{{prop}}` in SSR/ISO mode** — warns that text-node bindings produce no hydration attributes; use `${{textContent: 'prop'}}` for hydratable text
+- **CSS data binding in SSR/ISO mode** — warns that `cssInit$` / `--prop` bindings cannot read computed styles during SSR; the init value is used instead
 
 ## Usage
 

@@ -598,6 +598,9 @@ export class Symbiote extends HTMLElement {
    * @param {Boolean} [silentCheck]
    */
   getCssData(propName, silentCheck = false) {
+    if (globalThis.__SYMBIOTE_SSR) {
+      return null;
+    }
     if (!this.#cssDataCache) {
       this.#cssDataCache = Object.create(null);
     }
@@ -639,6 +642,12 @@ export class Symbiote extends HTMLElement {
    * @param {any} [initValue] Uses empty string by default to make value useful in template
    */
   bindCssData(propName, initValue = '') {
+    if (Symbiote.#devMode && (this.ssrMode || this.isoMode)) {
+      console.warn(
+        `[Symbiote dev] <${this.localName}>: CSS data binding "${propName}" will not read computed styles during SSR. `
+        + 'The init value will be used instead.'
+      );
+    }
     if (!this.#boundCssProps) {
       this.#boundCssProps = new Set();
     }
