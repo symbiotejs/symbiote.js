@@ -12,7 +12,7 @@
 
 - [**Templates**](./templates.md) — HTML string templates, binding syntax, slots, element references
 - [**Properties**](./properties.md) — State initialization, `$` proxy, subscriptions, computed properties
-- [**Context**](./context.md) — Local, named, inherited, and shared data contexts
+- [**Context**](./context.md) — Local, named, pop-up, and shared data contexts
 - [**List Rendering**](./list-rendering.md) — Itemize API for dynamic lists
 - [**Lifecycle**](./lifecycle.md) — Component lifecycle callbacks and destruction
 - [**Flags**](./flags.md) — Component configuration flags

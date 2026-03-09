@@ -233,7 +233,7 @@ test.describe('Symbiote class', () => {
     expect(result).toBe(2);
   });
 
-  // ── Bubbling binding (^) ──
+  // ── Pop-up binding (^) ──
 
   test('^ should bind text node to parent property', async ({ page }) => {
     expect(await page.textContent('#bubble-text')).toBe('from-parent');

@@ -168,7 +168,7 @@ class TaskList extends Symbiote {
     { name: 'Write docs' },
   ];
   init$ = {
-    // Needs to be defined in init$ for bubbling binding to work
+    // Needs to be defined in init$ for pop-up binding to work
     onItemClick: () => {
       console.log('clicked!');
     },
@@ -186,7 +186,7 @@ TaskList.template = html`
 
 Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
 
-### Bubbling binding (`^`)
+### Pop-up binding (`^`)
 
 The `^` prefix works in any nested component template — it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
 

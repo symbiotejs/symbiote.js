@@ -159,7 +159,7 @@ Symbiote components can interact with different types of properties, not just lo
 | Prefix | Meaning | Description |
 |--------|---------|-------------|
 | _(none)_ | Local | Component's own local state |
-| `^` | Inherited | Direct access to upper level component property (must be in parent's `init$`) |
+| `^` | Pop-up | Direct access to upper level component property (must be in parent's `init$`) |
 | `*` | Shared | Share properties between components in the same workflow context |
 | `/` | Named | Access abstract named data context |
 | `--` | CSS Data | Initiate property from CSS custom property value |

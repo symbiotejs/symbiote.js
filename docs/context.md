@@ -96,9 +96,9 @@ class MyComponent extends Symbiote {
 
 More information about `PubSub` in the [PubSub section](./pubsub.md).
 
-## Inherited context
+## Pop-up context
 
-Property inheritance helps control component interactions based on their DOM position and hierarchy. It works similarly to the CSS cascade model.
+Pop-up binding helps control component interactions based on their DOM position and hierarchy. It works similarly to the CSS cascade model.
 
 Use the `^` token to reference a higher-level property:
 ```js
@@ -139,7 +139,7 @@ html`
 `;
 ```
 
-> Like in CSS, inherited properties have no collision guard — use additional prefixes in uncontrolled environments.
+> Like in CSS, pop-up properties have no collision guard — use additional prefixes in uncontrolled environments.
 
 ## Shared context
 
@@ -226,7 +226,7 @@ More details in the [CSS Data](./css-data.md) section.
 | Token | Context Type | Example |
 |-------|-------------|---------|
 | _(none)_ | Local | `myProperty` |
-| `^` | Inherited | `^parentProp` |
+| `^` | Pop-up | `^parentProp` |
 | `*` | Shared | `*sharedProp` |
 | `/` | Named | `APP/myProp` |
 | `--` | CSS Data | `--my-css-var` |

@@ -142,7 +142,7 @@ html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
 | Prefix | Meaning | Example |
 |--------|---------|---------|
 | _(none)_ | Local state | `{{count}}` |
-| `^` | Parent inherited | `{{^parentProp}}` |
+| `^` | Pop-up | `{{^parentProp}}` |
 | `*` | Shared context | `{{*sharedProp}}` |
 | `/` | Named context | `{{APP/myProp}}` |
 | `--` | CSS Data | `{{--my-css-var}}` |

@@ -153,7 +153,7 @@ Prefixes control which data context a binding resolves to:
 | Prefix | Meaning | Example | Description |
 |--------|---------|---------|-------------|
 | _(none)_ | Local state | `{{count}}` | Current component's local context |
-| `^` | Parent inherited | `{{^parentProp}}` | Walk up DOM ancestry to find nearest component that has this prop in its data context (`init$` / `add$()`) |
+| `^` | Pop-up | `{{^parentProp}}` | Walk up DOM ancestry to find nearest component that has this prop in its data context (`init$` / `add$()`) |
 | `*` | Shared context | `{{*sharedProp}}` | Shared context scoped by `ctx` attribute or CSS `--ctx` |
 | `/` | Named context | `{{APP/myProp}}` | Global named context identified by key before `/` |
 | `--` | CSS Data | `{{--my-css-var}}` | Read value from CSS custom property |

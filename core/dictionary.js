@@ -5,7 +5,7 @@ export const DICT = {
   ATTR_BIND_PX: '@',
   // Shared prop prefix:
   SHARED_CTX_PX: '*',
-  // Inherited parent prop prefix:
+  // Pop-up parent prop prefix:
   PARENT_CTX_PX: '^',
   // Named data context property splitter:
   NAMED_CTX_SPLTR: '/',

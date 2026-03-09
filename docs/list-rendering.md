@@ -27,7 +27,7 @@ MyComponent.template = html`
 
 The `itemize` value points to a key in the component's data context. You can use any type of data context token or a computed list property:
 
-Inherited (parent must define `userList` in `init$`):
+Pop-up (parent must define `userList` in `init$`):
 ```js
 html`<div itemize="^userList">...item template</div>`;
 ```
