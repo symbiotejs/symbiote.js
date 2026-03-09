@@ -290,4 +290,34 @@ test.describe('Symbiote class', () => {
     });
     expect(await page.textContent('#css-color')).toBe('blue');
   });
+
+  // ── isoMode Shadow DOM with slot children ──
+
+  test('isoMode Shadow DOM should render template even when Light DOM slot children exist', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('#iso-shadow-el');
+      return {
+        hasShadow: !!el.shadowRoot,
+        heading: el.shadowRoot?.querySelector('#iso-shadow-heading')?.textContent,
+        hasSlot: !!el.shadowRoot?.querySelector('slot'),
+      };
+    });
+    expect(result.hasShadow).toBe(true);
+    expect(result.heading).toBe('shadow heading');
+    expect(result.hasSlot).toBe(true);
+  });
+
+  test('isoMode Shadow DOM should preserve slotted Light DOM content', async ({ page }) => {
+    let slotted = await page.evaluate(() => {
+      let el = document.querySelector('#iso-shadow-el');
+      let em = el.querySelector('em');
+      return em?.textContent;
+    });
+    expect(slotted).toBe('slotted content');
+  });
+
+  test('isoMode Light DOM should render template when no children exist', async ({ page }) => {
+    let info = await page.textContent('#iso-light-info');
+    expect(info).toBe('light info');
+  });
 });

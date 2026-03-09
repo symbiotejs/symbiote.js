@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.2
+
+### Fixed
+
+- **isoMode: Shadow DOM components with Light DOM slot children.** `isoMode` checked `this.childNodes` to detect SSR content, but for Shadow DOM components Light DOM children are slot content — not server-rendered shadow tree. This caused template rendering to be skipped. Now checks `this.shadowRoot.childNodes` for Shadow DOM components and `this.childNodes` for Light DOM ones.
+
 ## 3.4.1
 
 ### Fixed

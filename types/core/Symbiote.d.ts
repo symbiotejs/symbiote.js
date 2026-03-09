@@ -20,7 +20,7 @@ export class Symbiote<S> extends HTMLElement {
     initCallback(): void;
     renderCallback(): void;
     render(template?: string | DocumentFragment, shadow?: boolean): void;
-    ssrMode: boolean;
+    ssrMode: any;
     init$: S;
     cssInit$: {
         [x: string]: any;

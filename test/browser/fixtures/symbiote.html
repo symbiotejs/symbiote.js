@@ -299,6 +299,36 @@
   `;
   SymCssData.reg('sym-css-data');
 
+  // ── 19. isoMode Shadow DOM with slot children ──
+
+  class SymIsoShadow extends Symbiote {
+    isoMode = true;
+    init$ = {
+      heading: 'shadow heading',
+    }
+  }
+  SymIsoShadow.template = html`
+    <h2 id="iso-shadow-heading" ${{textContent: 'heading'}}></h2>
+    <slot></slot>
+  `;
+  SymIsoShadow.shadowStyles = css`
+    :host { display: block; }
+  `;
+  SymIsoShadow.reg('sym-iso-shadow');
+
+  // ── 20. isoMode Light DOM (no slot children) ──
+
+  class SymIsoLight extends Symbiote {
+    isoMode = true;
+    init$ = {
+      info: 'light info',
+    }
+  }
+  SymIsoLight.template = html`
+    <span id="iso-light-info" ${{textContent: 'info'}}></span>
+  `;
+  SymIsoLight.reg('sym-iso-light');
+
   // ── Mount all ──
 
   document.getElementById('mount').innerHTML = `
@@ -320,6 +350,8 @@
     <sym-shared-a ctx="shared-test" id="shared-a"></sym-shared-a>
     <sym-shared-b ctx="shared-test" id="shared-b"></sym-shared-b>
     <sym-css-data id="css-data-el"></sym-css-data>
+    <sym-iso-shadow id="iso-shadow-el"><em>slotted content</em></sym-iso-shadow>
+    <sym-iso-light id="iso-light-el"></sym-iso-light>
   `;
 
   window.__TEST_READY = true;

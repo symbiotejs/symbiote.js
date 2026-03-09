@@ -99,8 +99,11 @@ export class Symbiote extends HTMLElement {
       }
     }
     // Resolve isoMode: hydrate if children exist, render template otherwise
+    // For Shadow DOM components, SSR content is in shadowRoot (declarative shadow DOM),
+    // not in light DOM childNodes (those are slot content)
     if (this.isoMode && !globalThis.__SYMBIOTE_SSR) {
-      this.ssrMode = this.childNodes.length > 0;
+      let ssrContainer = this.shadowRoot || this;
+      this.ssrMode = ssrContainer.childNodes.length > 0;
     }
     let clientSSR = this.ssrMode && !globalThis.__SYMBIOTE_SSR;
     if (this.processInnerHtml || clientSSR) {
@@ -469,7 +472,7 @@ export class Symbiote extends HTMLElement {
       } else {
         if (this.#super.rootStyleSheets) {
           // Skip adopted sheets when hydrating SSR (inline <style> tags already present):
-          let hydrating = this.ssrMode || (this.isoMode && this.childNodes.length > 0);
+          let hydrating = this.ssrMode || (this.isoMode && (this.shadowRoot || this).childNodes.length > 0);
           if (!hydrating) {
             /** @type {Document | ShadowRoot} */
             // @ts-expect-error
