@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.4
+
+### Fixed
+
+- **SSR: `isVirtual` components.** `renderToString` and `renderToStream` now detect `isVirtual` elements and serialize the replacement template nodes instead of the detached custom element wrapper. Previously, virtual components produced an empty `<tag-name></tag-name>` in SSR output.
+
 ## 3.4.3
 
 ### Fixed

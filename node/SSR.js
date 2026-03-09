@@ -410,8 +410,19 @@ export class SSR {
       el.setAttribute(key, String(val));
     }
     SSR.#doc.body.appendChild(el);
-    let html = serializeElement(el, new Set(), options.nonce);
-    el.remove();
+    let html;
+    // isVirtual replaces the element with its template fragment:
+    if (/** @type {any} */ (el).isVirtual) {
+      let emittedStyles = new Set();
+      html = '';
+      for (let child of SSR.#doc.body.childNodes) {
+        html += serializeNode(child, emittedStyles, options.nonce);
+      }
+    } else {
+      html = serializeElement(el, new Set(), options.nonce);
+      el.remove();
+    }
+    SSR.#doc.body.innerHTML = '';
     return html;
   }
 
@@ -433,8 +444,17 @@ export class SSR {
       el.setAttribute(key, String(val));
     }
     SSR.#doc.body.appendChild(el);
-    yield* streamElement(el, new Set(), options.nonce);
-    el.remove();
+    // isVirtual replaces the element with its template fragment:
+    if (/** @type {any} */ (el).isVirtual) {
+      let emittedStyles = new Set();
+      for (let child of SSR.#doc.body.childNodes) {
+        yield* streamNode(child, emittedStyles, options.nonce);
+      }
+    } else {
+      yield* streamElement(el, new Set(), options.nonce);
+      el.remove();
+    }
+    SSR.#doc.body.innerHTML = '';
   }
 }
 

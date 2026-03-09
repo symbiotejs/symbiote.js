@@ -259,6 +259,25 @@ describe('SSR Engine', async () => {
     );
   });
 
+  it('should render isVirtual component without wrapping tag', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrVirtual extends Symbiote {
+      isVirtual = true;
+      init$ = {
+        label: 'virtual content',
+      };
+    }
+    SsrVirtual.template = html`<span ${{textContent: 'label'}}></span>`;
+    SsrVirtual.reg('ssr-virtual');
+
+    let result = SSR.renderToString('ssr-virtual');
+    assert.ok(result.includes('virtual content'), `Expected "virtual content" in output: ${result}`);
+    assert.ok(result.includes('<span'), 'Should contain template content');
+    assert.ok(!result.includes('<ssr-virtual'), `Should NOT contain wrapping tag: ${result}`);
+    assert.ok(!result.includes('</ssr-virtual>'), `Should NOT contain closing tag: ${result}`);
+  });
+
   it('should throw if init was not called', async () => {
     SSR.destroy();
     assert.throws(() => {
