@@ -196,6 +196,27 @@ class MyComponent extends Symbiote {
 }
 ```
 
+### `isVirtual` — clean HTML without wrappers
+
+For server-only components that should produce clean HTML without custom element tags, use `isVirtual = true`. The component replaces itself with its template fragment — only the inner content appears in the output:
+
+```js
+class PageHeader extends Symbiote {
+  isVirtual = true;
+  init$ = {
+    title: 'My Page',
+  };
+}
+PageHeader.template = html`<header><h1 ${{textContent: 'title'}}></h1></header>`;
+PageHeader.reg('page-header');
+
+let html = SSR.renderToString('page-header');
+// => '<header><h1>My Page</h1></header>'
+// No <page-header> wrapper in output
+```
+
+This is useful when you want the organizational benefits of components (encapsulated state, templates, styles) during development, but need standard HTML elements in the final output — for example, generating static pages, emails, or content consumed by systems that don't support custom elements.
+
 ---
 
 Next: [SSR and Your Server Setup →](./ssr-server.md) · [Animations →](./animations.md)
