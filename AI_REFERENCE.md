@@ -1,7 +1,7 @@
 # Symbiote.js — AI Context Reference (v3.x)
 
 > **Purpose**: Authoritative reference for AI code assistants. All information is derived from source code analysis of [symbiote.js](https://github.com/symbiotejs/symbiote.js).
-> Current version: **3.2.0**. Zero dependencies. ~6 KB gzip.
+> Current version: **3.4.3**. Zero dependencies. ~6.3 KB brotli / ~7 KB gzip.
 
 ---
 
