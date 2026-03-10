@@ -56,6 +56,35 @@ Call `this.updateCssData()` to re-read CSS custom properties after runtime CSS c
 
 Call `this.dropCssDataCache()` to clear the cached CSS data.
 
+### Reacting to layout changes
+
+CSS data is read once on initialization. To react dynamically — for example, when container queries change custom property values — use `ResizeObserver`:
+
+```js
+class AdaptiveWidget extends Symbiote {
+  cssInit$ = {
+    '--layout': 'stack',
+  }
+
+  renderCallback() {
+    new ResizeObserver(() => this.updateCssData()).observe(this);
+  }
+}
+```
+
+```css
+adaptive-widget {
+  container-type: inline-size;
+  --layout: 'stack';
+}
+
+@container (min-width: 600px) {
+  adaptive-widget {
+    --layout: 'grid';
+  }
+}
+```
+
 > [!WARNING]
 > **CSS data bindings and SSR.** Computed styles (`getComputedStyle`) are not available during server-side rendering. In `ssrMode` / `isoMode` components, CSS data properties will use their init value (from `cssInit$` or empty string). Enable `devMode` to see warnings for this.
 
