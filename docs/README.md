@@ -1,7 +1,7 @@
 # Symbiote.js Documentation
 
 > **Version 3.x** — A lightweight, standards-first UI library built on Web Components.
-> Zero dependencies. ~6.3 KB brotli / ~7 KB gzip. No virtual DOM, no compiler, no build step required.
+> Zero dependencies. ~6.4 KB brotli / ~7 KB gzip. No virtual DOM, no compiler, no build step required.
 
 ## Getting Started
 

@@ -1,7 +1,7 @@
 [![Tests](https://github.com/symbiotejs/symbiote.js/actions/workflows/tests.yml/badge.svg)](https://github.com/symbiotejs/symbiote.js/actions/workflows/tests.yml)
 [![npm version](https://img.shields.io/npm/v/@symbiotejs/symbiote)](https://www.npmjs.com/package/@symbiotejs/symbiote)
 [![npm downloads](https://img.shields.io/npm/dm/@symbiotejs/symbiote)](https://www.npmjs.com/package/@symbiotejs/symbiote)
-![bundle size](https://img.shields.io/badge/brotli-6.3_kb-blue)
+![bundle size](https://img.shields.io/badge/brotli-6.4_kb-blue)
 ![types](https://img.shields.io/badge/types-JSDoc+d.ts-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -9,7 +9,7 @@
 
 <img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
 
-A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6.3kb** brotli / **~7kb** gzip.
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** brotli / **~7kb** gzip.
 
 Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client — server-rendered pages hydrate automatically, no diffing, no mismatch errors.
 
@@ -344,12 +344,12 @@ CSS values are parsed automatically — quoted strings become strings, numbers b
 
 | Library | Minified | Gzip | Brotli |
 |---------|----------|------|--------|
-| **Symbiote.js** (core) | 19.8 kb | 6.9 kb | **6.3 kb** |
-| **Symbiote.js** (full, with AppRouter) | 24.0 kb | 8.3 kb | **7.5 kb** |
+| **Symbiote.js** (core) | 20.2 kb | 7.1 kb | **6.4 kb** |
+| **Symbiote.js** (full, with AppRouter) | 24.4 kb | 8.5 kb | **7.6 kb** |
 | **Lit** 3.3 | 15.5 kb | 6.0 kb | **~5.1 kb** |
 | **React 19 + ReactDOM** | ~186 kb | ~59 kb | **~50 kb** |
 
-Symbiote and Lit have similar base sizes, but Symbiote's **6.3 kb** core includes more built-in features: global state management, lists (itemize API), exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~8× larger** before adding a router, state manager, or SSR framework.
+Symbiote and Lit have similar base sizes, but Symbiote's **6.4 kb** core includes more built-in features: global state management, lists (itemize API), exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~8× larger** before adding a router, state manager, or SSR framework.
 
 ## Browser support
 

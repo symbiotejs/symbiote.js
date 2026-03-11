@@ -279,7 +279,26 @@ export class Symbiote extends HTMLElement {
       handler(val);
     };
     let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
-    if (!parsed) return;
+    if (!parsed) {
+      // Named context not found — defer subscription
+      let slashIdx = /** @type {string} */ (prop).indexOf('/');
+      if (slashIdx !== -1) {
+        let ctxName = /** @type {string} */ (prop).slice(0, slashIdx);
+        let propName = /** @type {string} */ (prop).slice(slashIdx + 1);
+        if (!PubSub.pendingDeps.has(ctxName)) {
+          PubSub.pendingDeps.set(ctxName, []);
+        }
+        PubSub.pendingDeps.get(ctxName).push(() => {
+          let ctx = PubSub.getCtx(ctxName, false);
+          if (!ctx) return;
+          let sub = ctx.sub(propName, subCb, init);
+          if (sub) {
+            this.allSubs.add(sub);
+          }
+        });
+      }
+      return;
+    }
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
       window.queueMicrotask(() => {
