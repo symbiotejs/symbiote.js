@@ -120,10 +120,24 @@ export class PubSub {
       let extCtx = PubSub.getCtx(ctxName, false);
 
       if (!extCtx) {
-        console.warn(
-          `[Symbiote] PubSub: external dep context "${ctxName}" not found for computed "${compProp}".\n`
-          + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
-        );
+        // Defer: will resolve when the context is registered
+        if (!PubSub.pendingDeps.has(ctxName)) {
+          PubSub.pendingDeps.set(ctxName, []);
+        }
+        PubSub.pendingDeps.get(ctxName).push(() => {
+          let resolvedCtx = PubSub.getCtx(ctxName, false);
+          if (!resolvedCtx) return;
+          let sub = resolvedCtx.sub(propName, () => {
+            this.#recalcComputed(compProp);
+          }, false);
+          if (sub) {
+            if (!this.#externalSubs[compProp]) {
+              this.#externalSubs[compProp] = [];
+            }
+            this.#externalSubs[compProp].push(sub);
+          }
+          this.#recalcComputed(compProp);
+        });
         continue;
       }
 
@@ -366,6 +380,15 @@ export class PubSub {
       data = new PubSub(schema);
       data.uid = uid;
       PubSub.globalStore.set(uid, data);
+
+      // Resolve deferred external deps waiting for this context:
+      let pending = PubSub.pendingDeps.get(uid);
+      if (pending) {
+        PubSub.pendingDeps.delete(uid);
+        for (let resolve of pending) {
+          resolve();
+        }
+      }
     }
     return data;
   }
@@ -390,6 +413,9 @@ export class PubSub {
 
 /** @type {Map<String | Symbol, PubSub>} */
 PubSub.globalStore = globalThis.__SYMBIOTE_PUBSUB_STORE || (globalThis.__SYMBIOTE_PUBSUB_STORE = new Map());
+
+/** @type {Map<String | Symbol, Array<Function>>} */
+PubSub.pendingDeps = new Map();
 
 /** @type {Boolean} */
 PubSub.devMode = false;

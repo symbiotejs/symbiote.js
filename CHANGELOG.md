@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.5
+
+### Fixed
+
+- **PubSub: computed properties with cross-context deps no longer depend on import order.** When a computed property declared `deps: ['CTX/prop']` and the target context wasn't registered yet, the subscription was silently skipped. Now deferred deps are stored in `PubSub.pendingDeps` and automatically resolved when `registerCtx()` is called.
+
 ## 3.4.4
 
 ### Fixed

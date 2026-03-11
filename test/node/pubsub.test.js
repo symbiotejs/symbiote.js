@@ -261,6 +261,105 @@ describe('PubSub', () => {
     });
   });
 
+  // ── cross-context computed properties ───────────────────────
+
+  describe('cross-context computed (deferred deps)', () => {
+    let ctxKey = 'XCTX_' + Date.now();
+
+    afterEach(() => {
+      PubSub.deleteCtx(ctxKey);
+      PubSub.pendingDeps.clear();
+    });
+
+    it('should resolve cross-context dep when context is already registered', async () => {
+      let extCtx = PubSub.registerCtx({ score: 10 }, ctxKey);
+
+      let local = new PubSub({
+        bonus: 5,
+        '+total': {
+          deps: [`${ctxKey}/score`],
+          fn: () => extCtx.read('score') + local.read('bonus'),
+        },
+      });
+
+      assert.strictEqual(local.read('+total'), 15);
+
+      extCtx.pub('score', 20);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+total'), 25);
+    });
+
+    it('should defer and resolve cross-context dep when context is registered later', async () => {
+      let local = new PubSub({
+        bonus: 5,
+        '+total': {
+          deps: [`${ctxKey}/score`],
+          fn: () => {
+            let extCtx = PubSub.getCtx(ctxKey, false);
+            let score = extCtx ? extCtx.read('score') : 0;
+            return score + local.read('bonus');
+          },
+        },
+      });
+
+      // First read — external dep not available yet, function returns fallback
+      assert.strictEqual(local.read('+total'), 5);
+
+      // Now register the external context
+      let extCtx = PubSub.registerCtx({ score: 10 }, ctxKey);
+
+      // Deferred dep resolved — recalc should have triggered
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+total'), 15);
+
+      // Verify reactivity: changing external dep triggers recalc
+      extCtx.pub('score', 30);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+total'), 35);
+    });
+
+    it('should resolve multiple deferred deps from different contexts', async () => {
+      let ctxKey2 = ctxKey + '_2';
+
+      let local = new PubSub({
+        '+combined': {
+          deps: [`${ctxKey}/a`, `${ctxKey2}/b`],
+          fn: () => {
+            let ctx1 = PubSub.getCtx(ctxKey, false);
+            let ctx2 = PubSub.getCtx(ctxKey2, false);
+            let a = ctx1 ? ctx1.read('a') : 0;
+            let b = ctx2 ? ctx2.read('b') : 0;
+            return a + b;
+          },
+        },
+      });
+
+      // First read — both deps deferred
+      assert.strictEqual(local.read('+combined'), 0);
+
+      // Register first context
+      let ext1 = PubSub.registerCtx({ a: 10 }, ctxKey);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+combined'), 10);
+
+      // Register second context
+      let ext2 = PubSub.registerCtx({ b: 20 }, ctxKey2);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+combined'), 30);
+
+      // Verify both react
+      ext1.pub('a', 100);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+combined'), 120);
+
+      ext2.pub('b', 200);
+      await new Promise((r) => queueMicrotask(r));
+      assert.strictEqual(local.read('+combined'), 300);
+
+      PubSub.deleteCtx(ctxKey2);
+    });
+  });
+
   // ── static: registerCtx / getCtx / deleteCtx ──────────────
 
   describe('static context management', () => {
