@@ -1,10 +1,11 @@
 # Changelog
 
-## 3.4.5
+## 3.4.6
 
 ### Fixed
 
 - **PubSub: computed properties with cross-context deps no longer depend on import order.** When a computed property declared `deps: ['CTX/prop']` and the target context wasn't registered yet, the subscription was silently skipped. Now deferred deps are stored in `PubSub.pendingDeps` and automatically resolved when `registerCtx()` is called.
+- **Symbiote: named context access no longer crashes when context is not yet registered.** The `$` proxy, `sub()`, `notify()`, `has()`, and `add()` now handle missing named contexts gracefully (return `undefined`/no-op instead of throwing).
 
 ## 3.4.4
 

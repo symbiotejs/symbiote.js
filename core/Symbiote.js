@@ -247,7 +247,10 @@ export class Symbiote extends HTMLElement {
       ctx = found?.localCtx || fnCtx.localCtx;
     } else if (prop.includes('/')) {
       let slashIdx = prop.indexOf('/');
-      ctx = PubSub.getCtx(prop.slice(0, slashIdx));
+      ctx = PubSub.getCtx(prop.slice(0, slashIdx), false);
+      if (!ctx) {
+        return null;
+      }
       name = prop.slice(slashIdx + 1);
     } else if (first === 45 && prop.charCodeAt(1) === 45) {
       ctx = fnCtx.localCtx;
@@ -276,6 +279,7 @@ export class Symbiote extends HTMLElement {
       handler(val);
     };
     let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
+    if (!parsed) return;
     if (!parsed.ctx.has(parsed.name)) {
       // Avoid *prop binding race:
       window.queueMicrotask(() => {
@@ -289,12 +293,14 @@ export class Symbiote extends HTMLElement {
   /** @param {String} prop */
   notify(prop) {
     let parsed = Symbiote.#parseProp(prop, this);
+    if (!parsed) return;
     parsed.ctx.notify(parsed.name);
   }
 
   /** @param {String} prop */
   has(prop) {
     let parsed = Symbiote.#parseProp(prop, this);
+    if (!parsed) return false;
     return parsed.ctx.has(parsed.name);
   }
 
@@ -306,6 +312,7 @@ export class Symbiote extends HTMLElement {
    */
   add(prop, val, rewrite = false) {
     let parsed = Symbiote.#parseProp(prop, this);
+    if (!parsed) return;
     parsed.ctx.add(parsed.name, val, rewrite);
   }
 
@@ -330,8 +337,9 @@ export class Symbiote extends HTMLElement {
           if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
             this.localCtx.pub(prop, val);
           } else {
-            let parsed = Symbiote.#parseProp(prop, this);
-            parsed.ctx.pub(parsed.name, val);
+          let parsed = Symbiote.#parseProp(prop, this);
+          if (!parsed) return true;
+          parsed.ctx.pub(parsed.name, val);
           }
           return true;
         },
@@ -341,6 +349,7 @@ export class Symbiote extends HTMLElement {
             return this.localCtx.read(prop);
           }
           let parsed = Symbiote.#parseProp(prop, this);
+          if (!parsed) return undefined;
           return parsed.ctx.read(parsed.name);
         },
       });
