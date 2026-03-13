@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
+import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { warnMsg, errMsg, registerMessages } from '../../core/warn.js';
+import { warnMsg, errMsg, registerMessages, devState } from '../../core/warn.js';
 
 describe('warn module', () => {
 
@@ -75,3 +75,80 @@ describe('warn module', () => {
     console.warn = origWarn;
   });
 });
+
+describe('devState (globalThis-based devMode)', () => {
+
+  afterEach(() => {
+    delete globalThis.__SYMBIOTE_DEV_MODE;
+  });
+
+  it('should default to false when globalThis flag is unset', () => {
+    delete globalThis.__SYMBIOTE_DEV_MODE;
+    assert.equal(devState.devMode, false);
+  });
+
+  it('should read from globalThis.__SYMBIOTE_DEV_MODE', () => {
+    globalThis.__SYMBIOTE_DEV_MODE = true;
+    assert.equal(devState.devMode, true);
+  });
+
+  it('should write to globalThis.__SYMBIOTE_DEV_MODE', () => {
+    devState.devMode = true;
+    assert.equal(globalThis.__SYMBIOTE_DEV_MODE, true);
+
+    devState.devMode = false;
+    assert.equal(globalThis.__SYMBIOTE_DEV_MODE, false);
+  });
+
+  it('devState setter should be visible via globalThis getter', () => {
+    devState.devMode = true;
+    assert.equal(globalThis.__SYMBIOTE_DEV_MODE, true);
+    assert.equal(devState.devMode, true);
+
+    devState.devMode = false;
+    assert.equal(globalThis.__SYMBIOTE_DEV_MODE, false);
+    assert.equal(devState.devMode, false);
+  });
+
+  it('globalThis setter should be visible via devState getter', () => {
+    globalThis.__SYMBIOTE_DEV_MODE = true;
+    assert.equal(devState.devMode, true);
+
+    globalThis.__SYMBIOTE_DEV_MODE = false;
+    assert.equal(devState.devMode, false);
+  });
+});
+
+describe('devMessages auto-enable', () => {
+
+  afterEach(() => {
+    delete globalThis.__SYMBIOTE_DEV_MODE;
+  });
+
+  it('should set devMode to true on import', async () => {
+    delete globalThis.__SYMBIOTE_DEV_MODE;
+    await import('../../core/devMessages.js');
+    assert.equal(globalThis.__SYMBIOTE_DEV_MODE, true);
+  });
+
+  it('should register message formatters on import', async () => {
+    let warnings = [];
+    let origWarn = console.warn;
+    console.warn = (msg) => warnings.push(msg);
+
+    await import('../../core/devMessages.js');
+    warnMsg(1, 'test-uid', 'read', 'unknownProp');
+    assert.ok(warnings[0].includes('test-uid'));
+    assert.ok(warnings[0].includes('unknownProp'));
+
+    console.warn = origWarn;
+  });
+
+  it('should share messages via globalThis across module scopes', () => {
+    let map = globalThis.__SYMBIOTE_DEV_MESSAGES;
+    assert.ok(map instanceof Map);
+    assert.ok(map.size > 0);
+    assert.equal(typeof map.get(1), 'function');
+  });
+});
+

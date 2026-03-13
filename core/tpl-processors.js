@@ -1,5 +1,5 @@
 import { DICT } from './dictionary.js';
-import { warnMsg } from './warn.js';
+import { warnMsg, devState } from './warn.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { ownElements, isOwnNode } from './ownElements.js';
 import { initPropFallback } from './initPropFallback.js';
@@ -63,7 +63,7 @@ function domBindProcessor(fr, fnCtx) {
         if (!fnCtx.has(valKey) && fnCtx.allowTemplateInits) {
           initPropFallback(fnCtx, valKey);
           // Dev-only: warn about bindings that aren't in init$ (likely typos)
-          if (fnCtx.localCtx.read(valKey) === null && fnCtx.Symbiote?.devMode) {
+          if (fnCtx.localCtx.read(valKey) === null && devState.devMode) {
             let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
             warnMsg(11, fnCtx.localName, valKey, known.join(', '));
           }
@@ -153,7 +153,7 @@ const txtNodesProcessor = function (fr, fnCtx) {
       if (!fnCtx.has(prop) && fnCtx.allowTemplateInits) {
         initPropFallback(fnCtx, prop);
       }
-      if (fnCtx.Symbiote?.devMode && (fnCtx.ssrMode || fnCtx.isoMode)) {
+      if (devState.devMode && (fnCtx.ssrMode || fnCtx.isoMode)) {
         warnMsg(12, fnCtx.localName, prop);
       }
       fnCtx.sub(prop, (val) => {

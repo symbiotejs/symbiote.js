@@ -1,5 +1,5 @@
 import { DICT } from './dictionary.js';
-import { warnMsg } from './warn.js';
+import { warnMsg, devState } from './warn.js';
 
 // structuredClone() is limited by supported types, so we use custom cloning:
 function cloneObj(obj) {
@@ -269,7 +269,7 @@ export class PubSub {
       PubSub.#warn('publish computed (value must be a Function)', prop, this);
       return;
     }
-    if (PubSub.devMode && !(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
+    if (devState.devMode && !(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
       warnMsg(2, String(this.uid || 'local'), String(prop), typeof this.store[prop], typeof val, JSON.stringify(this.store[prop]), JSON.stringify(val));
     }
     this.store[prop] = val;
@@ -409,8 +409,5 @@ PubSub.globalStore = globalThis.__SYMBIOTE_PUBSUB_STORE || (globalThis.__SYMBIOT
 
 /** @type {Map<String | Symbol, Array<Function>>} */
 PubSub.pendingDeps = new Map();
-
-/** @type {Boolean} */
-PubSub.devMode = false;
 
 export default PubSub;

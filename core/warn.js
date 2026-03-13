@@ -1,6 +1,16 @@
 /** @type {Map<number, (...args: any[]) => string>} */
 let messages = globalThis.__SYMBIOTE_DEV_MESSAGES || (globalThis.__SYMBIOTE_DEV_MESSAGES = new Map());
 
+/** @type {{ devMode: boolean }} */
+export let devState = {
+  get devMode() {
+    return !!globalThis.__SYMBIOTE_DEV_MODE;
+  },
+  set devMode(val) {
+    globalThis.__SYMBIOTE_DEV_MODE = val;
+  },
+};
+
 /**
  * @param {number} code
  * @param  {...any} args
@@ -25,3 +35,4 @@ export function registerMessages(map) {
     messages.set(code, fmt);
   }
 }
+

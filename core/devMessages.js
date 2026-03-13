@@ -1,7 +1,6 @@
 import { registerMessages } from './warn.js';
-import Symbiote from './Symbiote.js';
 
-Symbiote.devMode = true;
+globalThis.__SYMBIOTE_DEV_MODE = true;
 
 registerMessages(new Map([
   // PubSub

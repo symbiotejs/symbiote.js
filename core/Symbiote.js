@@ -1,5 +1,5 @@
 import PubSub from './PubSub.js';
-import { warnMsg } from './warn.js';
+import { warnMsg, devState } from './warn.js';
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
@@ -42,16 +42,12 @@ export class Symbiote extends HTMLElement {
   /** @type {HTMLTemplateElement} */
   static __tpl;
 
-  /** @type {Boolean} */
-  static #devMode = false;
-
   static set devMode(val) {
-    Symbiote.#devMode = val;
-    PubSub.devMode = val;
+    devState.devMode = val;
   }
 
   static get devMode() {
-    return Symbiote.#devMode;
+    return devState.devMode;
   }
 
   get Symbiote() {
@@ -664,7 +660,7 @@ export class Symbiote extends HTMLElement {
    * @param {any} [initValue] Uses empty string by default to make value useful in template
    */
   bindCssData(propName, initValue = '') {
-    if (Symbiote.#devMode && (this.ssrMode || this.isoMode)) {
+    if (devState.devMode && (this.ssrMode || this.isoMode)) {
       warnMsg(10, this.localName, propName);
     }
     if (!this.#boundCssProps) {

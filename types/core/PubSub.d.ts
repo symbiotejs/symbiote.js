@@ -24,7 +24,6 @@ export class PubSub<T extends Record<string, unknown>> {
 export namespace PubSub {
     let globalStore: Map<string | Symbol, PubSub<any>>;
     let pendingDeps: Map<string | Symbol, Array<Function>>;
-    let devMode: boolean;
 }
 export default PubSub;
 //# sourceMappingURL=PubSub.d.ts.map
