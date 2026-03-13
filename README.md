@@ -64,7 +64,6 @@ import Symbiote, { html, css } from '@symbiotejs/symbiote';
 ## Isomorphic Web Components
 
 One component. Server-rendered or client-rendered — automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
-
 ```js
 class MyComponent extends Symbiote {
   isoMode = true;
@@ -75,7 +74,7 @@ class MyComponent extends Symbiote {
 }
 
 MyComponent.template = html`
-  <h2>{{count}}</h2>
+  <h2 ${{textContent: 'count'}}></h2>
   <button ${{onclick: 'increment'}}>Click me!</button>
 `;
 MyComponent.reg('my-component');
