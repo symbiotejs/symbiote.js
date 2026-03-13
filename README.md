@@ -20,7 +20,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **Computed properties** — reactive derived state with microtask batching.
 - **Path-based router** — optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
 - **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
-- **Dev mode** — `Symbiote.devMode` enables verbose warnings for unresolved bindings.
+- **Dev mode** — `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
 - **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
 - **Class property fallback** — binding keys not in `init$` fall back to own class properties/methods.
 - And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).

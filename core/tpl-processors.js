@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { warnMsg } from './warn.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { ownElements, isOwnNode } from './ownElements.js';
 import { initPropFallback } from './initPropFallback.js';
@@ -64,10 +65,7 @@ function domBindProcessor(fr, fnCtx) {
           // Dev-only: warn about bindings that aren't in init$ (likely typos)
           if (fnCtx.localCtx.read(valKey) === null && fnCtx.Symbiote?.devMode) {
             let known = Object.keys(fnCtx.init$).filter((k) => !k.startsWith('+'));
-            console.warn(
-              `[Symbiote dev] <${fnCtx.localName}>: binding key "${valKey}" not found in init$ (auto-initialized to null).\n`
-              + `Known keys: [${known.join(', ')}]`
-            );
+            warnMsg(11, fnCtx.localName, valKey, known.join(', '));
           }
         }
         let initVal = fnCtx.$[valKey];
@@ -156,11 +154,7 @@ const txtNodesProcessor = function (fr, fnCtx) {
         initPropFallback(fnCtx, prop);
       }
       if (fnCtx.Symbiote?.devMode && (fnCtx.ssrMode || fnCtx.isoMode)) {
-        console.warn(
-          `[Symbiote dev] <${fnCtx.localName}>: text-node binding "{{${prop}}}" has no hydration attribute. `
-          + 'In ssrMode/isoMode it will be rendered by the server but won\'t update on the client. '
-          + 'Use property binding (${{textContent: \'' + prop + '\'}}) for hydratable text.'
-        );
+        warnMsg(12, fnCtx.localName, prop);
       }
       fnCtx.sub(prop, (val) => {
         tNode.textContent = val;

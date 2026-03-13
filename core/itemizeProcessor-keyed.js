@@ -1,4 +1,5 @@
 import { animateOut } from './animateOut.js';
+import { warnMsg } from './warn.js';
 import { setupItemize } from './itemizeSetup.js';
 
 /**
@@ -57,7 +58,7 @@ export function itemizeProcessor(fr, fnCtx) {
           items.push(init);
         }
       } else {
-        console.warn(`[Symbiote] <${fnCtx.localName}>: itemize data must be Array or Object, got ${typeof data}:`, data);
+        warnMsg(16, fnCtx.localName, typeof data, data);
         return;
       }
 

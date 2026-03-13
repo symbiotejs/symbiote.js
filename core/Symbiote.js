@@ -1,4 +1,5 @@
 import PubSub from './PubSub.js';
+import { warnMsg } from './warn.js';
 import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
@@ -94,7 +95,7 @@ export class Symbiote extends HTMLElement {
           // @ts-expect-error
           template = customTpl.content.cloneNode(true);
         } else {
-          console.warn(`[Symbiote] <${this.localName}>: custom template "${customTplSelector}" not found.`);
+          warnMsg(5, this.localName, customTplSelector);
         }
       }
     }
@@ -427,18 +428,13 @@ export class Symbiote extends HTMLElement {
         let sharedVal = this.init$[prop];
         if (!this.ctxName) {
           if (Symbiote.devMode) {
-            console.warn(
-              `[Symbiote] "${this.localName}" uses *${sharedName} without ctx attribute or --ctx CSS variable. `
-              + 'Set ctx="name" or --ctx to share state.'
-            );
+            warnMsg(6, this.localName, sharedName);
           }
         } else {
           if (Symbiote.devMode && this.sharedCtx.has(sharedName)) {
             let existing = this.sharedCtx.read(sharedName);
             if (existing !== sharedVal && typeof sharedVal !== 'function') {
-              console.warn(
-                `[Symbiote] Shared prop "${sharedName}" already has value. Keeping existing.`
-              );
+              warnMsg(7, sharedName);
             }
           }
           this.sharedCtx.add(sharedName, sharedVal);
@@ -577,10 +573,7 @@ export class Symbiote extends HTMLElement {
     let registeredClass = window.customElements.get(tagName);
     if (registeredClass) {
       if (!isAlias && registeredClass !== this) {
-        console.warn(
-          `[Symbiote] <${tagName}> is already registered (class: ${registeredClass.name}).\n`
-          + `Attempted re-registration with class "${this.name}" — skipped.`
-        );
+        warnMsg(8, tagName, registeredClass.name, this.name);
       }
       return this;
     }
@@ -641,7 +634,7 @@ export class Symbiote extends HTMLElement {
       try {
         this.#cssDataCache[propName] = parseCssPropertyValue(val);
       } catch (e) {
-        !silentCheck && console.warn(`[Symbiote] <${this.localName}>: CSS data parse error for "${propName}". Check that the CSS custom property is defined.`);
+        !silentCheck && warnMsg(9, this.localName, propName);
         this.#cssDataCache[propName] = null;
       }
     }
@@ -672,10 +665,7 @@ export class Symbiote extends HTMLElement {
    */
   bindCssData(propName, initValue = '') {
     if (Symbiote.#devMode && (this.ssrMode || this.isoMode)) {
-      console.warn(
-        `[Symbiote dev] <${this.localName}>: CSS data binding "${propName}" will not read computed styles during SSR. `
-        + 'The init value will be used instead.'
-      );
+      warnMsg(10, this.localName, propName);
     }
     if (!this.#boundCssProps) {
       this.#boundCssProps = new Set();

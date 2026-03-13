@@ -103,6 +103,12 @@
       "types": "./types/core/tpl-processors.d.ts",
       "default": "./core/tpl-processors.js"
     },
+    "./core/warn.js": {
+      "default": "./core/warn.js"
+    },
+    "./core/devMessages.js": {
+      "default": "./core/devMessages.js"
+    },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
       "default": "./utils/UID.js"

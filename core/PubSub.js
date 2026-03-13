@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { warnMsg } from './warn.js';
 
 // structuredClone() is limited by supported types, so we use custom cloning:
 function cloneObj(obj) {
@@ -73,8 +74,7 @@ export class PubSub {
    * @param {*} prop
    */
   static #warn(actionName, prop, ctx) {
-    let uid = String(ctx?.uid || 'local');
-    console.warn(`[Symbiote] PubSub (${uid}): cannot ${actionName}. Property: "${prop}"`);
+    warnMsg(1, String(ctx?.uid || 'local'), actionName, prop);
   }
 
   /**
@@ -270,11 +270,7 @@ export class PubSub {
       return;
     }
     if (PubSub.devMode && !(this.store[prop] === null || val === null) && typeof this.store[prop] !== typeof val) {
-      let uid = String(this.uid || 'local');
-      console.warn(
-        `[Symbiote] PubSub (${uid}): type change for "${String(prop)}" [${typeof this.store[prop]} → ${typeof val}].\n`
-        + `Previous: ${JSON.stringify(this.store[prop])}\nNew: ${JSON.stringify(val)}`
-      );
+      warnMsg(2, String(this.uid || 'local'), String(prop), typeof this.store[prop], typeof val, JSON.stringify(this.store[prop]), JSON.stringify(val));
     }
     this.store[prop] = val;
     this.notify(prop, val);
@@ -375,7 +371,7 @@ export class PubSub {
     /** @type {PubSub} */
     let data = PubSub.globalStore.get(uid);
     if (data) {
-      console.warn(`[Symbiote] PubSub: context "${uid}" is already registered. Returning existing instance.`);
+      warnMsg(3, uid);
     } else {
       data = new PubSub(schema);
       data.uid = uid;
@@ -404,10 +400,7 @@ export class PubSub {
    * @returns {PubSub}
    */
   static getCtx(uid, notify = true) {
-    return PubSub.globalStore.get(uid) || (notify && console.warn(
-      `[Symbiote] PubSub: context "${String(uid)}" not found.\n`
-      + `Available contexts: [${[...PubSub.globalStore.keys()].map(String).join(', ')}]`
-    ), null);
+    return PubSub.globalStore.get(uid) || (notify && warnMsg(4, String(uid), [...PubSub.globalStore.keys()].map(String).join(', ')), null);
   }
 }
 

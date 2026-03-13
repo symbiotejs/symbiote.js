@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.5.0
+
+### Added
+
+- **External dev messages module (`core/devMessages.js`).** All warning and error message strings have been extracted from core files into an optional module. Core files now emit short numeric codes (e.g. `[Symbiote W5]`). Import `@symbiotejs/symbiote/core/devMessages.js` once to get full human-readable messages. This reduces the core bundle size by removing all formatting strings from `PubSub.js`, `Symbiote.js`, `tpl-processors.js`, `AppRouter.js`, `html.js`, and both itemize processors.
+
+- **`core/warn.js` — lightweight message dispatcher.** Exports `warnMsg(code, ...args)`, `errMsg(code, ...args)`, and `registerMessages(map)`. All core files now use this dispatcher instead of inline `console.warn`/`console.error` calls.
+
+- **AppRouter: `title` accepts functions.** Route descriptors and `setDefaultTitle()` now accept `() => String` in addition to plain strings. The function is called at navigation time, enabling dynamic or localized page titles:
+  ```js
+  AppRouter.setDefaultTitle(() => i18n('app.title'));
+  AppRouter.initRoutingCtx('R', {
+    home: { pattern: '/', title: () => i18n('home.title'), default: true },
+  });
+  ```
+
 ## 3.4.7
 
 ### Fixed

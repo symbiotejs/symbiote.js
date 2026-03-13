@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { errMsg } from './warn.js';
 
 /** @type {String[]} */
 export const RESERVED_ATTRIBUTES = [
@@ -24,10 +25,7 @@ export function html(parts, ...props) {
     if (idx >= props.length) return;
     let val = props[idx];
     if (val === undefined || val === null) {
-      console.error(
-        `[Symbiote > html] \`this\` used in template interpolation (value: ${val}).\n`
-        + 'Templates are context-free — use ${{ prop: \'stateKey\' }} binding syntax instead.'
-      );
+      errMsg(15, val);
       return;
     }
     if (val?.constructor === Object) {

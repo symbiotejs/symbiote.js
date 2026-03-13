@@ -1,4 +1,5 @@
 import PubSub from './PubSub.js';
+import { warnMsg } from './warn.js';
 
 export class AppRouter {
 
@@ -49,7 +50,7 @@ export class AppRouter {
   }
 
   static #print(msg) {
-    console.warn(`[Symbiote > AppRouter] ${msg}`);
+    warnMsg(13, msg);
   }
 
   /** @param {String | (() => String)} title */
@@ -300,7 +301,7 @@ export class AppRouter {
     try {
       window.history.pushState(null, title, url);
     } catch (err) {
-      console.warn('[Symbiote > AppRouter] History API is not available.');
+      warnMsg(14);
     }
     document.title = title;
   }

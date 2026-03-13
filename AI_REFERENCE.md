@@ -775,14 +775,23 @@ Enable verbose warnings during development:
 Symbiote.devMode = true;
 ```
 
+### Dev messages module
+
+All warning/error strings are in an optional module. Without it, warnings print short codes like `[Symbiote W5]`. Import once to get full messages and auto-enable `devMode`:
+```js
+import '@symbiotejs/symbiote/core/devMessages.js';
+```
+
 **Always-on** (regardless of `devMode`):
-- `[Symbiote]` prefixed warnings for PubSub errors, duplicate tags, type mismatches, router issues
-- `this` in template interpolation error (`html` tag detects `${this.x}` usage)
+- `W1` PubSub: cannot read/publish/subscribe — property not found
+- `W3` context already registered, `W4` context not found
+- `W5` custom template not found, `W8` tag already registered, `W9` CSS data parse error
+- `W13`/`W14` AppRouter messages, `W16` itemize data type error
+- `E15` `this` in template interpolation error (`html` tag detects `${this.x}` usage)
 
 **Dev-only** (`devMode = true`):
-- Unresolved binding keys — warns when a template binding auto-initializes to `null` (likely typo)
-- `*prop` without `ctx` attribute or `--ctx` CSS variable — warns that shared context won't be created
-- `*prop` conflict — warns when a later component tries to set a different initial value for the same shared prop
+- `W2` type change on publish, `W6` `*prop` without ctx, `W7` shared prop conflict
+- `W10` CSS data binding in SSR, `W11` unresolved binding key, `W12` text-node binding in SSR/ISO
 
 ---
 
