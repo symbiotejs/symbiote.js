@@ -63,6 +63,10 @@
       "types": "./types/core/css.d.ts",
       "default": "./core/css.js"
     },
+    "./core/devMessages.js": {
+      "types": "./types/core/devMessages.d.ts",
+      "default": "./core/devMessages.js"
+    },
     "./core/dictionary.js": {
       "types": "./types/core/dictionary.d.ts",
       "default": "./core/dictionary.js"
@@ -104,10 +108,8 @@
       "default": "./core/tpl-processors.js"
     },
     "./core/warn.js": {
+      "types": "./types/core/warn.d.ts",
       "default": "./core/warn.js"
-    },
-    "./core/devMessages.js": {
-      "default": "./core/devMessages.js"
     },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
