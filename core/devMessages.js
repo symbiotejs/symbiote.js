@@ -25,13 +25,13 @@ function fmt(code, body, doc, tag) {
     return `[Symbiote ${code}]${tag ? ` <${tag}>:` : ''} ${body}\n→ ${DOCS}${doc}.md`;
   }
   let isErr = code.startsWith('E');
-  let parts = `%cSymbiote%c${code}%c`;
+  let parts = `%c Symbiote %c ${code} %c`;
   let styles = [S.badge, isErr ? S.errCode : S.code, S.reset];
   if (tag) {
     parts += ` %c<${tag}>%c`;
     styles.push(S.tag, S.reset);
   }
-  parts += ` ${body} %c→ ${doc}`;
+  parts += ` ${body}\n%c→ ${DOCS}${doc}.md`;
   styles.push(S.dim);
   return [parts, ...styles];
 }
