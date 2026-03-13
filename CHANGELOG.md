@@ -1,12 +1,28 @@
 # Changelog
 
+## 3.5.2
+
+### Fixed
+
+- **`devMode` flag is now cross-module safe.** Moved to `globalThis.__SYMBIOTE_DEV_MODE` so it works correctly across CDN/importmap module scopes (same pattern as `PubSub.globalStore`).
+
+### Improved
+
+- **`warn.js` — minimal core dispatcher.** Stripped to just `devState`, `warnMsg`, and `errMsg`. All formatting, messages, and styling logic moved to `devMessages.js` via `globalThis.__SYMBIOTE_DEV_LOG` handler. No messages map or `Array.isArray` in core.
+
+- **Colored console output.** `devMessages.js` now renders styled badges in browser consoles: purple `Symbiote` badge, amber/red code badge, violet `<component-name>`, and dimmed doc links. Falls back to plain text in Node.js.
+
+- **Doc references in all warnings.** Every message now includes a `→` link to the relevant GitHub docs page.
+
+- **`devMessages.js` auto-enables `devMode`.** Importing the module sets `globalThis.__SYMBIOTE_DEV_MODE = true` — one import for the full dev experience.
+
 ## 3.5.0
 
 ### Added
 
 - **External dev messages module (`core/devMessages.js`).** All warning and error message strings have been extracted from core files into an optional module. Core files now emit short numeric codes (e.g. `[Symbiote W5]`). Import `@symbiotejs/symbiote/core/devMessages.js` once to get full human-readable messages. This reduces the core bundle size by removing all formatting strings from `PubSub.js`, `Symbiote.js`, `tpl-processors.js`, `AppRouter.js`, `html.js`, and both itemize processors.
 
-- **`core/warn.js` — lightweight message dispatcher.** Exports `warnMsg(code, ...args)`, `errMsg(code, ...args)`, and `registerMessages(map)`. All core files now use this dispatcher instead of inline `console.warn`/`console.error` calls.
+- **`core/warn.js` — lightweight message dispatcher.** Exports `warnMsg(code, ...args)` and `errMsg(code, ...args)`. All core files now use this dispatcher instead of inline `console.warn`/`console.error` calls.
 
 - **AppRouter: `title` accepts functions.** Route descriptors and `setDefaultTitle()` now accept `() => String` in addition to plain strings. The function is called at navigation time, enabling dynamic or localized page titles:
   ```js

@@ -430,7 +430,7 @@ export class Symbiote extends HTMLElement {
           if (Symbiote.devMode && this.sharedCtx.has(sharedName)) {
             let existing = this.sharedCtx.read(sharedName);
             if (existing !== sharedVal && typeof sharedVal !== 'function') {
-              warnMsg(7, sharedName);
+              warnMsg(7, this.localName, sharedName);
             }
           }
           this.sharedCtx.add(sharedName, sharedVal);

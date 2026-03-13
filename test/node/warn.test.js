@@ -1,10 +1,12 @@
 import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { warnMsg, errMsg, registerMessages, devState } from '../../core/warn.js';
+import { warnMsg, errMsg, devState } from '../../core/warn.js';
 
 describe('warn module', () => {
 
-  it('should log short code without messages loaded', () => {
+  it('should log short code without dev log handler', () => {
+    let saved = globalThis.__SYMBIOTE_DEV_LOG;
+    delete globalThis.__SYMBIOTE_DEV_LOG;
     let warnings = [];
     let origWarn = console.warn;
     console.warn = (msg) => warnings.push(msg);
@@ -14,25 +16,12 @@ describe('warn module', () => {
     assert.equal(warnings[0], '[Symbiote W99]');
 
     console.warn = origWarn;
+    if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
   });
 
-  it('should format message after registerMessages', () => {
-    let warnings = [];
-    let origWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
-
-    registerMessages(new Map([
-      [99, (name) => `Test warning for "${name}"`],
-    ]));
-
-    warnMsg(99, 'my-el');
-    assert.equal(warnings.length, 1);
-    assert.equal(warnings[0], 'Test warning for "my-el"');
-
-    console.warn = origWarn;
-  });
-
-  it('should use console.error for errMsg', () => {
+  it('should log short error code without dev log handler', () => {
+    let saved = globalThis.__SYMBIOTE_DEV_LOG;
+    delete globalThis.__SYMBIOTE_DEV_LOG;
     let errors = [];
     let origError = console.error;
     console.error = (msg) => errors.push(msg);
@@ -42,37 +31,29 @@ describe('warn module', () => {
     assert.equal(errors[0], '[Symbiote E98]');
 
     console.error = origError;
+    if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
   });
 
-  it('should format errMsg after registerMessages', () => {
-    let errors = [];
-    let origError = console.error;
-    console.error = (msg) => errors.push(msg);
+  it('should delegate to globalThis.__SYMBIOTE_DEV_LOG when set', () => {
+    let calls = [];
+    let saved = globalThis.__SYMBIOTE_DEV_LOG;
+    globalThis.__SYMBIOTE_DEV_LOG = (type, code, args) => {
+      calls.push({ type, code, args });
+    };
 
-    registerMessages(new Map([
-      [98, (val) => `Error: value is ${val}`],
-    ]));
+    warnMsg(42, 'a', 'b');
+    errMsg(43, 'c');
 
-    errMsg(98, 'null');
-    assert.equal(errors.length, 1);
-    assert.equal(errors[0], 'Error: value is null');
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].type, 'warn');
+    assert.equal(calls[0].code, 42);
+    assert.deepEqual(calls[0].args, ['a', 'b']);
+    assert.equal(calls[1].type, 'error');
+    assert.equal(calls[1].code, 43);
+    assert.deepEqual(calls[1].args, ['c']);
 
-    console.error = origError;
-  });
-
-  it('should pass multiple args to formatter', () => {
-    let warnings = [];
-    let origWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
-
-    registerMessages(new Map([
-      [97, (a, b, c) => `${a} - ${b} - ${c}`],
-    ]));
-
-    warnMsg(97, 'x', 'y', 'z');
-    assert.equal(warnings[0], 'x - y - z');
-
-    console.warn = origWarn;
+    if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
+    else delete globalThis.__SYMBIOTE_DEV_LOG;
   });
 });
 
@@ -131,24 +112,23 @@ describe('devMessages auto-enable', () => {
     assert.equal(globalThis.__SYMBIOTE_DEV_MODE, true);
   });
 
-  it('should register message formatters on import', async () => {
+  it('should register log handler on import', async () => {
+    await import('../../core/devMessages.js');
+    assert.equal(typeof globalThis.__SYMBIOTE_DEV_LOG, 'function');
+  });
+
+  it('should format messages via log handler', async () => {
+    await import('../../core/devMessages.js');
     let warnings = [];
     let origWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
+    console.warn = (...args) => warnings.push(args);
 
-    await import('../../core/devMessages.js');
     warnMsg(1, 'test-uid', 'read', 'unknownProp');
-    assert.ok(warnings[0].includes('test-uid'));
-    assert.ok(warnings[0].includes('unknownProp'));
+    assert.ok(warnings.length > 0);
+    let output = warnings[0].join(' ');
+    assert.ok(output.includes('test-uid'));
+    assert.ok(output.includes('unknownProp'));
 
     console.warn = origWarn;
   });
-
-  it('should share messages via globalThis across module scopes', () => {
-    let map = globalThis.__SYMBIOTE_DEV_MESSAGES;
-    assert.ok(map instanceof Map);
-    assert.ok(map.size > 0);
-    assert.equal(typeof map.get(1), 'function');
-  });
 });
-

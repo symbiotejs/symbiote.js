@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -158,6 +158,7 @@
   "keywords": [
     "web components",
     "SSR",
+    "SSG",
     "server side rendering for web components",
     "ui library",
     "data flow",
@@ -182,7 +183,8 @@
     "https imports",
     "reactive html attributes",
     "MIT",
-    "JSDA"
+    "JSDA",
+    "jsda-kit"
   ],
   "devDependencies": {
     "@playwright/test": "^1.58.2",
