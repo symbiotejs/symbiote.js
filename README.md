@@ -310,18 +310,12 @@ Components can read CSS custom properties as reactive state via `cssInit$`:
 
 ```css
 my-widget {
-  --columns: 3;
   --label: 'Click me';
 }
 ```
 
 ```js
-class MyWidget extends Symbiote {
-  cssInit$ = {
-    '--columns': 1,
-    '--label': '',
-  }
-}
+class MyWidget extends Symbiote {...}
 
 MyWidget.template = html`
   <span>{{--label}}</span>
