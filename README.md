@@ -156,10 +156,9 @@ The `html` function supports two interpolation modes:
 - **Object** → reactive binding: `${{onclick: 'handler'}}`
 - **String/number** → native concatenation: `${pageTitle}`
 
-### Itemize (lists)
+### Itemize (dynamic reactive lists)
 
-Render lists from data arrays with efficient diffing:
-
+Render lists from data arrays with efficient updates:
 ```js
 class TaskList extends Symbiote {
   tasks = [
@@ -175,11 +174,11 @@ class TaskList extends Symbiote {
 }
 
 TaskList.template = html`
-  <ul itemize="tasks">
+  <div itemize="tasks">
     <template>
-      <li ${{onclick: '^onItemClick'}}>{{name}}</li>
+      <div ${{onclick: '^onItemClick'}}>{{name}}</div>
     </template>
-  </ul>
+  </div>
 `;
 ```
 
