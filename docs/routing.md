@@ -115,7 +115,7 @@ initRoutingCtx(id, routingMap)
 | Property | Type | Required | Description |
 |:--|:--|:--|:--|
 | `pattern` | `String` | no | URL path pattern (enables path-based mode) |
-| `title` | `String` | no | Page title |
+| `title` | `String \| Function` | no | Page title (string or `() => string` for dynamic/localized titles) |
 | `default` | `Boolean` | no | Default route |
 | `error` | `Boolean` | no | Error (404) route |
 | `load` | `Function` | no | Lazy loader `() => import(...)` |
@@ -176,10 +176,31 @@ AppRouter.setSeparator('@');
 
 ### AppRouter.setDefaultTitle()
 
-Set default page title when route title is not defined:
+Set default page title when route title is not defined. Accepts a string or a function:
 ```js
 AppRouter.setDefaultTitle('My App');
+AppRouter.setDefaultTitle(() => i18n.t('app.title'));
 ```
+
+### Dynamic titles (i18n)
+
+Both route `title` and `defaultTitle` accept a function `() => string` that is called at navigation time. This enables localized or computed page titles:
+```js
+AppRouter.initRoutingCtx('R', {
+  home: {
+    pattern: '/',
+    title: () => t('pages.home'),
+    default: true,
+  },
+  about: {
+    pattern: '/about',
+    title: () => t('pages.about'),
+  },
+});
+
+AppRouter.setDefaultTitle(() => t('app.title'));
+```
+The function is re-evaluated on every `navigate()` / `notify()`, so language changes take effect on the next navigation.
 
 ### AppRouter.removePopstateListener()
 

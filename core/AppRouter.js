@@ -4,7 +4,7 @@ export class AppRouter {
 
   /**
    * @typedef {{
-   *   title?: String,
+   *   title?: String | (() => String),
    *   default?: Boolean,
    *   error?: Boolean,
    *   pattern?: String,
@@ -52,9 +52,14 @@ export class AppRouter {
     console.warn(`[Symbiote > AppRouter] ${msg}`);
   }
 
-  /** @param {String} title */
+  /** @param {String | (() => String)} title */
   static setDefaultTitle(title) {
     this.defaultTitle = title;
+  }
+
+  /** @param {String | (() => String) | undefined} title */
+  static #resolveTitle(title) {
+    return typeof title === 'function' ? title() : title;
   }
 
   /** @param {Object<string, {}>} map */
@@ -232,8 +237,9 @@ export class AppRouter {
       }
     }
 
-    if (routeScheme.title) {
-      document.title = routeScheme.title;
+    let resolvedTitle = this.#resolveTitle(routeScheme.title);
+    if (resolvedTitle) {
+      document.title = resolvedTitle;
     }
 
     this.#currentState = routeBase;
@@ -290,7 +296,7 @@ export class AppRouter {
       }
     }
 
-    let title = routeScheme.title || this.defaultTitle || '';
+    let title = this.#resolveTitle(routeScheme.title) || this.#resolveTitle(this.defaultTitle) || '';
     try {
       window.history.pushState(null, title, url);
     } catch (err) {
@@ -354,7 +360,7 @@ export class AppRouter {
       window.addEventListener(this.routingEventName, (/** @type {CustomEvent} */ e) => {
         routingCtx.multiPub({
           options: e.detail.options,
-          title: e.detail.options?.title || this.defaultTitle || '',
+          title: this.#resolveTitle(e.detail.options?.title) || this.#resolveTitle(this.defaultTitle) || '',
           route: e.detail.route,
         });
       });
@@ -365,7 +371,7 @@ export class AppRouter {
       routingCtx.multiPub({
         route: this.defaultRoute,
         options: {},
-        title: defaultDesc?.title || this.defaultTitle || '',
+        title: this.#resolveTitle(defaultDesc?.title) || this.#resolveTitle(this.defaultTitle) || '',
       });
     }
     return routingCtx;

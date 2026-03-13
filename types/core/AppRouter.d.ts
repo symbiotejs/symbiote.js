@@ -1,7 +1,7 @@
 export class AppRouter {
     static appMap: {
         [x: string]: {
-            title?: string;
+            title?: string | (() => string);
             default?: boolean;
             error?: boolean;
             pattern?: string;
@@ -9,7 +9,7 @@ export class AppRouter {
             __loaded?: boolean;
         };
     };
-    static setDefaultTitle(title: string): void;
+    static setDefaultTitle(title: string | (() => string)): void;
     static setRoutingMap(map: {
         [x: string]: {};
     }): void;
@@ -41,7 +41,7 @@ export class AppRouter {
     static get separator(): string;
     static initRoutingCtx(ctxName: string, routingMap: {
         [x: string]: {
-            title?: string;
+            title?: string | (() => string);
             default?: boolean;
             error?: boolean;
             pattern?: string;
