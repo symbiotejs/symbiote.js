@@ -89,6 +89,20 @@ Use any local server you like that can serve static files. Symbiote.js is agnost
 
 You can use simple relative paths for your modules or [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) for module path mapping. This feature is [supported in all modern browsers](https://caniuse.com/import-maps).
 
+## Ultimate all-in-one tool
+
+[JSDA-Kit](https://github.com/rnd-pro/jsda-kit) is a natural companion to Symbiote.js — a single zero-configuration tool that completes the stack with everything you need for production: server, SSG, bundling and minification, automatic import maps, and more.
+
+- Natively integrates Symbiote.js and all its features including SSR.
+- Follows the [JSDA](https://github.com/rnd-pro/jsda) (JavaScript Distributed Assets) approach — the same ESM modules serve as both runtime code and static asset generators. 
+
+One install, one command — and you're running:
+```shell
+npm install jsda-kit
+npx jsda init
+npx jsda serve
+```
+
 ---
 
 Next: [Migration 2.x → 3.x →](./migration-2x-to-3x.md)
