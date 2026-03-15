@@ -311,6 +311,72 @@ describe('SSR Engine', async () => {
     }, /init/);
     await SSR.init();
   });
+
+  it('should render component with bindAttributes without crashing', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrBoundAttr extends Symbiote {
+      init$ = {
+        headerText: 'Bound Header',
+      };
+    }
+    SsrBoundAttr.template = html`<h1 ${{textContent: 'headerText'}}></h1>`;
+    SsrBoundAttr.bindAttributes({
+      'header-text': 'headerText',
+    });
+    SsrBoundAttr.reg('ssr-bound-attr');
+
+    let result = SSR.renderToString('ssr-bound-attr', { 'header-text': 'From Attribute' });
+    assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
+    assert.ok(result.includes('From Attribute'), `Expected attribute value in output: ${result}`);
+    assert.ok(result.includes('<ssr-bound-attr'), 'Should contain opening tag');
+  });
+
+  it('should not crash when renderCallback uses browser-only APIs', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrBrowserCb extends Symbiote {
+      init$ = {
+        label: 'browser component',
+      };
+      renderCallback() {
+        // Simulate browser-only API usage (like IntersectionObserver, window.location, etc.)
+        new IntersectionObserver(() => {});
+      }
+    }
+    SsrBrowserCb.template = html`<span ${{textContent: 'label'}}></span>`;
+    SsrBrowserCb.reg('ssr-browser-cb');
+
+    let result = SSR.renderToString('ssr-browser-cb');
+    assert.ok(result.includes('browser component'), `Expected content in output: ${result}`);
+    assert.ok(result.includes('<ssr-browser-cb'), 'Should contain opening tag');
+  });
+
+  it('should still run SSR-safe renderCallback and support bindAttributes together', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    let callbackRan = false;
+
+    class SsrSafeCb extends Symbiote {
+      init$ = {
+        status: 'initial',
+      };
+      renderCallback() {
+        callbackRan = true;
+        this.$.status = 'rendered';
+      }
+    }
+    SsrSafeCb.template = html`<div ${{textContent: 'status'}}></div>`;
+    SsrSafeCb.bindAttributes({
+      'data-mode': 'status',
+    });
+    SsrSafeCb.reg('ssr-safe-cb');
+
+    let result = SSR.renderToString('ssr-safe-cb', { 'data-mode': 'ssr' });
+    assert.ok(callbackRan, 'SSR-safe renderCallback should still execute');
+    assert.ok(result.includes('<ssr-safe-cb'), 'Should contain opening tag');
+    assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
+  });
 });
 
 describe('SSR.processHtml', async () => {

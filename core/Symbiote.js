@@ -142,7 +142,11 @@ export class Symbiote extends HTMLElement {
         fr && ((shadow && this.shadowRoot.appendChild(fr)) || this.appendChild(fr));
       }
       this.#initCallback();
-      this.renderCallback?.();
+      try {
+        this.renderCallback?.();
+      } catch (e) {
+        if (!globalThis.__SYMBIOTE_SSR) throw e;
+      }
     };
 
     if (this.#super.shadowStyleSheets) {
@@ -587,9 +591,14 @@ export class Symbiote extends HTMLElement {
   /** @param {Object<string, string>} desc */
   static bindAttributes(desc) {
     /** @type {String[]} */
-    this.observedAttributes = [ 
+    let attrs = [
+      // @ts-ignore - observedAttributes is a native HTMLElement static getter
       ...new Set((this.observedAttributes || []).concat(Object.keys(desc)))
     ];
+    Object.defineProperty(this, 'observedAttributes', {
+      configurable: true,
+      get() { return attrs; },
+    });
     /** @private */
     this.__attrDesc = desc;
   }

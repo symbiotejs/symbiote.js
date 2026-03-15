@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.5.4
+
+### Fixed
+
+- **SSR: `bindAttributes()` crash in linkedom.** `observedAttributes` is a getter-only property in linkedom — direct assignment threw. Now uses `Object.defineProperty` with a configurable getter.
+
+- **SSR: `renderCallback()` crash from browser-only APIs.** Components using `IntersectionObserver`, `window.location`, etc. in `renderCallback` crashed the entire SSR process. Now wrapped in try-catch during SSR (`__SYMBIOTE_SSR`); browser-side errors still re-throw normally.
+
 ## 3.5.2
 
 ### Fixed
