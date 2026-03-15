@@ -57,6 +57,15 @@ function isInsidePreformatted(node) {
 }
 
 /**
+ * Escape HTML special characters in text content.
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
  * Resolve {{prop}} text node tokens by reading values from the closest custom element.
  * @param {string} text
  * @param {Node} node
@@ -178,8 +187,8 @@ function serializeNode(node, emittedStyles, nonce) {
   }
   // Text node:
   if (node.nodeType === 3) {
-    if (preformatted) return node.textContent || '';
-    return resolveTextTokens(node.textContent || '', node);
+    if (preformatted) return escapeHtml(node.textContent || '');
+    return resolveTextTokens(escapeHtml(node.textContent || ''), node);
   }
   // Comment:
   if (node.nodeType === 8) {
@@ -272,9 +281,9 @@ async function* streamNode(node, emittedStyles, nonce) {
   }
   if (node.nodeType === 3) {
     if (preformatted) {
-      yield node.textContent || '';
+      yield escapeHtml(node.textContent || '');
     } else {
-      yield resolveTextTokens(node.textContent || '', node);
+      yield resolveTextTokens(escapeHtml(node.textContent || ''), node);
     }
     return;
   }

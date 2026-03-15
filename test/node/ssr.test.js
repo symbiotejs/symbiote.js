@@ -528,5 +528,44 @@ describe('SSR.processHtml', async () => {
     assert.ok(result.includes('{{myProp}}'), `Expected raw "{{myProp}}" preserved: ${result}`);
     assert.ok(result.includes('{[items]}'), `Expected raw "{[items]}" preserved: ${result}`);
   });
+
+  it('should escape HTML entities in text nodes (prevent tag injection from decoded entities)', async () => {
+    let input = '<div><pre><code>&lt;title&gt;XSS&lt;/title&gt;</code></pre></div>';
+    let result = await SSR.processHtml(input);
+    // The text must stay escaped — a literal <title> tag would corrupt the page:
+    assert.ok(result.includes('&lt;title&gt;'), `Expected escaped &lt;title&gt; in output: ${result}`);
+    assert.ok(result.includes('&lt;/title&gt;'), `Expected escaped &lt;/title&gt; in output: ${result}`);
+    assert.ok(!result.includes('<title>XSS</title>'), `Must NOT contain a real <title> tag: ${result}`);
+  });
+
+  it('should escape ampersands and angle brackets in regular (non-pre) text nodes', async () => {
+    let input = '<div>Tom &amp; Jerry use &lt;script&gt; tags</div>';
+    let result = await SSR.processHtml(input);
+    assert.ok(result.includes('&amp;'), `Expected escaped ampersand: ${result}`);
+    assert.ok(result.includes('&lt;script&gt;'), `Expected escaped angle brackets: ${result}`);
+    assert.ok(!result.includes('<script>'), `Must NOT contain a real <script> tag: ${result}`);
+  });
+
+  it('should escape entities in streamed text nodes too', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class StreamEsc extends Symbiote {
+      init$ = { title: 'code docs' };
+    }
+    StreamEsc.template = html`
+      <h1 ${{textContent: 'title'}}></h1>
+      <pre><code>&lt;my-tag&gt;hello&lt;/my-tag&gt;</code></pre>
+    `;
+    StreamEsc.reg('stream-esc');
+
+    let chunks = [];
+    for await (let chunk of SSR.renderToStream('stream-esc')) {
+      chunks.push(chunk);
+    }
+    let result = chunks.join('');
+    assert.ok(result.includes('code docs'), `Expected title in output: ${result}`);
+    assert.ok(result.includes('&lt;my-tag&gt;'), `Expected escaped tag in streamed output: ${result}`);
+    assert.ok(!result.includes('<my-tag>hello</my-tag>'), `Must NOT contain real tags: ${result}`);
+  });
 });
 
