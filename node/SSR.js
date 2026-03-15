@@ -42,6 +42,21 @@ function extractCSS(sheet) {
 }
 
 /**
+ * Check if a node is inside a <pre> or <code> ancestor.
+ * @param {Node} node
+ * @returns {boolean}
+ */
+function isInsidePreformatted(node) {
+  let el = node.parentElement;
+  while (el) {
+    let tag = el.localName;
+    if (tag === 'pre' || tag === 'code') return true;
+    el = el.parentElement;
+  }
+  return false;
+}
+
+/**
  * Resolve {{prop}} text node tokens by reading values from the closest custom element.
  * @param {string} text
  * @param {Node} node
@@ -146,8 +161,9 @@ function serializeAttrs(el) {
  * @returns {string}
  */
 function serializeNode(node, emittedStyles, nonce) {
-  // Custom element — recurse:
-  if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
+  let preformatted = isInsidePreformatted(node);
+  // Custom element — recurse (skip inside pre/code):
+  if (!preformatted && node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
     return serializeElement(/** @type {HTMLElement} */ (node), emittedStyles, nonce);
   }
   // Regular element:
@@ -162,6 +178,7 @@ function serializeNode(node, emittedStyles, nonce) {
   }
   // Text node:
   if (node.nodeType === 3) {
+    if (preformatted) return node.textContent || '';
     return resolveTextTokens(node.textContent || '', node);
   }
   // Comment:
@@ -233,7 +250,9 @@ async function* streamElement(el, emittedStyles, nonce) {
  * @returns {AsyncGenerator<string>}
  */
 async function* streamNode(node, emittedStyles, nonce) {
-  if (node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
+  let preformatted = isInsidePreformatted(node);
+  // Custom element — stream (skip inside pre/code):
+  if (!preformatted && node.nodeType === 1 && /** @type {Element} */ (node).localName?.includes('-')) {
     yield* streamElement(/** @type {HTMLElement} */ (node), emittedStyles, nonce);
     return;
   }
@@ -252,7 +271,11 @@ async function* streamNode(node, emittedStyles, nonce) {
     return;
   }
   if (node.nodeType === 3) {
-    yield resolveTextTokens(node.textContent || '', node);
+    if (preformatted) {
+      yield node.textContent || '';
+    } else {
+      yield resolveTextTokens(node.textContent || '', node);
+    }
     return;
   }
   if (node.nodeType === 8) {

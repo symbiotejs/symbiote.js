@@ -495,5 +495,38 @@ describe('SSR.processHtml', async () => {
     assert.ok(!result.startsWith('<!DOCTYPE'), 'Should not add DOCTYPE if not present');
     assert.ok(result.includes('processed'), `Should render component: ${result}`);
   });
+
+  it('should preserve <pre> and <code> content as-is (no token resolution or custom tag rendering)', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class PreCodeDoc extends Symbiote {
+      init$ = { title: 'docs' };
+    }
+    PreCodeDoc.template = html`
+      <h1 ${{textContent: 'title'}}></h1>
+      <pre><code>&lt;my-component&gt;{{myProp}}&lt;/my-component&gt;</code></pre>
+      <code>{{someToken}}</code>
+      <code>{[listData]}</code>
+      <pre>&lt;proc-basic&gt;&lt;/proc-basic&gt;</pre>
+    `;
+    PreCodeDoc.reg('pre-code-doc');
+
+    let result = SSR.renderToString('pre-code-doc');
+    // Title should be resolved normally:
+    assert.ok(result.includes('docs'), `Expected "docs" in output: ${result}`);
+    // {{tokens}} and {[tokens]} inside <code> / <pre> must NOT be resolved:
+    assert.ok(result.includes('{{myProp}}'), `Expected raw "{{myProp}}" preserved inside <pre><code>: ${result}`);
+    assert.ok(result.includes('{{someToken}}'), `Expected raw "{{someToken}}" preserved inside <code>: ${result}`);
+    assert.ok(result.includes('{[listData]}'), `Expected raw "{[listData]}" preserved inside <code>: ${result}`);
+    // The doc component itself should render fine:
+    assert.ok(result.includes('<pre-code-doc'), 'Should contain component tag');
+  });
+
+  it('should preserve <pre>/<code> content in processHtml too', async () => {
+    let input = '<div><pre><code>&lt;proc-basic&gt;{{myProp}} {[items]}&lt;/proc-basic&gt;</code></pre></div>';
+    let result = await SSR.processHtml(input);
+    assert.ok(result.includes('{{myProp}}'), `Expected raw "{{myProp}}" preserved: ${result}`);
+    assert.ok(result.includes('{[items]}'), `Expected raw "{[items]}" preserved: ${result}`);
+  });
 });
 
