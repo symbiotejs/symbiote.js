@@ -342,9 +342,6 @@ export class SSR {
    * Called automatically by processHtml(). Call manually only after renderToString/renderToStream.
    */
   static destroy() {
-    if (SSR.#doc) {
-      SSR.#doc.body.innerHTML = '';
-    }
     delete globalThis.__SYMBIOTE_SSR;
     delete globalThis.document;
     delete globalThis.window;
@@ -375,6 +372,13 @@ export class SSR {
    * ```
    */
   static async processHtml(html, options = {}) {
+    let doctype = '';
+    let doctypeMatch = html.match(/^(\s*<!doctype[^>]*>\s*)/i);
+    if (doctypeMatch) {
+      doctype = doctypeMatch[1];
+      html = html.slice(doctypeMatch[0].length);
+    }
+
     let autoInited = !SSR.#doc;
     if (autoInited) {
       await SSR.init();
@@ -385,11 +389,10 @@ export class SSR {
     for (let child of SSR.#doc.body.childNodes) {
       result += serializeNode(child, emittedStyles, options.nonce);
     }
-    SSR.#doc.body.innerHTML = '';
     if (autoInited) {
       SSR.destroy();
     }
-    return result;
+    return doctype + result;
   }
 
   /**
@@ -422,7 +425,6 @@ export class SSR {
       html = serializeElement(el, new Set(), options.nonce);
       el.remove();
     }
-    SSR.#doc.body.innerHTML = '';
     return html;
   }
 
@@ -454,7 +456,6 @@ export class SSR {
       yield* streamElement(el, new Set(), options.nonce);
       el.remove();
     }
-    SSR.#doc.body.innerHTML = '';
   }
 }
 

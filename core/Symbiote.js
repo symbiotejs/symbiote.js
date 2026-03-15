@@ -531,6 +531,7 @@ export class Symbiote extends HTMLElement {
 
   destructionDelay = 100;
   disconnectedCallback() {
+    if (globalThis.__SYMBIOTE_SSR) return;
     // if element wasn't connected, there is no need to disconnect it
     if (!this.connectedOnce) {
       return;

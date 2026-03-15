@@ -444,5 +444,56 @@ describe('SSR.processHtml', async () => {
     let result = await SSR.processHtml('<proc-styled></proc-styled>', { nonce: 'proc-n' });
     assert.ok(result.includes('<style nonce="proc-n">'), `Expected nonce in processHtml output: ${result}`);
   });
+
+  it('should skip disconnectedCallback during SSR (no sub.remove crash)', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrDisconnect extends Symbiote {
+      init$ = {
+        value: 'disconnect-test',
+      };
+    }
+    SsrDisconnect.template = html`<div ${{textContent: 'value'}}></div>`;
+    SsrDisconnect.reg('ssr-disconnect');
+
+    // processHtml creates and destroys elements — disconnectedCallback fires
+    // Without the fix, the destruction timer would crash after SSR.destroy()
+    let result = await SSR.processHtml('<ssr-disconnect></ssr-disconnect>');
+    assert.ok(result.includes('disconnect-test'), `Expected content in output: ${result}`);
+    assert.ok(result.includes('<ssr-disconnect'), 'Should contain opening tag');
+  });
+
+  it('should handle multiple sequential processHtml calls without crashing', async () => {
+    // Without removing body.innerHTML = '' cleanup, linkedom crashes on
+    // Attr/DocumentType nodes that lack .remove()
+    let result1 = await SSR.processHtml('<proc-basic></proc-basic>');
+    let result2 = await SSR.processHtml('<proc-outer></proc-outer>');
+    let result3 = await SSR.processHtml('<proc-basic></proc-basic><proc-outer></proc-outer>');
+
+    assert.ok(result1.includes('processed'), 'First call should work');
+    assert.ok(result2.includes('outside'), 'Second call should work');
+    assert.ok(result2.includes('inside'), 'Second call should render nested');
+    assert.ok(result3.includes('processed'), 'Third call should work (first component)');
+    assert.ok(result3.includes('outside'), 'Third call should work (second component)');
+  });
+
+  it('should strip and restore DOCTYPE in processHtml', async () => {
+    // Without DOCTYPE stripping, linkedom parses DocumentType as a node
+    // inside body, which crashes on replaceChildren (nodeType 10 lacks .remove())
+    let fullDoc = '<!DOCTYPE html><html><head></head><body><proc-basic></proc-basic></body></html>';
+    let result = await SSR.processHtml(fullDoc);
+
+    assert.ok(result.startsWith('<!DOCTYPE html>'), `Should preserve DOCTYPE at start: ${result.slice(0, 50)}`);
+    assert.ok(result.includes('processed'), `Should render component inside: ${result}`);
+    assert.ok(result.includes('<proc-basic'), 'Should contain component tag');
+  });
+
+  it('should handle processHtml without DOCTYPE unchanged', async () => {
+    let htmlWithout = '<div><proc-basic></proc-basic></div>';
+    let result = await SSR.processHtml(htmlWithout);
+
+    assert.ok(!result.startsWith('<!DOCTYPE'), 'Should not add DOCTYPE if not present');
+    assert.ok(result.includes('processed'), `Should render component: ${result}`);
+  });
 });
 
