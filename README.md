@@ -9,25 +9,25 @@
 
 <img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
 
-A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required — works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** brotli / **~7kb** gzip.
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required - works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~6kb** brotli / **~7kb** gzip.
 
-Symbiote.js gives you the convenience of a modern framework while staying close to the native platform — HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client — server-rendered pages hydrate automatically, no diffing, no mismatch errors.
+Symbiote.js gives you the convenience of a modern framework while staying close to the native platform - HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client - server-rendered pages hydrate automatically, no diffing, no mismatch errors.
 
 ## What's new in v3
 
-- **Server-Side Rendering** — render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
-- **Isomorphic components** — `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
-- **Computed properties** — reactive derived state with microtask batching.
-- **Path-based router** — optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
-- **Exit animations** — `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
-- **Dev mode** — `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
-- **DSD hydration** — `ssrMode` supports both light DOM and Declarative Shadow DOM.
-- **Class property fallback** — binding keys not in `init$` fall back to own class properties/methods.
+- **Server-Side Rendering** - render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
+- **Isomorphic components** - `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
+- **Computed properties** - reactive derived state with microtask batching.
+- **Path-based router** - optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
+- **Exit animations** - `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
+- **Dev mode** - `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
+- **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
+- **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
 - And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).
 
 ## Quick start
 
-No install needed — run this directly in a browser:
+No install needed - run this directly in a browser:
 
 ```html
 <script type="module">
@@ -63,7 +63,7 @@ import Symbiote, { html, css } from '@symbiotejs/symbiote';
 
 ## Isomorphic Web Components
 
-One component. Server-rendered or client-rendered — automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
+One component. Server-rendered or client-rendered - automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
 ```js
 class MyComponent extends Symbiote {
   isoMode = true;
@@ -80,9 +80,9 @@ MyComponent.template = html`
 MyComponent.reg('my-component');
 ```
 
-This exact code runs **everywhere** — SSR on the server, hydration on the client, or pure client rendering. No framework split, no `'use client'` directives, no hydration mismatch errors.
+This exact code runs **everywhere** - SSR on the server, hydration on the client, or pure client rendering. No framework split, no `'use client'` directives, no hydration mismatch errors.
 
-### SSR — one class, zero config
+### SSR - one class, zero config
 
 Server rendering doesn't need a virtual DOM, a reconciler, or framework-specific packages:
 
@@ -103,12 +103,12 @@ For large pages, stream HTML chunks with `SSR.renderToStream()` for faster TTFB.
 | | **Symbiote.js** | **Next.js (React)** | **Lit** (`@lit-labs/ssr`) |
 |--|----------------|---------------------|----|
 | **Isomorphic code** | Same code, `isoMode` auto-detects | Server Components vs Client Components split | Same code, but load-order constraints |
-| **Hydration** | Binding-based — attaches to existing DOM, no diffing | `hydrateRoot()` — must produce identical output or errors | Requires `ssr-client` + hydrate support module |
+| **Hydration** | Binding-based - attaches to existing DOM, no diffing | `hydrateRoot()` - must produce identical output or errors | Requires `ssr-client` + hydrate support module |
 | **Packages** | 1 module + `linkedom` peer dep | Full framework buy-in | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
 | **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
-| **Mismatch handling** | Not needed — bindings attach to whatever DOM exists | Hard errors if server/client output differs | N/A |
+| **Mismatch handling** | Not needed - bindings attach to whatever DOM exists | Hard errors if server/client output differs | N/A |
 | **Template output** | Clean HTML with `bind=` attributes | HTML with framework markers | HTML with `<!--lit-part-->` comment markers |
-| **Lock-in** | None — standard Web Components | Full framework commitment | Lit-specific, but Web Components |
+| **Lock-in** | None - standard Web Components | Full framework commitment | Lit-specific, but Web Components |
 
 **Key insight:** There are no hydration mismatches because there's no diffing. The server produces HTML with binding attributes. The client reads those attributes and adds reactivity. That's it.
 
@@ -136,11 +136,11 @@ State changes update the DOM synchronously. No virtual DOM, no scheduling, no su
 document.querySelector('my-counter').$.count = 42;
 ```
 
-This makes it easy to control Symbiote-based widgets and microfrontends from any host application — no framework adapters, just DOM.
+This makes it easy to control Symbiote-based widgets and microfrontends from any host application - no framework adapters, just DOM.
 
 ### Templates
 
-Templates are plain HTML strings — context-free, easy to test, easy to move between files:
+Templates are plain HTML strings - context-free, easy to test, easy to move between files:
 
 ```js
 // Separate file: my-component.template.js
@@ -182,11 +182,11 @@ TaskList.template = html`
 `;
 ```
 
-Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers — `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
+Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers - `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
 
 ### Pop-up binding (`^`)
 
-The `^` prefix works in any nested component template — it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
+The `^` prefix works in any nested component template - it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
 
 ```html
 <!-- Text binding to parent property: -->
@@ -196,7 +196,7 @@ The `^` prefix works in any nested component template — it walks up the DOM tr
 <button ${{onclick: '^parentHandler'}}>Click</button>
 ```
 
-> **Note:** Class property fallbacks are not checked by the `^` walk — the parent must define the property in `init$`.
+> **Note:** Class property fallbacks are not checked by the `^` walk - the parent must define the property in `init$`.
 
 ### Named data contexts
 
@@ -216,7 +216,7 @@ this.$['APP/user'] = 'New name';
 
 ### Shared context (`*`)
 
-Inspired by native HTML `name` attributes — like how `<input name="group">` groups radio buttons — the `ctx` attribute groups components into a shared data context. Components with the same `ctx` value share `*`-prefixed properties:
+Inspired by native HTML `name` attributes - like how `<input name="group">` groups radio buttons - the `ctx` attribute groups components into a shared data context. Components with the same `ctx` value share `*`-prefixed properties:
 
 ```html
 <upload-btn ctx="gallery"></upload-btn>
@@ -242,7 +242,7 @@ class StatusBar extends Symbiote {
 }
 ```
 
-All three components access the same `*files` state — no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
+All three components access the same `*files` state - no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
 
 The context name can also be inherited via CSS custom property `--ctx`, enabling layout-driven grouping.
 
@@ -276,9 +276,9 @@ task-item {
 
 ### Styling
 
-Shadow DOM is **optional** in Symbiote — use it when you need isolation, skip it when you don't. This gives full flexibility:
+Shadow DOM is **optional** in Symbiote - use it when you need isolation, skip it when you don't. This gives full flexibility:
 
-**Light DOM** — style components with regular CSS, no barriers:
+**Light DOM** - style components with regular CSS, no barriers:
 
 ```js
 MyComponent.rootStyles = css`
@@ -291,7 +291,7 @@ MyComponent.rootStyles = css`
 `;
 ```
 
-**Shadow DOM** — opt-in isolation when needed:
+**Shadow DOM** - opt-in isolation when needed:
 
 ```js
 class Isolated extends Symbiote {}
@@ -302,7 +302,7 @@ Isolated.shadowStyles = css`
 `;
 ```
 
-All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` — no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
+All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` - no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
 
 ### CSS Data Binding
 
@@ -322,15 +322,15 @@ MyWidget.template = html`
 `;
 ```
 
-CSS values are parsed automatically — quoted strings become strings, numbers become numbers. Call `this.updateCssData()` to re-read after runtime CSS changes. This enables CSS-driven configuration: theme values, layout parameters, or localized strings — all settable from CSS without touching JS.
+CSS values are parsed automatically - quoted strings become strings, numbers become numbers. Call `this.updateCssData()` to re-read after runtime CSS changes. This enables CSS-driven configuration: theme values, layout parameters, or localized strings - all settable from CSS without touching JS.
 
 ## Best for
 
 - **Complex widgets** embedded in any host application
-- **Micro frontends** — standard custom elements, no framework coupling
-- **Reusable component libraries** — works in React, Vue, Angular, or plain HTML
-- **SSR-powered apps** — lightweight server rendering without framework lock-in
-- **Framework-agnostic solutions** — one codebase, any context
+- **Micro frontends** - standard custom elements, no framework coupling
+- **Reusable component libraries** - works in React, Vue, Angular, or plain HTML
+- **SSR-powered apps** - lightweight server rendering without framework lock-in
+- **Framework-agnostic solutions** - one codebase, any context
 
 ## Bundle size
 
@@ -351,6 +351,7 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
+- [JSDA-Kit](https://github.com/rnd-pro/jsda-kit) - All-in-one companion tool: server, SSG, bundling, import maps, and native Symbiote.js SSR integration
 - [AI Reference](https://github.com/symbiotejs/symbiote.js/blob/main/AI_REFERENCE.md)
 - [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
@@ -358,4 +359,4 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 
 ---
 
-© [rnd-pro.com](https://rnd-pro.com) — MIT License
+© [rnd-pro.com](https://rnd-pro.com) - MIT License
