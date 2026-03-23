@@ -45,6 +45,7 @@
 
 ## Additional Resources
 
+- [Lit vs Symbiote.js](./lit-vs-symbiote.md) — Side-by-side comparison
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [AI Reference](../AI_REFERENCE.md) — Comprehensive API reference for AI assistants
 - [Changelog](../CHANGELOG.md)

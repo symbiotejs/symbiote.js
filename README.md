@@ -350,6 +350,7 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 ## Docs & Examples
 
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
+- [Lit vs Symbiote.js](https://github.com/symbiotejs/symbiote.js/blob/main/docs/lit-vs-symbiote.md) - Side-by-side comparison
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [JSDA-Kit](https://github.com/rnd-pro/jsda-kit) - All-in-one companion tool: server, SSG, bundling, import maps, and native Symbiote.js SSR integration
 - [AI Reference](https://github.com/symbiotejs/symbiote.js/blob/main/AI_REFERENCE.md)
