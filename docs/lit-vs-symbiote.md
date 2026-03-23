@@ -1,5 +1,6 @@
 # Lit vs Symbiote.js
 
+> [!NOTE]
 > Both libraries build on Web Components. Lit is the most popular choice backed by Google. So why consider Symbiote.js?
 
 This comparison is written from the Symbiote.js perspective but aims to be technically fair. Where Lit does something well, we say so.
@@ -191,6 +192,8 @@ Symbiote.js ships with `AppRouter` — a built-in SPA router (optional import) w
 Lit is a mature, well-supported library with a large community and strong ecosystem. It's a solid choice for teams that want a lightweight framework experience with custom elements.
 
 Symbiote.js is designed for a different set of priorities: maximally loose coupling, template flexibility, built-in state management, and seamless isomorphic rendering — all without external dependencies. If you're building widgets, micro-frontends, or framework-agnostic component libraries, these architectural choices make a practical difference.
+
+And since both Lit and Symbiote.js produce standard custom elements, they can coexist on the same page — alongside raw native web components — without conflicts. You don't have to choose one exclusively; mix them freely within a single project, using each where it fits best.
 
 ---
 
