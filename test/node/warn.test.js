@@ -31,7 +31,7 @@ describe('warn module', () => {
     if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
   });
 
-  it('should log short error code without dev log handler', () => {
+  it('should mute non-critical error codes without dev log handler', () => {
     let saved = globalThis.__SYMBIOTE_DEV_LOG;
     delete globalThis.__SYMBIOTE_DEV_LOG;
     let errors = [];
@@ -39,8 +39,7 @@ describe('warn module', () => {
     console.error = (msg) => errors.push(msg);
 
     errMsg(15);
-    assert.equal(errors.length >= 1, true);
-    assert.equal(errors[0], '[Symbiote E15] `this` used in template interpolation');
+    assert.equal(errors.length, 0);
 
     console.error = origError;
     if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;

@@ -62,17 +62,9 @@ describe('html tagged template', () => {
     assert.equal(result, '<div class="active"  bind="textContent:x;"></div>');
   });
 
-  it('should skip null/undefined values with error', () => {
-    let errors = [];
-    let origError = console.error;
-    console.error = (msg) => errors.push(msg);
-
+  it('should skip null/undefined values silently without devMessages', () => {
     let result = html`<div>${undefined}</div>`;
     assert.equal(result, '<div></div>');
-    assert.ok(errors.length >= 1);
-    assert.ok(errors[0].includes('Symbiote'));
-
-    console.error = origError;
   });
 
   it('should handle attribute binding with @ prefix', () => {
