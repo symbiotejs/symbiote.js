@@ -69,7 +69,7 @@ describe('html tagged template', () => {
 
     let result = html`<div>${undefined}</div>`;
     assert.equal(result, '<div></div>');
-    assert.equal(errors.length, 1);
+    assert.ok(errors.length >= 1);
     assert.ok(errors[0].includes('Symbiote'));
 
     console.error = origError;

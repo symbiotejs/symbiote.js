@@ -4,16 +4,28 @@ import { warnMsg, errMsg, devState } from '../../core/warn.js';
 
 describe('warn module', () => {
 
-  it('should log short code without dev log handler', () => {
+  it('should show readable message for critical codes only', () => {
     let saved = globalThis.__SYMBIOTE_DEV_LOG;
     delete globalThis.__SYMBIOTE_DEV_LOG;
+    devState.hintShown = false;
     let warnings = [];
     let origWarn = console.warn;
     console.warn = (msg) => warnings.push(msg);
 
-    warnMsg(99);
-    assert.equal(warnings.length, 1);
-    assert.equal(warnings[0], '[Symbiote W99]');
+    // Non-critical code — muted
+    warnMsg(1);
+    assert.equal(warnings.length, 0);
+
+    // Critical code — readable message + one-time hint
+    warnMsg(8, 'my-tag', 'OldClass', 'NewClass');
+    assert.equal(warnings.length, 2);
+    assert.equal(warnings[0], '[Symbiote W8] Tag already registered with different class');
+    assert.ok(warnings[1].includes('devMessages.js'));
+
+    // Second critical call — no repeated hint
+    warnMsg(16, 'my-list', 'string', '"oops"');
+    assert.equal(warnings.length, 3);
+    assert.equal(warnings[2], '[Symbiote W16] Itemize data must be Array or Object');
 
     console.warn = origWarn;
     if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
@@ -26,9 +38,9 @@ describe('warn module', () => {
     let origError = console.error;
     console.error = (msg) => errors.push(msg);
 
-    errMsg(98);
-    assert.equal(errors.length, 1);
-    assert.equal(errors[0], '[Symbiote E98]');
+    errMsg(15);
+    assert.equal(errors.length >= 1, true);
+    assert.equal(errors[0], '[Symbiote E15] `this` used in template interpolation');
 
     console.error = origError;
     if (saved) globalThis.__SYMBIOTE_DEV_LOG = saved;
