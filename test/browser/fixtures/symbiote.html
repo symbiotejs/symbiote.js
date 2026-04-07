@@ -329,6 +329,22 @@
   `;
   SymIsoLight.reg('sym-iso-light');
 
+  // ── 21. Combined rootStyles + shadowStyles ──
+
+  class SymDualStyled extends Symbiote {
+    init$ = { label: 'dual styled' }
+  }
+  SymDualStyled.template = html`
+    <span id="dual-inner" ${{textContent: 'label'}}></span>
+  `;
+  SymDualStyled.rootStyles = css`
+    sym-dual-styled { color: rgb(0, 128, 0); }
+  `;
+  SymDualStyled.shadowStyles = css`
+    :host { display: block; border-style: solid; }
+  `;
+  SymDualStyled.reg('sym-dual-styled');
+
   // ── Mount all ──
 
   document.getElementById('mount').innerHTML = `
@@ -352,6 +368,7 @@
     <sym-css-data id="css-data-el"></sym-css-data>
     <sym-iso-shadow id="iso-shadow-el"><em>slotted content</em></sym-iso-shadow>
     <sym-iso-light id="iso-light-el"></sym-iso-light>
+    <sym-dual-styled id="dual-styled-el"></sym-dual-styled>
   `;
 
   window.__TEST_READY = true;

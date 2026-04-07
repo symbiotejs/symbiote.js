@@ -320,4 +320,34 @@ test.describe('Symbiote class', () => {
     let info = await page.textContent('#iso-light-info');
     expect(info).toBe('light info');
   });
+
+  // ── Combined rootStyles + shadowStyles ──
+
+  test('component with both rootStyles and shadowStyles should have shadow root', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('#dual-styled-el');
+      return {
+        hasShadow: !!el.shadowRoot,
+        content: el.shadowRoot?.querySelector('#dual-inner')?.textContent,
+      };
+    });
+    expect(result.hasShadow).toBe(true);
+    expect(result.content).toBe('dual styled');
+  });
+
+  test('rootStyles should apply to document even when shadowStyles exist', async ({ page }) => {
+    let color = await page.evaluate(() => {
+      let el = document.querySelector('#dual-styled-el');
+      return getComputedStyle(el).color;
+    });
+    expect(color).toBe('rgb(0, 128, 0)');
+  });
+
+  test('shadowStyles should apply inside shadow root when rootStyles also exist', async ({ page }) => {
+    let borderStyle = await page.evaluate(() => {
+      let el = document.querySelector('#dual-styled-el');
+      return getComputedStyle(el).borderStyle;
+    });
+    expect(borderStyle).toBe('solid');
+  });
 });

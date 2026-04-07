@@ -184,6 +184,29 @@ describe('SSR Engine', async () => {
     assert.ok(!result.includes('shadowrootmode'), 'Should not use DSD for rootStyles');
   });
 
+  it('should render both rootStyles and shadowStyles on the same component', async () => {
+    const { default: Symbiote, html, css } = await import('../../core/Symbiote.js');
+
+    class SsrDualStyled extends Symbiote {
+      init$ = {
+        label: 'dual styled',
+      };
+    }
+    SsrDualStyled.template = html`<span ${{textContent: 'label'}}></span>`;
+    SsrDualStyled.rootStyles = css`ssr-dual-styled { display: flex; }`;
+    SsrDualStyled.shadowStyles = css`:host { color: blue; }`;
+    SsrDualStyled.reg('ssr-dual-styled');
+
+    let result = SSR.renderToString('ssr-dual-styled');
+    // Should have rootStyles as inline <style> in light DOM:
+    assert.ok(result.includes('display: flex'), `Expected rootStyles CSS in output: ${result}`);
+    // Should have DSD with shadowStyles:
+    assert.ok(result.includes('shadowrootmode'), `Expected DSD template for shadowStyles: ${result}`);
+    assert.ok(result.includes('color: blue'), `Expected shadowStyles CSS in output: ${result}`);
+    // Content should render:
+    assert.ok(result.includes('dual styled'), `Expected content in output: ${result}`);
+  });
+
   it('should add nonce to rootStyles <style> tags via renderToString', async () => {
     let result = SSR.renderToString('ssr-styled', {}, { nonce: 'test123' });
     assert.ok(result.includes('nonce="test123"'), `Expected nonce attribute in output: ${result}`);
