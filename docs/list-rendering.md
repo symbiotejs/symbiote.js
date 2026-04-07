@@ -59,62 +59,93 @@ MyComponent.template = html`
 ## List items
 
 > **CRITICAL**: Items inside `itemize` are full Symbiote components with their own state scope.
-> - `{{name}}` — binds to the **item's** own property
-> - `${{onclick: 'handler'}}` — binds to the **item** component's own method/property
-> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property (must be in parent's `init$`)
-> - **Failure to use `^` for parent handlers will result in broken event bindings**
+> There are two patterns — **dumb items** and **smart items** — and they differ in how event handlers and logic are bound.
 
-By default, all list items are Symbiote components wrapped with a corresponding custom element. If you don't need an extra container for styling, use `display: contents` CSS — this is added to each item by default when you don't set custom tag names.
+### Dumb items (inline `<template>`)
 
-### Custom item tag name
+When you define the item markup directly inside a `<template>` tag, items have **no class definition** — they only receive data properties from the array. Any event handler, method, or additional data must come from an **external context** — not from the item itself.
 
-Use `item-tag` attribute to define a named tag for list items:
+All standard Symbiote context prefixes work inside dumb item templates:
+
+| Prefix | Source | Example |
+|--------|--------|---------|
+| `^` | Pop-up (parent component) | `${{onclick: '^onItemClick'}}` |
+| `/` | Named context | `${{onclick: 'APP/onItemClick'}}` |
+| `*` | Shared context | `${{onclick: '*onItemClick'}}` |
+
+The most common pattern is `^` (pop-up to parent):
+
 ```js
-MyComponent.template = html`
-  <div itemize="userList" item-tag="user-card">
+class MyList extends Symbiote {
+  init$ = {
+    userList: [
+      { firstName: 'John', secondName: 'Snow' },
+      { firstName: 'Peter', secondName: 'Sand' },
+    ],
+  };
+
+  onItemClick(e) {
+    console.log('Item clicked');
+  }
+}
+
+MyList.template = html`
+  <div itemize="userList">
     <template>
-      <div>{{firstName}}</div>
-      <div>{{secondName}}</div>
+      <div>{{firstName}} {{secondName}}</div>
+      <button ${{onclick: '^onItemClick'}}>Click</button>
     </template>
   </div>
 `;
 ```
 
-Then use the tag as a CSS selector:
-```css
-user-card {
-  display: flex;
-}
-```
+> **Context prefix is required here.** Without it, the binding looks for the handler on the item itself — which doesn't have it, so the event handler breaks silently.
 
-### Pre-defined item component
+This pattern is best for **simple, display-only items** where all logic lives outside the item.
 
-For additional item functionality, define the item component separately:
+### Smart items (custom `item-tag` component)
+
+When you define a separate Symbiote component for items, each item has its **own class, template, methods, and state**. Handlers defined on the item component bind directly — **no `^` needed**:
+
 ```js
 class UserCard extends Symbiote {
   firstName = '';
   secondName = '';
 
-  initCallback() {
-    this.onclick = () => {
-      alert(`Hello ${this.$.firstName} ${this.$.secondName}!`);
-    };
+  onCardClick() {
+    alert(`Hello ${this.$.firstName} ${this.$.secondName}!`);
   }
 }
 
 UserCard.template = html`
-  <div>{{firstName}}</div>
-  <div>{{secondName}}</div>
+  <div>{{firstName}} {{secondName}}</div>
+  <button ${{onclick: 'onCardClick'}}>Click</button>
 `;
 
 UserCard.reg('user-card');
 ```
 
-Use it:
+Use it in the parent list:
 ```js
 html`
-  <div itemize="listData" item-tag="user-card"></div>
+  <div itemize="userList" item-tag="user-card"></div>
 `;
+```
+
+> **No `^` needed** — `onCardClick` is the item's own method. You can still use `^` to reach the parent list component if needed (e.g., `${{onclick: '^removeItem'}}`).
+
+This pattern is best for **items with their own logic, lifecycle, or complex templates**.
+
+### Styling list items
+
+By default, all list items are Symbiote components wrapped with a corresponding custom element. If you don't need an extra container for styling, use `display: contents` CSS — this is added to each item by default when you don't set custom tag names.
+
+Use `item-tag` to assign a named tag for styling:
+```css
+user-card {
+  display: flex;
+  gap: 8px;
+}
 ```
 
 ### Item template

@@ -441,7 +441,7 @@ class MyList extends Symbiote {
 }
 
 MyList.template = html`
-  <ul ${{itemize: 'items'}}>
+  <ul itemize="items">
     <template>
       <li>
         <span>{{name}}</span> - <span>{{role}}</span>
@@ -452,17 +452,41 @@ MyList.template = html`
 `;
 ```
 
-> **CRITICAL**: Inside itemize templates, items are full Symbiote components with their own state scope.
-> - `{{name}}` — item's own property
-> - `${{onclick: 'handler'}}` — binds to the item component's own method/property
-> - `${{onclick: '^handler'}}` — use `^` prefix to reach the **parent** component's property (must be in parent's `init$`)
-> - Failure to use `^` for parent handlers will result in broken event bindings
+> **CRITICAL**: Inside itemize, each item is a Symbiote component with its own state scope.
+> There are **two patterns** — they determine how event handlers are bound:
+>
+> **Pattern 1: Inline `<template>` (dumb items)** — items have no class definition, only data properties from the array.
+> Any event handler or data must come from an **external context** — not from the item itself.
+> All context prefixes work: `^` (parent pop-up), `APP/` (named), `*` (shared). The most common is `^`:
+> ```html
+> <ul itemize="items">
+>   <template>
+>     <li>{{name}} <button ${{onclick: '^onItemClick'}}>Click</button></li>
+>   </template>
+> </ul>
+> ```
+> Without a context prefix, the binding looks for the handler on the item itself — which doesn't have it, so it breaks.
+>
+> **Pattern 2: Custom `item-tag` (smart items)** — items are full components with their own class, templates, and methods.
+> Handlers defined on the item component itself do **NOT** need `^`:
+> ```html
+> <div itemize="items" item-tag="my-item"></div>
+> ```
+> ```js
+> class MyItem extends Symbiote {
+>   onItemClick() { console.log(this.$.name); }
+> }
+> MyItem.template = html`<li>{{name}} <button ${{onclick: 'onItemClick'}}>Click</button></li>`;
+> MyItem.reg('my-item');
+> ```
+> Here `onItemClick` is the item's own method — no `^` needed.
+> You can still use `^` to reach the parent list component if needed.
 
 ### Custom item component
 ```html
-<div ${{itemize: 'items', 'item-tag': 'my-item'}}></div>
+<div itemize="items" item-tag="my-item"></div>
 ```
-Then define `my-item` as a separate Symbiote component.
+Then define `my-item` as a separate Symbiote component with its own template, methods, and state.
 
 ### Data formats
 - **Array**: `[{prop: val}, ...]` — items rendered in order
@@ -799,7 +823,7 @@ import '@symbiotejs/symbiote/core/devMessages.js';
 
 1. **DON'T** use `this` in template strings — templates are decoupled from component context
 2. **DON'T** nest property keys with dots in state: `'obj.prop'` won't work as a state key
-3. **DON'T** forget `^` prefix when referencing **parent** component properties from itemize items
+3. **DON'T** forget `^` prefix when referencing **parent** handlers from inline `<template>` itemize items (dumb items without their own class). Custom `item-tag` components with own methods bind directly without `^`
 4. **DON'T** use `@` prefix directly in HTML — it's only for binding syntax (`${{'@attr': 'prop'}}`)
 5. **DON'T** treat `init$` as a regular object — it's processed at connection time
 6. **DON'T** define `template` inside the class body (`static template = html\`...\`` won't work) — it's a static property **setter**, assign it outside: `MyComponent.template = html\`...\``. Same applies to `rootStyles` and `shadowStyles`.
