@@ -30,7 +30,7 @@ import { setupItemize } from './itemizeSetup.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR }) => {
+  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR, isLazy }) => {
     /** @type {*[]} */
     let prevData = [];
 
@@ -88,6 +88,9 @@ export function itemizeProcessor(fr, fnCtx) {
           let fragment = document.createDocumentFragment();
           for (let i = prevLen; i < newLen; i++) {
             let repeatItem = new itemClass();
+            if (isLazy) {
+              repeatItem.lazyMode = true;
+            }
             Object.assign((repeatItem?.init$ || repeatItem), items[i]);
             fragment.appendChild(repeatItem);
           }
@@ -151,6 +154,9 @@ export function itemizeProcessor(fr, fnCtx) {
               newChildren.push(existing);
             } else {
               let repeatItem = new itemClass();
+              if (isLazy) {
+                repeatItem.lazyMode = true;
+              }
               Object.assign((repeatItem?.init$ || repeatItem), item);
               newChildren.push(repeatItem);
             }
@@ -193,6 +199,9 @@ export function itemizeProcessor(fr, fnCtx) {
             fragment = document.createDocumentFragment();
           }
           let repeatItem = new itemClass();
+          if (isLazy) {
+            repeatItem.lazyMode = true;
+          }
           Object.assign((repeatItem?.init$ || repeatItem), items[i]);
           fragment.appendChild(repeatItem);
         }

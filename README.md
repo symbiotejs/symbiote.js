@@ -23,6 +23,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **Dev mode** - `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
 - **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
 - **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
+- **Lazy mode** - `lazyMode` flag defers component initialization and rendering based on viewport visibility. Can also be enabled via the `lazy` attribute on `itemize` containers to efficiently handle massive data sets.
 - And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).
 
 ## Quick start
@@ -183,6 +184,8 @@ TaskList.template = html`
 ```
 
 Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers - `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
+
+> **Performance Tip:** For massive lists, add the `lazy` attribute to the container (`<div itemize="tasks" lazy>`). It defers component initialization until they enter the viewport and cleans them up when they leave, heavily optimizing memory and rendering performance.
 
 ### Pop-up binding (`^`)
 

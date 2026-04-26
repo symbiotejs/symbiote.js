@@ -8,6 +8,7 @@ import { initPropFallback } from './initPropFallback.js';
  * @property {*} itemClass
  * @property {string} repeatDataKey
  * @property {boolean} clientSSR
+ * @property {boolean} isLazy
  */
 
 /**
@@ -78,7 +79,8 @@ export function setupItemize(fr, fnCtx, handler) {
       initPropFallback(fnCtx, repeatDataKey);
     }
 
-    handler({ el, itemClass, repeatDataKey, clientSSR });
+    let isLazy = el.hasAttribute('lazy');
+    handler({ el, itemClass, repeatDataKey, clientSSR, isLazy });
 
     if (!globalThis.__SYMBIOTE_SSR) {
       el.removeAttribute(DICT.LIST_ATTR);

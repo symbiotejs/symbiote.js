@@ -8,7 +8,7 @@ import { setupItemize } from './itemizeSetup.js';
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR }) => {
+  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR, isLazy }) => {
     fnCtx.sub(repeatDataKey, (data) => {
       if (!data) {
         while (el.firstChild) {
@@ -34,6 +34,9 @@ export function itemizeProcessor(fr, fnCtx) {
               fragment = document.createDocumentFragment();
             }
             let repeatItem = new itemClass();
+            if (isLazy) {
+              repeatItem.lazyMode = true;
+            }
             Object.assign((repeatItem?.init$ || repeatItem), item);
             fragment.appendChild(repeatItem);
           }

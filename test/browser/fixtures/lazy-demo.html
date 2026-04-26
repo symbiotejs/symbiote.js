@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote.js Lazy Mode Demo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    lazy-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+      margin-bottom: 10px;
+      background: #f0f0f0;
+      border-radius: 8px;
+    }
+  </style>
+  <script type="module">
+    import Symbiote, { html } from '../../../core/Symbiote.js';
+
+    class LazyItem extends Symbiote {
+      init$ = {
+        title: '',
+        text: '',
+      }
+    }
+    LazyItem.template = html`
+      <h3>{{title}}</h3>
+      <p>{{text}}</p>
+    `;
+    LazyItem.reg('lazy-item');
+
+    class AppMain extends Symbiote {
+
+      init$ = {
+        num: 10000,
+        items: [],
+      }
+
+      initCallback() {
+        let items = [];
+        for (let i = 0; i < this.$.num; i++) {
+          items.push({
+            title: `Item ${i}`,
+            text: `Description for item ${i}`
+          });
+        }
+        this.$.items = items;
+      }
+    }
+    AppMain.template = html`
+      <h2>{{num}} Lazy Items</h2>
+      <div class="container" itemize="items" item-tag="lazy-item" lazy></div>
+    `;
+    AppMain.reg('app-main');
+  </script>
+</head>
+<body>
+  <app-main></app-main>
+</body>
+</html>

@@ -4,5 +4,6 @@ export type ItemizeDescriptor = {
     itemClass: any;
     repeatDataKey: string;
     clientSSR: boolean;
+    isLazy: boolean;
 };
 //# sourceMappingURL=itemizeSetup.d.ts.map

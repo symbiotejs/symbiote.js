@@ -19,6 +19,9 @@ const trustedHTML = globalThis.trustedTypes ? trustedTypes.createPolicy('symbiot
 
 /** @template S */
 export class Symbiote extends HTMLElement {
+  /** @type {IntersectionObserver} */
+  static lazyObserver;
+
   /** @type {Boolean} */
   #initialized;
   /** @type {String} */
@@ -187,6 +190,8 @@ export class Symbiote extends HTMLElement {
     this.isVirtual = false;
     /** @type {Boolean} */
     this.allowTemplateInits = true;
+    /** @type {Boolean} */
+    this.lazyMode = false;
   }
 
   /** @returns {String} */
@@ -516,7 +521,52 @@ export class Symbiote extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#initComponent();
+    if (this.lazyMode) {
+      if (!Symbiote.lazyObserver) {
+        Symbiote.lazyObserver = new IntersectionObserver((entries) => {
+          entries.forEach((ent) => {
+            /** @type {any} */
+            let tgt = ent.target;
+            if (ent.isIntersecting) {
+              tgt.style.minHeight = '';
+              tgt.style.minWidth = '';
+              tgt.#initComponent();
+            } else {
+              tgt.#lazyDestroy();
+            }
+          });
+        });
+      }
+      Symbiote.lazyObserver.observe(this);
+    } else {
+      this.#initComponent();
+    }
+  }
+
+  #lazyDestroy() {
+    if (!this.connectedOnce) {
+      return;
+    }
+    let rect = this.getBoundingClientRect();
+    if (rect.height) {
+      this.style.minHeight = rect.height + 'px';
+      this.style.minWidth = rect.width + 'px';
+    }
+    if (this.shadowRoot) {
+      this.shadowRoot.innerHTML = '';
+    } else {
+      this.innerHTML = '';
+    }
+    for (let sub of this.allSubs) {
+      sub.remove();
+      this.allSubs.delete(sub);
+    }
+    this.#localCtx = null;
+    this.templateProcessors.clear();
+    
+    this.connectedOnce = false;
+    this.#dataCtxInitialized = false;
+    this.#initialized = false;
   }
 
   destroyCallback() {}
@@ -532,6 +582,9 @@ export class Symbiote extends HTMLElement {
   destructionDelay = 100;
   disconnectedCallback() {
     if (globalThis.__SYMBIOTE_SSR) return;
+    if (this.lazyMode && Symbiote.lazyObserver) {
+      Symbiote.lazyObserver.unobserve(this);
+    }
     // if element wasn't connected, there is no need to disconnect it
     if (!this.connectedOnce) {
       return;

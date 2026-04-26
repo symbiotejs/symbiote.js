@@ -1,6 +1,7 @@
 export { html } from "./html.js";
 export { css } from "./css.js";
 export class Symbiote<S> extends HTMLElement {
+    static lazyObserver: IntersectionObserver;
     static __tpl: HTMLTemplateElement;
     static set devMode(val: boolean);
     static get devMode(): boolean;
@@ -38,6 +39,7 @@ export class Symbiote<S> extends HTMLElement {
     allowCustomTemplate: boolean;
     isVirtual: boolean;
     allowTemplateInits: boolean;
+    lazyMode: boolean;
     get cssCtxName(): string;
     get ctxName(): string;
     get localCtx(): PubSub<any>;

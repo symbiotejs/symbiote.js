@@ -15,6 +15,7 @@ Flags are settings that enable or disable specific features or behaviors.
 | `processInnerHtml` | `false` | Process existing inner HTML |
 | `readyToDestroy` | `true` | Allow cleanup on disconnect |
 | `allowTemplateInits` | `true` | Auto-add props found in template |
+| `lazyMode` | `false` | Defer initialization until component enters the viewport |
 
 ## renderShadow
 
@@ -152,6 +153,24 @@ class MyComponent extends Symbiote {
 MyComponent.template = html`
   <h1>{{heading}}</h1>
 `;
+```
+
+## lazyMode
+
+Defers component initialization until it enters the viewport using a global \`IntersectionObserver\`. When the component scrolls out of view, its internal DOM is cleared to save memory, and its dimensions (\`min-height\` and \`min-width\`) are preserved to prevent scrollbar jumping. State updates are preserved while hidden and applied when the component re-enters the viewport.
+
+```js
+class MyComponent extends Symbiote {
+
+  lazyMode = true;
+
+}
+```
+
+This is most commonly used by adding the \`lazy\` attribute to an \`itemize\` container to optimize rendering of massive lists:
+
+```html
+<div itemize="myItems" lazy></div>
 ```
 
 ---

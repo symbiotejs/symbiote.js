@@ -235,6 +235,16 @@ class BigList extends Symbiote {
 
 Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-ops.
 
+## Lazy initialization (Massive lists)
+
+For extremely large lists, you can add the `lazy` attribute to the `itemize` container. This enables `lazyMode` on all generated list items, heavily optimizing memory usage and initial render time:
+
+```html
+<div itemize="myItems" lazy></div>
+```
+
+When `lazy` is used, items will defer their initialization until they enter the viewport using a global `IntersectionObserver`. When they scroll out of view, their internal DOM is automatically cleared to save memory, while their physical dimensions (`min-height` and `min-width`) are preserved to prevent the scrollbar from jumping. Any state updates that occur while the item is out of view are safely cached and applied seamlessly when the item re-enters the viewport.
+
 ## Nested lists
 
 List nesting is fully supported. To render hierarchical data, define a custom item component that contains its own `itemize`:
