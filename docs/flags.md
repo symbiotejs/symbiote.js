@@ -170,7 +170,12 @@ class MyComponent extends Symbiote {
 This is most commonly used by adding the \`lazy\` attribute to an \`itemize\` container to optimize rendering of massive lists:
 
 ```html
-<div itemize="myItems" lazy></div>
+<div itemize="myItems" lazy>
+  <template>
+    <h3>{{title}}</h3>
+    <div>{{description}}</div>
+  <template>
+</div>
 ```
 
 ---
