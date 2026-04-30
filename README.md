@@ -359,6 +359,11 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 - [AI Reference](https://github.com/symbiotejs/symbiote.js/blob/main/AI_REFERENCE.md)
 - [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
+## Related articles
+
+- [Symbiote.js: superpowers for Web Components](https://dev.to/foxeyes/symbiotejs-superpowers-for-web-components-1gid)
+- [Symbiote.js: v3 highlights](https://dev.to/foxeyes/symbiotejs-v3-web-components-with-ssr-in-6kb-10n6)
+
 **Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
 
 ---
