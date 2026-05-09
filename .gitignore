@@ -15,3 +15,4 @@ TMP
 build
 test-results
 PR
+.project-graph-cache.json

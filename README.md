@@ -364,6 +364,7 @@ All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 - [Symbiote.js: superpowers for Web Components](https://dev.to/foxeyes/symbiotejs-superpowers-for-web-components-1gid)
 - [Symbiote.js: v3 highlights](https://dev.to/foxeyes/symbiotejs-v3-web-components-with-ssr-in-6kb-10n6)
 - [Symbiote.js vs Lit](https://dev.to/foxeyes/lit-vs-symbiotejs-22gj)
+- [JSDA Stack - A Revolutionary Simple Approach to Build Modern Web](https://dev.to/foxeyes/jsda-kit-a-revolutionary-simple-approach-to-build-modern-web-1dip)
 
 **Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
 
