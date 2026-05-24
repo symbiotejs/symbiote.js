@@ -400,6 +400,21 @@ describe('SSR Engine', async () => {
     assert.ok(result.includes('<ssr-safe-cb'), 'Should contain opening tag');
     assert.ok(!result.includes('undefined'), `Unexpected "undefined" in output: ${result}`);
   });
+
+  it('should process text nodes even if splitText is not implemented natively', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class SsrSplitFallback extends Symbiote {
+      init$ = { val1: 'A', val2: 'B' };
+    }
+    SsrSplitFallback.template = html`<div>Start {{val1}} middle {{val2}} end</div>`;
+    SsrSplitFallback.reg('ssr-split-fallback');
+
+    let result = SSR.renderToString('ssr-split-fallback');
+    assert.ok(result.includes('Start A middle B end'), `Expected resolved text in output: ${result}`);
+    assert.ok(!result.includes('{{val1}}'), 'Should resolve first token');
+    assert.ok(!result.includes('{{val2}}'), 'Should resolve second token');
+  });
 });
 
 describe('SSR.processHtml', async () => {

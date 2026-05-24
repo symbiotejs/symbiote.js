@@ -304,10 +304,35 @@ export class SSR {
   static async init() {
     // @ts-ignore
     let { parseHTML } = /** @type {any} */ (await import('linkedom'));
-    let { document, window, HTMLElement, customElements, DocumentFragment, NodeFilter, MutationObserver } = parseHTML('<!DOCTYPE html><html><head></head><body></body></html>');
+    let { document, window, HTMLElement, customElements, DocumentFragment, NodeFilter, MutationObserver, Text } = parseHTML('<!DOCTYPE html><html><head></head><body></body></html>');
 
     SSR.#doc = document;
     SSR.#win = window;
+
+    // Polyfill splitText for linkedom:
+    if (!Text.prototype.splitText) {
+      Text.prototype.splitText = function(offset) {
+        let nextNode = document.createTextNode(this.textContent.substring(offset));
+        this.textContent = this.textContent.substring(0, offset);
+        if (this.parentNode) {
+          this.parentNode.insertBefore(nextNode, this.nextSibling);
+        }
+        return nextNode;
+      };
+    }
+
+    // Polyfill textContent on DocumentFragment for linkedom:
+    if (!('textContent' in DocumentFragment.prototype) || !Object.getOwnPropertyDescriptor(DocumentFragment.prototype, 'textContent')?.get) {
+      Object.defineProperty(DocumentFragment.prototype, 'textContent', {
+        get() {
+          return this.childNodes.map(n => n.nodeType === 3 ? n.textContent : (n.textContent || '')).join('');
+        },
+        set(val) {
+          while (this.firstChild) this.removeChild(this.firstChild);
+          this.appendChild(document.createTextNode(val));
+        }
+      });
+    }
 
     // Polyfill CSSStyleSheet for linkedom:
     if (!window.CSSStyleSheet || !('replaceSync' in (window.CSSStyleSheet?.prototype || {}))) {
