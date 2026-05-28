@@ -56,6 +56,36 @@ describe('html tagged template', () => {
     assert.equal(result, '<div  bind="textContent:a;"><span  bind="onclick:b;"></span></div>');
   });
 
+  it('should expand self-closing custom elements', () => {
+    let result = html`<my-component />`;
+    assert.equal(result, '<my-component></my-component>');
+  });
+
+  it('should expand self-closing custom elements without space before slash', () => {
+    let result = html`<my-component/>`;
+    assert.equal(result, '<my-component></my-component>');
+  });
+
+  it('should not duplicate an existing custom element closing tag', () => {
+    let result = html`<my-component/></my-component>`;
+    assert.equal(result, '<my-component></my-component>');
+  });
+
+  it('should expand self-closing custom elements with attributes', () => {
+    let result = html`<my-component data-id="a/b" />`;
+    assert.equal(result, '<my-component data-id="a/b"></my-component>');
+  });
+
+  it('should expand self-closing custom elements with binding attributes', () => {
+    let result = html`<my-component ${{ ref: 'el', textContent: 'label' }} />`;
+    assert.equal(result, '<my-component  ref="el" bind="textContent:label;"></my-component>');
+  });
+
+  it('should keep non-custom self-closing tags unchanged', () => {
+    let result = html`<input ${{ ref: 'nameInput' }} />`;
+    assert.equal(result, '<input  ref="nameInput" />');
+  });
+
   it('should mix string and object interpolations', () => {
     let cls = 'active';
     let result = html`<div class="${cls}" ${{ textContent: 'x' }}></div>`;

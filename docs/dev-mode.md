@@ -57,4 +57,4 @@ Symbiote.devMode = true;
 
 ---
 
-Next: [Security →](./security.md)
+Next: [TypeScript →](./typescript.md)

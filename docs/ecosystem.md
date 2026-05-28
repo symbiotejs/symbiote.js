@@ -35,6 +35,8 @@ function myFunction(a, b, c) {
 
 Check the details at [TypeScript JSDoc Supported Types](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
+For Symbiote-specific recommendations, see [TypeScript](./typescript.md).
+
 ## Building and minification
 
 [Esbuild](https://esbuild.github.io/) is our choice for code bundling and minification. Esbuild is a very performant and easy-to-configure solution that can prepare your JavaScript and CSS code for distribution.

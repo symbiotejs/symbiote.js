@@ -330,6 +330,7 @@ CSS values are parsed automatically - quoted strings become strings, numbers bec
 ## Best for
 
 - **Complex widgets** embedded in any host application
+- **Low-code HTML-based solutions** - simple declarative everything
 - **Micro frontends** - standard custom elements, no framework coupling
 - **Reusable component libraries** - works in React, Vue, Angular, or plain HTML
 - **SSR-powered apps** - lightweight server rendering without framework lock-in

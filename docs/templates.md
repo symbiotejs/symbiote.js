@@ -2,6 +2,23 @@
 
 The core template mechanic in Symbiote.js is native browser HTML-string parsing via standard DOM API methods. This is the fastest way to create a component template instance in the object model representation.
 
+## Runtime-agnostic by design
+
+Symbiote.js templates are runtime and context agnostic. This applies to all template sources: strings produced by the `html` helper, plain HTML strings, external template modules, and `<template>` elements selected with `use-template`.
+
+Templates do not execute inside a component instance and do not close over `this`. They describe markup and named bindings only; the actual component instance and data context are resolved later, when the template is rendered or hydrated.
+
+This is an important difference from many component libraries where the template is also an instance-bound render function. In Symbiote.js, representation can stay separate from component logic, which makes templates reusable, replaceable, SSR-friendly, and easy to define outside JavaScript classes:
+```js
+// Universal for browser or Node.js environment:
+export const cardTemplate = html`
+  <h2>{{title}}</h2>
+  <button ${{onclick: 'onSelect'}}>Select</button>
+`;
+```
+
+For typing details, see [TypeScript](./typescript.md).
+
 ## `html` helper
 
 The `html` tag function constructs templates using compact binding-maps:
@@ -33,7 +50,25 @@ const myTemplate = html`
 
 This dual-mode design means `html` works for both component templates and full-page SSR output — no separate "server-only template" function is needed.
 
-> Note: In Symbiote.js, you can define templates outside the component's context (`this`). This is a clean abstraction that makes template handling much more flexible than in other libraries.
+### Self-closing custom elements
+
+In standard HTML, self-closing syntax is only meaningful for void elements. Custom elements should normally be written with explicit closing tags:
+```js
+html`<my-component></my-component>`;
+```
+
+For convenience, the `html` helper expands empty custom element tags that use self-closing syntax:
+```js
+html`<my-component />`;
+html`<my-component/>`;
+// Both output: '<my-component></my-component>'
+```
+
+This normalization only applies to hyphenated custom element names. Native void elements keep their original form, and an existing closing tag is not duplicated:
+```js
+html`<input />`; // '<input />'
+html`<my-component/></my-component>`; // '<my-component></my-component>'
+```
 
 ## Binding to text nodes
 

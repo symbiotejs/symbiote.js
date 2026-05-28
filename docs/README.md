@@ -37,6 +37,7 @@
 ## Development
 
 - [**Dev Mode**](./dev-mode.md) — Verbose warnings for debugging
+- [**TypeScript**](./typescript.md) — JSDoc types, TypeScript usage, and hybrid template checks
 - [**Security**](./security.md) — Trusted Types and CSP compliance
 
 ## Migration
