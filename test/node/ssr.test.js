@@ -534,6 +534,29 @@ describe('SSR.processHtml', async () => {
     assert.ok(result.includes('processed'), `Should render component: ${result}`);
   });
 
+  it('should preserve skip-text-nodes content in component templates', async () => {
+    const { default: Symbiote, html } = await import('../../core/Symbiote.js');
+
+    class PreCodeDoc extends Symbiote {
+      init$ = { title: 'docs' };
+    }
+    PreCodeDoc.template = html`
+      <h1 ${{textContent: 'title'}}></h1>
+      <pre><code skip-text-nodes>&lt;my-component&gt;{{myProp}}&lt;/my-component&gt;</code></pre>
+      <code skip-text-nodes>{{someToken}}</code>
+      <code skip-text-nodes>{[listData]}</code>
+      <pre skip-text-nodes>&lt;proc-basic&gt;&lt;/proc-basic&gt;</pre>
+    `;
+    PreCodeDoc.reg('pre-code-doc');
+
+    let result = SSR.renderToString('pre-code-doc');
+    assert.ok(result.includes('docs'), `Expected "docs" in output: ${result}`);
+    assert.ok(result.includes('{{myProp}}'), `Expected raw "{{myProp}}" preserved inside <pre><code>: ${result}`);
+    assert.ok(result.includes('{{someToken}}'), `Expected raw "{{someToken}}" preserved inside <code>: ${result}`);
+    assert.ok(result.includes('{[listData]}'), `Expected raw "{[listData]}" preserved inside <code>: ${result}`);
+    assert.ok(result.includes('<pre-code-doc'), 'Should contain component tag');
+  });
+
   it('should preserve <pre>/<code> content in processHtml without token resolution or custom tag rendering', async () => {
     let input = `
       <div>

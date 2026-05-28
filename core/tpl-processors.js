@@ -105,17 +105,25 @@ function getTextNodesWithTokens(el) {
   let isCustomEl = el instanceof HTMLElement && el.localName?.includes('-');
   let node;
   let result = [];
-  let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
-    acceptNode: (txt) => {
-      if (isCustomEl && !isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
-      return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR) 
-        && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN) 
-        && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN) 
-        && 1;
-    },
-  });
-  while ((node = walk.nextNode())) {
-    result.push(node);
+  let acceptNode = (txt) => {
+    if (isCustomEl && !isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
+    return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR)
+      && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN)
+      && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN)
+      ? NodeFilter.FILTER_ACCEPT
+      : NodeFilter.FILTER_REJECT;
+  };
+  let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, acceptNode);
+  if (globalThis.__SYMBIOTE_SSR) {
+    while ((node = walk.nextNode())) {
+      if (acceptNode(node) === NodeFilter.FILTER_ACCEPT) {
+        result.push(node);
+      }
+    }
+  } else {
+    while ((node = walk.nextNode())) {
+      result.push(node);
+    }
   }
   return result;
 }
