@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.8.0",
+  "version": "3.8.0-webmcp.1",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -10,12 +10,10 @@
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
     "prepublishOnly": "npm test",
     "pub": "npm run types && npm publish",
-    "postinstall": "node scripts/postinstall.js",
-    "test": "node --test test/node/*.test.js && npx playwright test",
     "test:unit": "node --test test/node/*.test.js",
     "test:browser": "npx playwright test",
     "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
-    "build:symbiote-devtools": "node tools/symbiote-devtools-extension/build.mjs"
+    "test": "node --test test/node/*.test.js && npx playwright test && npm run test:webmcp:native"
   },
   "files": [
     "core/*",
@@ -171,8 +169,18 @@
   },
   "keywords": [
     "web components",
+    "customizable web components",
+    "modern ui framework",
+    "application data management",
+    "state manager",
+    "WebMCP",
+    "webmcp integration",
+    "Agent UI",
+    "MCP server",
     "SSR",
+    "server side rendering",
     "SSG",
+    "static site generator",
     "server side rendering for web components",
     "ui library",
     "data flow",
@@ -180,6 +188,7 @@
     "symbiote.js",
     "symbiote",
     "widget",
+    "widget constructor",
     "microfrontends",
     "meta application",
     "frontend",
@@ -195,7 +204,7 @@
     "import maps",
     "cdn imports",
     "https imports",
-    "reactive html attributes",
+    "reactive html",
     "MIT",
     "JSDA",
     "jsda-kit"
