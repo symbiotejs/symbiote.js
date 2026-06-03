@@ -9,7 +9,7 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
     "prepublishOnly": "npm test",
-    "pub": "npm run types && npm publish",
+    "pub": "npm run types && npm publish --tag webmcp.1",
     "test:unit": "node --test test/node/*.test.js",
     "test:browser": "npx playwright test",
     "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
