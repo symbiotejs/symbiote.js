@@ -14,6 +14,21 @@
 
 - This is an experimental release intended for browser builds with native WebMCP support, such as Chrome Canary 150. Publish with the `webmcp` npm tag while the API stabilizes.
 
+## 3.7.0
+
+### Added
+
+- Self-Closing Custom Elements
+
+Now this compact format is supported for tagged templates:
+```js
+html`<my-component />`;
+```
+
+### Improved
+
+- Documentation update
+
 ## 3.5.4
 
 ### Fixed

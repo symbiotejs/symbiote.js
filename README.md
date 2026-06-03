@@ -13,9 +13,9 @@ A lightweight, standards-first UI library built on Web Components. No virtual DO
 
 Symbiote.js gives you the convenience of a modern framework while staying close to the native platform - HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client - server-rendered pages hydrate automatically, no diffing, no mismatch errors.
 
-## What's new in v3
+## What's new?
 
-- **Experimental WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](./docs/webmcp.md).
+- **Experimental WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
 - **Server-Side Rendering** - render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
 - **Isomorphic components** - `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
 - **Computed properties** - reactive derived state with microtask batching.
@@ -25,7 +25,7 @@ Symbiote.js gives you the convenience of a modern framework while staying close 
 - **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
 - **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
 - **Lazy mode** - `lazyMode` flag defers component initialization and rendering based on viewport visibility. Can also be enabled via the `lazy` attribute on `itemize` containers to efficiently handle massive data sets.
-- And [more](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md).
+- And [more](https://github.com/symbiotejs/symbiote.js/blob/webmcp/CHANGELOG.md).
 
 ## Quick start
 
