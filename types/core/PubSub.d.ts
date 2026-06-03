@@ -12,6 +12,7 @@ export class PubSub<T extends Record<string, unknown>> {
     pub(prop: keyof T, val: unknown): void;
     get proxy(): T;
     multiPub(updObj: T): void;
+    delete(prop: keyof T): void;
     notify(prop: keyof T, val: any): void;
     sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean): {
         remove: () => void;

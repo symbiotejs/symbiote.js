@@ -12,6 +12,7 @@ package-lock.json
 
 ## dev
 TMP
+*.tmp.md
 build
 test-results
 PR

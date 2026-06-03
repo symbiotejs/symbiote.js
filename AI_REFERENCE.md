@@ -1,7 +1,7 @@
 # Symbiote.js — AI Context Reference (v3.x)
 
 > **Purpose**: Authoritative reference for AI code assistants. All information is derived from source code analysis of [symbiote.js](https://github.com/symbiotejs/symbiote.js).
-> Current version: **3.7.0**. Zero dependencies. ~6.6 KB brotli / ~7.3 KB gzip.
+> Current version: **3.8.0**. Zero dependencies. ~7.3 KB brotli / ~8.1 KB gzip.
 
 ---
 
@@ -18,12 +18,16 @@ import Symbiote, { html, css } from 'https://esm.run/@symbiotejs/symbiote';
 import Symbiote from '@symbiotejs/symbiote/core/Symbiote.js';
 import { PubSub } from '@symbiotejs/symbiote/core/PubSub.js';
 import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
 import { html } from '@symbiotejs/symbiote/core/html.js';
 import { css } from '@symbiotejs/symbiote/core/css.js';
 ```
 
 ### Core exports (index.js)
 `Symbiote` (default), `html`, `css`, `PubSub`, `DICT`, `animateOut`
+
+### WebMCP experimental exports (`@symbiotejs/symbiote/webmcp`)
+`ToolDescriptor`, `installWebMCP`, `webMCPRegistry`, `syncWebMCPTools`, `unregisterWebMCPTools`, `getActiveWebMCPTools`
 
 ### Utils exports (`@symbiotejs/symbiote/utils`)
 `UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
@@ -264,6 +268,57 @@ ctx.multiPub({ score: 100, userName: 'Hero' });
 - `PubSub.registerCtx(schema, uid?)` → `PubSub` instance
 - `PubSub.getCtx(uid, notify?)` → `PubSub` instance or null
 - `PubSub.deleteCtx(uid)`
+
+---
+
+## WebMCP Tools (Experimental)
+
+Install the experimental npm release with:
+```shell
+npm i @symbiotejs/symbiote@webmcp
+```
+
+WebMCP is optional and must be imported before participating components render:
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+```
+
+Automatic mode creates tools from bound event handlers:
+```js
+Symbiote.mcpToolMode = true;
+
+class MyCounter extends Symbiote {
+  count = 0;
+  incrementCount() { this.$.count++; }
+}
+
+MyCounter.template = html`
+  <button ${{onclick: 'incrementCount'}}>Increment</button>
+`;
+MyCounter.reg('my-counter');
+```
+
+Generated names preserve the handler key and custom element tag, e.g. `incrementCount_in_my-counter`. Itemized component tools include `_KEY_` when available, and popup `^handler` bindings can create ancestor-owned tools with source item context.
+
+Use `ToolDescriptor` for descriptions, schemas, execution, and dynamic visibility:
+```js
+init$ = {
+  canRun: false,
+  run_tool: new ToolDescriptor({
+    description: 'Run the visible action.',
+    deps: ['canRun'],
+    when: () => this.$.canRun,
+    inputSchema: {
+      type: 'object',
+      properties: { amount: { type: 'number' } },
+    },
+    execute: ({ amount = 1 }) => this.run(amount),
+  }),
+};
+```
+
+`when()` is not auto-tracked; declare `deps` explicitly. Components may provide `componentDescription` as a string or async function to append more context to component-owned tool descriptions. Native testing requires a browser with WebMCP support, such as Chrome Canary 150.
 
 ---
 

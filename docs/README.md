@@ -1,7 +1,7 @@
 # Symbiote.js Documentation
 
 > **Version 3.x** — A lightweight, standards-first UI library built on Web Components.
-> Zero dependencies. ~6.6 KB brotli / ~7.3 KB gzip. No virtual DOM, no compiler, no build step required.
+> Zero dependencies. ~7.3 KB brotli / ~8.1 KB gzip. No virtual DOM, no compiler, no build step required.
 
 ## Getting Started
 
@@ -29,6 +29,7 @@
 
 ## Features
 
+- [**WebMCP Experimental**](./webmcp.md) — Expose live UI state and handlers as browser-native tools
 - [**Routing**](./routing.md) — SPA routing with path patterns, guards, lazy loading
 - [**SSR**](./ssr.md) — Server-side rendering, streaming, hydration
 - [**SSR and Your Server Setup**](./ssr-server.md) — Static build, streaming, Express or Fastify

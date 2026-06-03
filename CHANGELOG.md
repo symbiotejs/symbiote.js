@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.8.0
+
+### Added
+
+- **Experimental WebMCP support.** New optional `@symbiotejs/symbiote/webmcp` entry point exposes live Symbiote UI actions as native browser WebMCP tools. Import it before rendering participating components, then use `mcpToolMode` for automatic event-handler tools or `ToolDescriptor` for custom descriptions, input schemas, execution, and `when()` visibility.
+
+- **Component context for agents.** Components can define `componentDescription` as a string or async function. The resolved text is appended to component-owned tool descriptions.
+
+- **WebMCP lifecycle registration.** Component tools register on render and unregister on DOM removal. Itemized components inherit global `mcpToolMode`, keyed item tools include `_KEY_` context, and popup `^` event bindings can expose ancestor-owned tools with source item context.
+
+### Notes
+
+- This is an experimental release intended for browser builds with native WebMCP support, such as Chrome Canary 150. Publish with the `webmcp` npm tag while the API stabilizes.
+
 ## 3.5.4
 
 ### Fixed

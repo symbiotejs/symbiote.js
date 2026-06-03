@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbiote WebMCP Tests</title>
+</head>
+<body>
+
+<webmcp-counter id="counter"></webmcp-counter>
+<webmcp-descriptor id="descriptor"></webmcp-descriptor>
+<webmcp-binding-parent id="bindings" ctx="WEBMCP_SHARED"></webmcp-binding-parent>
+
+<script type="module">
+  import Symbiote, { html, PubSub } from '/core/Symbiote.js';
+  import { ToolDescriptor } from '/core/webmcp.js';
+
+  Symbiote.mcpToolMode = true;
+
+  let namedCtx = PubSub.registerCtx({
+    namedProp: () => 'named prop',
+    named_descriptor: new ToolDescriptor({
+      description: 'Named context descriptor tool.',
+      execute: ({ value = 'named' } = {}) => `named:${value}`,
+    }),
+  }, 'NAMED_CTX');
+
+  class WebMcpCounter extends Symbiote {
+    componentDescription = 'Counter component with list controls and item actions.';
+
+    init$ = {
+      delete: () => {
+        this.remove();
+      },
+      onListItemClick: (e) => {
+        let itemComponent = e.target.closest('list-item-obj') || e.target.closest('list-item-arr');
+        let mcpResponse = JSON.stringify(itemComponent.localCtx);
+        console.log(mcpResponse);
+        return mcpResponse;
+      },
+      onListItemRemove: (e) => {
+        let itemComponent = e.target.closest('list-item-obj');
+        if (itemComponent) {
+          itemComponent.remove();
+        }
+        let mcpResponse = JSON.stringify(this.localCtx);
+        return mcpResponse;
+      },
+    };
+
+    count = 0;
+
+    listItemSchema = {
+      name: '-',
+      selected: '',
+      selectItem(e) {
+        if (e) {
+          let itemComponent = e.target.closest('list-item-obj');
+          itemComponent.$.selected = itemComponent.$.name;
+          return itemComponent.$.selected;
+        } else {
+          this.$.selected = this.$.name;
+          return this.$.selected;
+        }
+      },
+    };
+
+    list = {
+      alpha: {
+        ...this.listItemSchema,
+        name: 'Alpha',
+      },
+      beta: {
+        ...this.listItemSchema,
+        name: 'Beta',
+      },
+      gamma: {
+        ...this.listItemSchema,
+        name: 'Gamma',
+      },
+    };
+
+    listArr = [
+      {
+        name: 'First',
+      },
+      {
+        name: 'Second',
+      },
+    ];
+
+    incrementCount() {
+      this.$.count++;
+      return this.$.count;
+    }
+  }
+
+  WebMcpCounter.template = html`
+    <h2>{{count}}</h2>
+    <button ${{onclick: 'incrementCount'}}>Increment</button>
+    <button ${{onclick: 'delete'}}>Delete component</button>
+    <hr />
+    <h3>List from object (keys):</h3>
+    <ul itemize="list" item-tag="list-item-obj">
+      <template>
+        <li>
+          <button ${{onclick: '^onListItemClick'}}>{{name}}</button>
+          <button ${{onclick: '^onListItemRemove'}}>Remove</button>
+          <button ${{onclick: 'selectItem'}}>Select</button>
+          <span>{{selected}}</span>
+        </li>
+      </template>
+    </ul>
+    <hr />
+    <h3>List from array (indexes):</h3>
+    <ol itemize="listArr" item-tag="list-item-arr">
+      <template>
+        <li>
+          <button ${{onclick: '^onListItemClick'}}>{{name}}</button>
+        </li>
+      </template>
+    </ol>
+  `;
+  WebMcpCounter.reg('webmcp-counter');
+
+  class WebmcpDescriptor extends Symbiote {
+    componentDescription = async () => {
+      await Promise.resolve();
+      return `Descriptor component can run: ${this.$.canRun}.`;
+    };
+
+    init$ = {
+      canRun: false,
+      runs: 0,
+      toggleCanRun: (e) => {
+        this.$.canRun = !this.$.canRun;
+        this.ref.toggle_checkbox.checked = this.$.canRun;
+      },
+      run_tool: new ToolDescriptor({
+        description: () => `Run descriptor tool for <webmcp-descriptor>.`,
+        deps: ['canRun'],
+        when: () => this.$.canRun,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            amount: { type: 'number' },
+          },
+        },
+        execute: ({ amount = 1 }) => {
+          this.$.runs += amount;
+          return this.$.runs;
+        },
+      }),
+      async_tool: new ToolDescriptor({
+        description: 'Run async descriptor tool.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            amount: { type: 'number' },
+          },
+        },
+        execute: async ({ amount = 1 }) => {
+          await Promise.resolve();
+          this.$.runs += amount;
+          return { runs: this.$.runs };
+        },
+      }),
+      error_tool: new ToolDescriptor({
+        description: 'Throw descriptor tool error.',
+        execute: () => {
+          throw new Error('fixture error');
+        },
+      }),
+    };
+  }
+
+  WebmcpDescriptor.template = html`
+    <h2>{{runs}}</h2>
+    <input type="checkbox" ref="toggle_checkbox" ${{onchange: 'toggleCanRun'}} />
+    <button ${{onclick: 'run_tool'}}>Run</button>
+  `;
+  WebmcpDescriptor.reg('webmcp-descriptor');
+
+  class WebmcpBindingParent extends Symbiote {
+    init$ = {
+      popupProp: () => 'parent prop',
+      '*sharedProp': () => 'shared prop',
+      '*sharedDescriptor': new ToolDescriptor({
+        description: 'Shared context descriptor tool.',
+        execute: ({ value = 'shared' } = {}) => `shared:${value}`,
+      }),
+    };
+  }
+
+  WebmcpBindingParent.template = html`
+    <webmcp-binding-child></webmcp-binding-child>
+  `;
+  WebmcpBindingParent.reg('webmcp-binding-parent');
+
+  class WebmcpBindingChild extends Symbiote {
+    init$ = {
+      localProp: () => 'local prop',
+    };
+  }
+
+  WebmcpBindingChild.template = html`
+    <button ${{onclick: 'localProp'}}>Local</button>
+    <button ${{onclick: '^popupProp'}}>Parent</button>
+    <button ${{onclick: 'NAMED_CTX/namedProp'}}>Named</button>
+    <button ${{onclick: '*sharedProp'}}>Shared</button>
+  `;
+  WebmcpBindingChild.reg('webmcp-binding-child');
+
+  window.__WEBMCP_FIXTURE_READY = true;
+</script>
+
+</body>
+</html>

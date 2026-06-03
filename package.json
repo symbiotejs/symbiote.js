@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -13,7 +13,9 @@
     "postinstall": "node scripts/postinstall.js",
     "test": "node --test test/node/*.test.js && npx playwright test",
     "test:unit": "node --test test/node/*.test.js",
-    "test:browser": "npx playwright test"
+    "test:browser": "npx playwright test",
+    "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
+    "build:symbiote-devtools": "node tools/symbiote-devtools-extension/build.mjs"
   },
   "files": [
     "core/*",
@@ -39,6 +41,10 @@
     "./full": {
       "types": "./types/core/full.d.ts",
       "default": "./core/full.js"
+    },
+    "./webmcp": {
+      "types": "./types/core/webmcp.d.ts",
+      "default": "./core/webmcp.js"
     },
     "./node": {
       "default": "./node/index.js"
@@ -99,6 +105,10 @@
       "types": "./types/core/ownElements.d.ts",
       "default": "./core/ownElements.js"
     },
+    "./core/parseProp.js": {
+      "types": "./types/core/parseProp.d.ts",
+      "default": "./core/parseProp.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
@@ -110,6 +120,10 @@
     "./core/warn.js": {
       "types": "./types/core/warn.d.ts",
       "default": "./core/warn.js"
+    },
+    "./core/webmcp.js": {
+      "types": "./types/core/webmcp.d.ts",
+      "default": "./core/webmcp.js"
     },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
@@ -188,7 +202,9 @@
   ],
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "esbuild": "^0.25.12",
     "linkedom": "^0.18.12",
+    "puppeteer": "^25.1.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {

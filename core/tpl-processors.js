@@ -3,11 +3,97 @@ import { warnMsg, devState } from './warn.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { ownElements, isOwnNode } from './ownElements.js';
 import { initPropFallback } from './initPropFallback.js';
+import { parseProp } from './parseProp.js';
 
 // Should go first among other processors:
 import { itemizeProcessor } from './itemizeProcessor.js';
 
 export { initPropFallback };
+
+/**
+ * @typedef {Object} MCPEventBinding
+ * @property {string} prop
+ * @property {string} key
+ * @property {Element} el
+ * @property {string} [sourceKey]
+ * @property {import('./Symbiote.js').Symbiote} [sourceOwner]
+ */
+
+/**
+ * @template {import('./Symbiote.js').Symbiote} T
+ * @param {T} fnCtx
+ * @returns {boolean}
+ */
+function mcpToolMode(fnCtx) {
+  return !!(fnCtx.mcpToolMode || /** @type {any} */ (fnCtx.constructor)?.mcpToolMode);
+}
+
+/**
+ * @param {any} val
+ * @returns {boolean}
+ */
+function isToolDescriptor(val) {
+  return !!val?.[DICT.MCP_TOOL_DESCRIPTOR_MARKER];
+}
+
+/**
+ * @param {import('./Symbiote.js').Symbiote} owner
+ * @param {MCPEventBinding} entry
+ */
+function addMcpEventHandler(owner, entry) {
+  if (!owner[DICT.MCP_EVENTS_KEY]) {
+    owner[DICT.MCP_EVENTS_KEY] = [];
+  }
+  let exists = owner[DICT.MCP_EVENTS_KEY].some((item) => {
+    return item.prop === entry.prop && item.key === entry.key && item.el === entry.el
+      && item.sourceOwner === entry.sourceOwner;
+  });
+  if (!exists) {
+    owner[DICT.MCP_EVENTS_KEY].push(entry);
+  }
+}
+
+/**
+ * @template {import('./Symbiote.js').Symbiote} T
+ * @param {T} fnCtx
+ * @param {string} prop
+ * @param {string} valKey
+ * @param {Element} el
+ */
+function collectMcpEventHandler(fnCtx, prop, valKey, el) {
+  if (!mcpToolMode(fnCtx) && !isToolDescriptor(fnCtx.$?.[valKey])) {
+    return;
+  }
+  if (!prop.startsWith('on')) {
+    return;
+  }
+  addMcpEventHandler(fnCtx, {
+    prop,
+    key: valKey,
+    el,
+  });
+  if (valKey.startsWith(DICT.PARENT_CTX_PX)) {
+    let parsed = parseProp(valKey, fnCtx);
+    let key = parsed?.name || valKey.slice(DICT.PARENT_CTX_PX.length);
+    let targetOwner = parsed?.scope === 'parent' && parsed.owner !== fnCtx
+      ? parsed.owner
+      : null;
+    if (targetOwner && mcpToolMode(targetOwner)) {
+      addMcpEventHandler(targetOwner, {
+        prop,
+        key,
+        el,
+        sourceKey: valKey,
+        sourceOwner: fnCtx,
+      });
+      if (!fnCtx[DICT.MCP_EVENT_TARGET_OWNERS_KEY]) {
+        fnCtx[DICT.MCP_EVENT_TARGET_OWNERS_KEY] = new Set();
+      }
+      fnCtx[DICT.MCP_EVENT_TARGET_OWNERS_KEY].add(targetOwner);
+      targetOwner.syncWebMCPTools?.();
+    }
+  }
+}
 
 
 /**
@@ -68,10 +154,15 @@ function domBindProcessor(fr, fnCtx) {
             warnMsg(11, fnCtx.localName, valKey, known.join(', '));
           }
         }
+        collectMcpEventHandler(fnCtx, prop, valKey, el);
         let initVal = fnCtx.$[valKey];
         let skipInit = fnCtx.ssrMode && !globalThis.__SYMBIOTE_SSR
           && (isAttr || (typeof initVal !== 'function' && (initVal === null || typeof initVal !== 'object')));
         fnCtx.sub(valKey, (val) => {
+          if (!isAttr && prop.startsWith('on') && isToolDescriptor(val)) {
+            let descriptor = val;
+            val = (event) => descriptor.execute({}, fnCtx, event);
+          }
           if (castType === 'double') {
             val = !!val;
           } else if (castType === 'single') {
@@ -95,7 +186,7 @@ function domBindProcessor(fr, fnCtx) {
         }, !skipInit);
       }
     });
-    if (!globalThis.__SYMBIOTE_SSR) {
+    if (!globalThis.__SYMBIOTE_SSR && !mcpToolMode(fnCtx)) {
       el.removeAttribute(DICT.BIND_ATTR);
     }
   });
@@ -172,4 +263,3 @@ const txtNodesProcessor = function (fr, fnCtx) {
 };
 
 export default [itemizeProcessor, refProcessor, domBindProcessor, txtNodesProcessor];
-

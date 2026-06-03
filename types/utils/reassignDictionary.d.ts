@@ -18,5 +18,16 @@ export function reassignDictionary(dict: Partial<any>): {
     TEXT_NODE_SKIP_ATTR: string;
     TEXT_NODE_OPEN_TOKEN: string;
     TEXT_NODE_CLOSE_TOKEN: string;
+    MCP_EVENTS_KEY: string;
+    MCP_TOOL_DESCRIPTOR_MARKER: string;
+    MCP_OWNER_ID_KEY: string;
+    MCP_SYNC_OWNER_KEY: string;
+    MCP_UNREGISTER_OWNER_KEY: string;
+    MCP_PUBSUB_REGISTERED_KEY: string;
+    MCP_PUBSUB_DELETED_KEY: string;
+    MCP_PUBSUB_CHANGED_KEY: string;
+    MCP_ITEM_INDEX_KEY: string;
+    MCP_ITEM_KEY_KEY: string;
+    MCP_EVENT_TARGET_OWNERS_KEY: string;
 };
 //# sourceMappingURL=reassignDictionary.d.ts.map

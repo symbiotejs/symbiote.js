@@ -1,6 +1,17 @@
 import { animateOut } from './animateOut.js';
 import { warnMsg } from './warn.js';
 import { setupItemize } from './itemizeSetup.js';
+import { DICT } from './dictionary.js';
+
+function setItemWebMCPMetadata(itemEl, item, idx) {
+  if (!itemEl) return;
+  itemEl[DICT.MCP_ITEM_INDEX_KEY] = idx;
+  if (item && Object.prototype.hasOwnProperty.call(item, '_KEY_')) {
+    itemEl[DICT.MCP_ITEM_KEY_KEY] = item._KEY_;
+  } else {
+    delete itemEl[DICT.MCP_ITEM_KEY_KEY];
+  }
+}
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -22,6 +33,7 @@ export function itemizeProcessor(fr, fnCtx) {
       let fillItems = (/** @type {*[]} */ items) => {
         items.forEach((item, idx) => {
           if (currentList[idx]) {
+            setItemWebMCPMetadata(currentList[idx], item, idx);
             if (currentList[idx].set$) {
               currentList[idx].set$(item);
             } else {
@@ -37,6 +49,7 @@ export function itemizeProcessor(fr, fnCtx) {
             if (isLazy) {
               repeatItem.lazyMode = true;
             }
+            setItemWebMCPMetadata(repeatItem, item, idx);
             Object.assign((repeatItem?.init$ || repeatItem), item);
             fragment.appendChild(repeatItem);
           }
