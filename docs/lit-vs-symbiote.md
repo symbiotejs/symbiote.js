@@ -9,8 +9,8 @@ This comparison is written from the Symbiote.js perspective but aims to be techn
 
 | | **Symbiote.js 3.x** | **Lit 3.x** |
 |--|--|--|
-| **Core size** (brotli) | ~6.6 kb | ~5.1 kb |
-| **Full bundle** (brotli) | ~7.8 kb (core + router) | ~5.1 kb + addons |
+| **Core size** (brotli) | ~7.3 kb | ~5.1 kb |
+| **Full bundle** (brotli) | ~11.0 kb (core + router + WebMCP export) | ~5.1 kb + addons |
 | **Dependencies** | 0 runtime | 0 runtime |
 | **Shadow DOM** | Opt-in per component | On by default |
 | **SSR** | Built-in (`node/SSR.js`) | Experimental (`@lit-labs/ssr`) |
@@ -19,7 +19,7 @@ This comparison is written from the Symbiote.js perspective but aims to be techn
 | **Build step** | Not required | Not required |
 | **TypeScript** | JSDoc + `.d.ts` | Decorators-first API |
 
-> Lit's base size is ~1 kb smaller, but Symbiote's core already includes state management, list rendering (Itemize API), computed properties, and exit animations — features that in the Lit ecosystem require additional packages.
+> Lit's base size is ~2 kb smaller, but Symbiote's core already includes state management, list rendering (Itemize API), computed properties, and exit animations — features that in the Lit ecosystem require additional packages.
 
 ## Templates
 
@@ -185,7 +185,7 @@ Symbiote.js ships with `AppRouter` — a built-in SPA router (optional import) w
 | **Shadow DOM** | Opt-in | Default |
 | **Styling** | `rootStyles` + `shadowStyles` + CSS Data Binding | Shadow-scoped `static styles` |
 | **Routing** | Built-in `AppRouter` | None |
-| **Bundle** | ~6.6 kb core, ~7.8 kb full | ~5.1 kb core + addons |
+| **Bundle** | ~7.3 kb core, ~11.0 kb full | ~5.1 kb core + addons |
 | **Architecture** | Loose coupling, micro-frontends, no-JS config | Component-first, decorator-driven |
 | **Ecosystem** | Smaller community, focused tooling (JSDA-Kit) | Large community, Google-backed, mature ecosystem |
 

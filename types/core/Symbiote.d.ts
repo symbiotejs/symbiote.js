@@ -3,9 +3,12 @@ export { css } from "./css.js";
 export class Symbiote<S> extends HTMLElement {
     static lazyObserver: IntersectionObserver;
     static __tpl: HTMLTemplateElement;
+    static mcpToolMode: boolean;
+    static componentDescription: string | (() => string | Promise<string>);
     static set devMode(val: boolean);
     static get devMode(): boolean;
     static template: string;
+    static parseProp<T extends Symbiote<any>>(prop: string, fnCtx: T): import("./parseProp.js").ParsedProp | null;
     static animateOut: typeof animateOut;
     static reg(tagName?: string, isAlias?: boolean): typeof Symbiote;
     static get is(): string;
@@ -17,6 +20,7 @@ export class Symbiote<S> extends HTMLElement {
     static set rootStyles(styles: string | CSSStyleSheet);
     static set shadowStyles(styles: string | CSSStyleSheet);
     constructor();
+    componentDescription: string | (() => string | Promise<string>);
     get Symbiote(): typeof Symbiote;
     initCallback(): void;
     renderCallback(): void;
@@ -40,6 +44,9 @@ export class Symbiote<S> extends HTMLElement {
     isVirtual: boolean;
     allowTemplateInits: boolean;
     lazyMode: boolean;
+    mcpToolMode: boolean;
+    syncWebMCPTools(): void;
+    unregisterWebMCPTools(): void;
     get cssCtxName(): string;
     get ctxName(): string;
     get localCtx(): PubSub<any>;

@@ -1,0 +1,5300 @@
+# Symbiote.js
+
+<img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
+
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required - works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~7.3kb** brotli / **~8.1kb** gzip.
+
+Symbiote.js gives you the convenience of a modern framework while staying close to the native platform - HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client - server-rendered pages hydrate automatically, no diffing, no mismatch errors.
+
+## What's new?
+
+- **Experimental WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
+- **Server-Side Rendering** - render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
+- **Isomorphic components** - `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
+- **Computed properties** - reactive derived state with microtask batching.
+- **Path-based router** - optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
+- **Exit animations** - `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
+- **Dev mode** - `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
+- **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
+- **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
+- **Lazy mode** - `lazyMode` flag defers component initialization and rendering based on viewport visibility. Can also be enabled via the `lazy` attribute on `itemize` containers to efficiently handle massive data sets.
+- And [more](https://github.com/symbiotejs/symbiote.js/blob/webmcp/CHANGELOG.md).
+
+## Quick start
+
+No install needed - run this directly in a browser:
+
+```html
+<script type="module">
+  import Symbiote, { html } from 'https://esm.run/@symbiotejs/symbiote';
+
+  class MyCounter extends Symbiote {
+    count = 0;
+    increment() {
+      this.$.count++;
+    }
+  }
+
+  MyCounter.template = html`
+    <h2>{{count}}</h2>
+    <button ${{onclick: 'increment'}}>Click me!</button>
+  `;
+
+  MyCounter.reg('my-counter');
+</script>
+
+<my-counter></my-counter>
+```
+
+Or install via npm:
+
+```bash
+npm i @symbiotejs/symbiote
+```
+
+```js
+import Symbiote, { html, css } from '@symbiotejs/symbiote';
+```
+
+## Isomorphic Web Components
+
+One component. Server-rendered or client-rendered - automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
+```js
+class MyComponent extends Symbiote {
+  isoMode = true;
+  count = 0;
+  increment() {
+    this.$.count++;
+  }
+}
+
+MyComponent.template = html`
+  <h2 ${{textContent: 'count'}}></h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+`;
+MyComponent.reg('my-component');
+```
+
+This exact code runs **everywhere** - SSR on the server, hydration on the client, or pure client rendering. No framework split, no `'use client'` directives, no hydration mismatch errors.
+
+### SSR - one class, zero config
+
+Server rendering doesn't need a virtual DOM, a reconciler, or framework-specific packages:
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();              // patches globals with linkedom
+await import('./my-app.js');   // components register normally
+
+let html = await SSR.processHtml('<my-app></my-app>');
+SSR.destroy();
+```
+
+For large pages, stream HTML chunks with `SSR.renderToStream()` for faster TTFB. See [SSR docs](./docs/ssr.md) and [server setup recipes](./docs/ssr-server.md).
+
+### How it compares
+
+| | **Symbiote.js** | **Next.js (React)** | **Lit** (`@lit-labs/ssr`) |
+|--|----------------|---------------------|----|
+| **Isomorphic code** | Same code, `isoMode` auto-detects | Server Components vs Client Components split | Same code, but load-order constraints |
+| **Hydration** | Binding-based - attaches to existing DOM, no diffing | `hydrateRoot()` - must produce identical output or errors | Requires `ssr-client` + hydrate support module |
+| **Packages** | 1 module + `linkedom` peer dep | Full framework buy-in | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
+| **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
+| **Mismatch handling** | Not needed - bindings attach to whatever DOM exists | Hard errors if server/client output differs | N/A |
+| **Template output** | Clean HTML with `bind=` attributes | HTML with framework markers | HTML with `<!--lit-part-->` comment markers |
+| **Lock-in** | None - standard Web Components | Full framework commitment | Lit-specific, but Web Components |
+
+**Key insight:** There are no hydration mismatches because there's no diffing. The server produces HTML with binding attributes. The client reads those attributes and adds reactivity. That's it.
+
+## Core concepts
+
+### Reactive state
+
+```js
+class TodoItem extends Symbiote {
+  text = '';
+  done = false;
+  toggle() {
+    this.$.done = !this.$.done;
+  }
+}
+
+TodoItem.template = html`
+  <span ${{onclick: 'toggle'}}>{{text}}</span>
+`;
+```
+
+State changes update the DOM synchronously. No virtual DOM, no scheduling, no surprises. And since components are real DOM elements, state is accessible from the outside via standard APIs:
+
+```js
+document.querySelector('my-counter').$.count = 42;
+```
+
+This makes it easy to control Symbiote-based widgets and microfrontends from any host application - no framework adapters, just DOM.
+
+### Templates
+
+Templates are plain HTML strings - context-free, easy to test, easy to move between files:
+
+```js
+// Separate file: my-component.template.js
+import { html } from '@symbiotejs/symbiote';
+
+export default html`
+  <h1>{{title}}</h1>
+  <button ${{onclick: 'doSomething'}}>Go</button>
+`;
+```
+
+The `html` function supports two interpolation modes:
+- **Object** → reactive binding: `${{onclick: 'handler'}}`
+- **String/number** → native concatenation: `${pageTitle}`
+
+### Itemize (dynamic reactive lists)
+
+Render lists from data arrays with efficient updates:
+```js
+class TaskList extends Symbiote {
+  tasks = [
+    { name: 'Buy groceries' },
+    { name: 'Write docs' },
+  ];
+  init$ = {
+    // Needs to be defined in init$ for pop-up binding to work
+    onItemClick: () => {
+      console.log('clicked!');
+    },
+  }
+}
+
+TaskList.template = html`
+  <div itemize="tasks">
+    <template>
+      <div ${{onclick: '^onItemClick'}}>{{name}}</div>
+    </template>
+  </div>
+`;
+```
+
+Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers - `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
+
+> **Performance Tip:** For massive lists, add the `lazy` attribute to the container (`<div itemize="tasks" lazy>`). It defers component initialization until they enter the viewport and cleans them up when they leave, heavily optimizing memory and rendering performance.
+
+### Pop-up binding (`^`)
+
+The `^` prefix works in any nested component template - it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
+
+```html
+<!-- Text binding to parent property: -->
+<div>{{^parentTitle}}</div>
+
+<!-- Handler binding to parent method: -->
+<button ${{onclick: '^parentHandler'}}>Click</button>
+```
+
+> **Note:** Class property fallbacks are not checked by the `^` walk - the parent must define the property in `init$`.
+
+### Named data contexts
+
+Share state across components without prop drilling:
+
+```js
+import { PubSub } from '@symbiotejs/symbiote';
+
+PubSub.registerCtx({
+  user: 'Alex',
+  theme: 'dark',
+}, 'APP');
+
+// Any component can read/write:
+this.$['APP/user'] = 'New name';
+```
+
+### Shared context (`*`)
+
+Inspired by native HTML `name` attributes - like how `<input name="group">` groups radio buttons - the `ctx` attribute groups components into a shared data context. Components with the same `ctx` value share `*`-prefixed properties:
+
+```html
+<upload-btn ctx="gallery"></upload-btn>
+<file-list  ctx="gallery"></file-list>
+<status-bar ctx="gallery"></status-bar>
+```
+
+```js
+class UploadBtn extends Symbiote {
+  init$ = { '*files': [] }
+
+  onUpload() {
+    this.$['*files'] = [...this.$['*files'], newFile];
+  }
+}
+
+class FileList extends Symbiote {
+  init$ = { '*files': [] }
+}
+
+class StatusBar extends Symbiote {
+  init$ = { '*files': [] }
+}
+```
+
+All three components access the same `*files` state - no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
+
+The context name can also be inherited via CSS custom property `--ctx`, enabling layout-driven grouping.
+
+### Routing (optional module)
+
+```js
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+
+AppRouter.initRoutingCtx('R', {
+  home:    { pattern: '/' },
+  profile: { pattern: '/user/:id' },
+  about:   { pattern: '/about', lazyComponent: () => import('./about.js') },
+});
+```
+
+### Exit animations
+
+CSS-driven transitions with zero JS animation code:
+
+```css
+task-item {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  @starting-style { opacity: 0; }  /* enter */
+  &[leaving] { opacity: 0; }       /* exit  */
+}
+```
+
+`animateOut(el)` sets `[leaving]`, waits for `transitionend`, then removes. Itemize uses this automatically.
+
+### Styling
+
+Shadow DOM is **optional** in Symbiote - use it when you need isolation, skip it when you don't. This gives full flexibility:
+
+**Light DOM** - style components with regular CSS, no barriers:
+
+```js
+MyComponent.rootStyles = css`
+  my-component {
+    display: flex;
+    gap: 1rem;
+
+    & button { color: var(--accent); }
+  }
+`;
+```
+
+**Shadow DOM** - opt-in isolation when needed:
+
+```js
+class Isolated extends Symbiote {}
+
+Isolated.shadowStyles = css`
+  :host { display: block; }
+  ::slotted(*) { margin: 0; }
+`;
+```
+
+All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` - no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
+
+### CSS Data Binding
+
+Components can read CSS custom properties as reactive state via `cssInit$`:
+
+```css
+my-widget {
+  --label: 'Click me';
+}
+```
+
+```js
+class MyWidget extends Symbiote {...}
+
+MyWidget.template = html`
+  <span>{{--label}}</span>
+`;
+```
+
+CSS values are parsed automatically - quoted strings become strings, numbers become numbers. Call `this.updateCssData()` to re-read after runtime CSS changes. This enables CSS-driven configuration: theme values, layout parameters, or localized strings - all settable from CSS without touching JS.
+
+## Best for
+
+- **Complex widgets** embedded in any host application
+- **Low-code HTML-based solutions** - simple declarative everything
+- **Micro frontends** - standard custom elements, no framework coupling
+- **Reusable component libraries** - works in React, Vue, Angular, or plain HTML
+- **SSR-powered apps** - lightweight server rendering without framework lock-in
+- **Framework-agnostic solutions** - one codebase, any context
+
+## Bundle size
+
+| Library | Minified | Gzip | Brotli |
+|---------|----------|------|--------|
+| **Symbiote.js** (core) | 23.6 kb | 8.1 kb | **7.3 kb** |
+| **Symbiote.js** (full, with AppRouter + WebMCP export) | 35.6 kb | 12.1 kb | **11.0 kb** |
+| **Symbiote.js** (WebMCP extension) | 31.4 kb | 10.6 kb | **9.6 kb** |
+| **Lit** 3.3 | 15.5 kb | 6.0 kb | **~5.1 kb** |
+| **React 19 + ReactDOM** | ~186 kb | ~59 kb | **~50 kb** |
+
+Symbiote and Lit have similar base sizes, but Symbiote's **7.3 kb** core includes more built-in features: global state management, lists (itemize API), exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~7× larger** before adding a router, state manager, or SSR framework.
+
+## Browser support
+
+All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
+
+## Docs & Examples
+
+- [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
+- [Lit vs Symbiote.js](https://github.com/symbiotejs/symbiote.js/blob/main/docs/lit-vs-symbiote.md) - Side-by-side comparison
+- [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
+- [JSDA-Kit](https://github.com/rnd-pro/jsda-kit) - All-in-one companion tool: server, SSG, bundling, import maps, and native Symbiote.js SSR integration
+- [AI / llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
+- [Full docs (single file)](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
+- [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
+
+## Related articles
+
+- [Symbiote.js: superpowers for Web Components](https://dev.to/foxeyes/symbiotejs-superpowers-for-web-components-1gid)
+- [Symbiote.js: v3 highlights](https://dev.to/foxeyes/symbiotejs-v3-web-components-with-ssr-in-6kb-10n6)
+- [Symbiote.js vs Lit](https://dev.to/foxeyes/lit-vs-symbiotejs-22gj)
+- [JSDA Stack - A Revolutionary Simple Approach to Build Modern Web](https://dev.to/foxeyes/jsda-kit-a-revolutionary-simple-approach-to-build-modern-web-1dip)
+
+**Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
+
+---
+
+© [rnd-pro.com](https://rnd-pro.com) - MIT License
+
+---
+
+# Animations
+
+Symbiote.js provides CSS-driven exit transitions with zero JS animation code.
+
+## `animateOut`
+
+`animateOut(el)` sets the `[leaving]` attribute on an element, waits for CSS `transitionend`, then removes the element from the DOM. If no CSS transition is defined, removes immediately.
+
+```js
+import { animateOut } from '@symbiotejs/symbiote';
+
+// or as a static method:
+Symbiote.animateOut(el);
+```
+
+## CSS pattern
+
+Use `@starting-style` for enter animations and `[leaving]` for exit:
+```css
+my-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+
+  /* Enter (CSS-native, no JS needed): */
+  @starting-style {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  /* Exit (triggered by animateOut): */
+  &[leaving] {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+```
+
+## Itemize integration
+
+Both itemize processors use `animateOut` automatically for item removal. Items with CSS `transition` + `[leaving]` styles will animate out before being removed from the DOM:
+```css
+user-card {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  &[leaving] {
+    opacity: 0;
+  }
+}
+```
+
+No additional JavaScript is required — just define the CSS transitions and Symbiote handles the rest.
+
+---
+
+# Attributes
+
+Like all regular DOM elements, Symbiote components can have their own HTML attributes. And like standard Custom Elements, they can react to dynamic attribute changes.
+
+## Attribute connection
+
+The simplest way to connect a local state property to an attribute value is with the `@` token:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    '@attribute-name': 'initial value',
+  }
+
+}
+```
+
+Or initiate from the component's template directly:
+```js
+class MyComponent extends Symbiote {}
+
+MyComponent.template = html`<h1>{{@attribute-name}}</h1>`;
+```
+
+Then use it as an attribute in markup:
+```html
+<my-component attribute-name="attribute value"></my-component>
+```
+
+## Attribute change reaction
+
+Using a property accessor:
+```js
+class MyComponent extends Symbiote {
+
+  set 'my-attribute'(val) {
+    console.log(val);
+  }
+
+}
+
+MyComponent.observedAttributes = [
+  'my-attribute',
+];
+```
+
+## `bindAttributes()` static method
+
+Bind attributes to property values directly:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    myProp: '',
+  }
+
+}
+
+// Map the attribute name to corresponding property key:
+MyComponent.bindAttributes({
+  'my-attribute': 'myProp',
+});
+
+// observedAttributes is auto-populated
+
+MyComponent.template = html`
+  <div>{{myProp}}</div>
+`;
+```
+
+## Reserved attribute names
+
+These attribute names are used internally by Symbiote.js:
+
+- `bind`
+- `ctx`
+- `ref`
+- `itemize`
+- `item-tag`
+- `use-template`
+- `skip-text-nodes`
+
+---
+
+# Common Mistakes
+
+Patterns that frequently trip up new users and AI code generators.
+
+---
+
+## 1. Using `this` inside template strings
+
+Templates are context-free strings — they DO NOT execute inside a component instance and do not close over `this`. Binding values by name; the component resolves them at render time.
+
+```js
+// WRONG
+MyComponent.template = html`<div>${this.title}</div>`;
+
+// CORRECT — use binding syntax
+MyComponent.template = html`<div>{{title}}</div>`;
+// OR
+MyComponent.template = html`<div ${{textContent: 'title'}}></div>`;
+// OR
+MyComponent.template = `<div bind="textContent: title"></div>`;
+```
+
+---
+
+## 2. Defining `template`, `rootStyles`, or `shadowStyles` inside the class body
+
+`template`, `rootStyles`, and `shadowStyles` are **static property setters** on the `Symbiote` base class — not regular static fields. Assigning them inside the class body with `static template = ...` bypasses the setter and does nothing.
+
+```js
+// WRONG
+class MyComponent extends Symbiote {
+  static template = html`<div>{{text}}</div>`; // setter never called
+}
+
+// CORRECT — assign outside the class body
+class MyComponent extends Symbiote {}
+MyComponent.template = html`<div>{{text}}</div>`;
+MyComponent.rootStyles = css`my-component { display: block; }`;
+```
+
+---
+
+## 3. Missing `^` prefix when referencing a parent-defined handler from an item template
+
+Itemize items are real Symbiote components with their own reactive state (the data properties mapped from the source array or object). They can have their own handlers too — either passed as functions in the source data objects, or defined on a separate component class registered for the tag name set by `item-tag` attribute.
+
+The common mistake is defining a shared handler on the **parent** (e.g. to handle all item clicks in one place) and then binding to it from the item template *without* `^`. Without `^`, the binding looks for the handler on the item itself — where it doesn't exist — and fails.
+
+```js
+class MyList extends Symbiote {
+  init$ = {
+    items: [{ name: 'Alice' }, { name: 'Bob' }],
+    onItemClick: (e) => { console.log('clicked'); },
+  }
+}
+
+// WRONG — looks for onItemClick on the item, not the parent
+MyList.template = html`
+  <ul itemize="items">
+    <template>
+      <li><button ${{onclick: 'onItemClick'}}>{{name}}</button></li>
+    </template>
+  </ul>
+`;
+
+// CORRECT — ^ walks up the DOM to find onItemClick in the parent's init$
+MyList.template = html`
+  <ul itemize="items">
+    <template>
+      <li><button ${{onclick: '^onItemClick'}}>{{name}}</button></li>
+    </template>
+  </ul>
+`;
+```
+
+> `^`-targeted properties must be defined in the ancestors's `init$` — the walk does not check plain class properties.
+
+When each item needs its own independent handler, you can pass it directly in the data:
+```js
+this.$.items = [
+  { name: 'Alice', onItemClick: () => console.log('Alice clicked') },
+  { name: 'Bob',   onItemClick: () => console.log('Bob clicked') },
+];
+```
+```html
+<ul itemize="items">
+  <template>
+    <li><button ${{onclick: 'onItemClick'}}>{{name}}</button></li>
+  </template>
+</ul>
+```
+
+Or, as it recommended for the most cases, register a dedicated component class for the tag name set by `item-tag`:
+```js
+class MyItem extends Symbiote {
+  onItemClick() { console.log(this.$.name); }
+}
+MyItem.template = html`<li><button ${{onclick: 'onItemClick'}}>{{name}}</button></li>`;
+MyItem.reg('my-item');
+```
+```html
+<ul itemize="items" item-tag="my-item"></ul>
+```
+
+---
+
+## 4. Using `@` attribute prefix directly in HTML
+
+`@` is a binding syntax prefix only — it means "bind to HTML attribute" inside `${{}}` expressions. It is not a valid HTML attribute prefix.
+
+```html
+<!-- WRONG -->
+<div @hidden="isHidden">...</div>
+
+<!-- CORRECT — @-prefix is only inside binding objects -->
+<div ${{'@hidden': 'isHidden'}}>...</div>
+<!-- OR, when html template helper is not used: -->
+<div bind="@hidden': isHidden">...</div>
+```
+
+---
+
+## 5. Expecting dotted `init$` keys to create nested state
+
+State is flat by design. A key like `'obj.prop'` in `init$` is a literal flat key named `obj.prop` — it does not create a nested object `{ obj: { prop: ... } }`. `this.$['obj.prop']` reads and writes that same flat key and works fine.
+
+```js
+// MISLEADING — this does NOT create { obj: { prop: 'value' } }
+init$ = { 'obj.prop': 'value' };
+// It creates a flat key: store['obj.prop'] = 'value'
+// Reading/writing it works: this.$['obj.prop'] = 'new' ✓
+
+// If you need a nested object in state, store it as a flat key with an object value:
+init$ = { obj: { prop: 'value' } };
+this.$.obj = { ...this.$.obj, prop: 'new' }; // replace the whole object to trigger reactivity
+```
+
+Dot notation in binding **targets** is fully supported — for both standard DOM properties and child component state:
+```js
+// DOM property path:
+html`<div ${{'style.color': 'colorProp'}}>Text</div>`
+
+// Child component's $ state proxy:
+html`<child-el ${{'$.childProp': 'parentProp'}}></child-el>`
+```
+
+---
+
+## 6. Using `*prop` without a `ctx` attribute or `--ctx` CSS variable
+
+Shared context properties (`*`-prefix) require a context name to be set on the component — either via the `ctx` HTML attribute or the `--ctx` CSS custom property. Without one, `*` props silently have no effect (dev mode warns).
+
+```html
+<!-- WRONG — no context name, *files is never shared -->
+<upload-btn></upload-btn>
+<file-list></file-list>
+
+<!-- CORRECT -->
+<upload-btn ctx="gallery"></upload-btn>
+<file-list  ctx="gallery"></file-list>
+```
+
+---
+
+## 7. Expecting Shadow DOM by default
+
+Shadow DOM is opt-in. By default, templates render into the component's light DOM. Use `renderShadow = true` or assign `shadowStyles` to opt in.
+
+```js
+// Light DOM (default)
+class MyComponent extends Symbiote {}
+
+// Shadow DOM — either flag:
+class MyComponent extends Symbiote {
+  renderShadow = true;
+}
+// or via shadowStyles (auto-creates shadow root):
+MyComponent.shadowStyles = css`:host { display: block; }`;
+```
+
+---
+
+## 8. Adding a wrapper div inside the template
+
+The custom element itself is the container. Adding a wrapping `<div>` as the single root inside the template is unnecessary — it creates extra DOM nesting and duplicates the element's own box. Style the component tag directly instead.
+
+```js
+// WRONG — the <div class="wrapper"> is redundant, my-widget is already the root
+MyWidget.template = html`
+  <div class="wrapper">
+    <h1>{{title}}</h1>
+    <button ${{onclick: 'onAction'}}>Go</button>
+  </div>
+`;
+
+// CORRECT — template content renders directly inside the custom element
+MyWidget.template = html`
+  <h1>{{title}}</h1>
+  <button ${{onclick: 'onAction'}}>Go</button>
+`;
+```
+
+```css
+/* Style the element tag directly */
+my-widget {
+  display: block;
+  padding: 20px;
+}
+```
+
+---
+
+## 9. Relying on class property fallbacks for prefixed bindings
+
+Class property fallbacks (resolving unregistered keys from own instance properties or prototype methods) only apply to **local, unprefixed** bindings. Any prefixed binding — `^prop`, `*prop` — resolves exclusively through the data context (`init$` or `add$()`). Plain class properties are never checked for these.
+
+```js
+// WRONG — onItemClick is a class property, not in init$
+// ^ will not find it
+class TaskList extends Symbiote {
+  onItemClick() { console.log('clicked'); }
+}
+
+TaskList.template = html`
+  <ul itemize="tasks">
+    <template>
+      <li ${{onclick: '^onItemClick'}}>{{name}}</li>
+    </template>
+  </ul>
+`;
+
+// CORRECT — register in init$ so any prefixed binding can resolve it
+class TaskList extends Symbiote {
+  init$ = {
+    onItemClick: () => { console.log('clicked'); },
+  }
+}
+```
+
+The same applies to shared (`*`) bindings — the property must exist in the shared context's registered data, not merely as a class property. 
+
+Named external contexts (`CTX/prop`) are different: they are registered globally via `PubSub.registerCtx()` and are fully independent of any component's `init$` — components reference them freely without declaring anything locally.
+
+---
+
+## 10. Treating `init$` as a plain object
+
+`init$` is processed once at connection time to populate the component's reactive context. Mutating it after the fact has no effect. Use `this.$` or `add$()` for runtime changes.
+
+```js
+// WRONG — modifying init$ after construction does nothing
+class MyComponent extends Symbiote {
+  init$ = { count: 0 };
+  initCallback() {
+    this.init$.count = 10; // too late, already processed
+  }
+}
+
+// CORRECT
+class MyComponent extends Symbiote {
+  init$ = { count: 0 };
+  initCallback() {
+    this.$.count = 10; // write through the $ proxy
+  }
+}
+```
+
+---
+
+# Context
+
+Usage context is one of the central things in Symbiote.js. Every Symbiote component is able to analyze its environment, read external settings from its actual position in DOM, and provide data to related components. Symbiote.js utilizes the DOM structure as the basic entity for data flow management and interconnection.
+
+Component context is a sum of all accessible data sources. Each source represents its own type of interaction. Let's have a look at them.
+
+## Local context
+
+Local context properties work the same way as component state in most other libraries:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    myProperty: 'some value',
+  }
+
+}
+```
+
+Use the `$` proxy to read and write values:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    myProperty: 'some value',
+  }
+
+  renderCallback() {
+    // Read:
+    console.log(this.$.myProperty); // > 'some value'
+
+    // Write:
+    this.$.myProperty = 'new value';
+  }
+
+}
+
+MyComponent.template = html`
+  <h1>{{myProperty}}</h1>
+`;
+```
+
+## Named context
+
+Named context is an external abstract data source accessed by its name. It can contain any application data or be used for a dedicated purpose.
+
+Example — using named context as a localization tool:
+```js
+import Symbiote, { html, PubSub } from '@symbiotejs/symbiote';
+
+// Create localization map for English:
+let EN = {
+  users: 'Users',
+  comments: 'Comments',
+  likes: 'Likes',
+};
+
+// Create localization context:
+let l10nCtx = PubSub.registerCtx(EN, 'L10N');
+
+// Use localized strings in templates:
+class MyComponent extends Symbiote { ... }
+
+MyComponent.template = html`
+  <div>{{L10N/users}} - {{numberOfUsers}}</div>
+  <div>{{L10N/comments}} - {{numberOfComments}}</div>
+  <div>{{L10N/likes}} - {{numberOfLikes}}</div>
+`;
+```
+
+Use `/` token with the context key to access properties: `L10N/users`.
+
+Switching language:
+```js
+let ES = {
+  users: 'Usuarios',
+  comments: 'Comentarios',
+  likes: 'Gustos',
+};
+
+l10nCtx.multiPub(ES);
+```
+
+Read and modify named context properties with the `$` proxy:
+```js
+class MyComponent extends Symbiote {
+  renderCallback() {
+    // Read:
+    console.log(this.$['L10N/users']);
+
+    // Modify:
+    this.$['L10N/users'] = 'ユーザー';
+  }
+}
+```
+
+More information about `PubSub` in the [PubSub section](./pubsub.md).
+
+## Pop-up context
+
+Pop-up binding helps control component interactions based on their DOM position and hierarchy. It works similarly to the CSS cascade model.
+
+Use the `^` token to reference a higher-level property:
+```js
+class MyComponent extends Symbiote {}
+
+MyComponent.template = html`
+  <button ${{onclick: '^onButtonClicked'}}>Click me!</button>
+`;
+```
+Symbiote walks up the DOM tree until it finds the component with `onButtonClicked` registered in its data context.
+
+> [!IMPORTANT]
+> The `^` lookup only checks the parent's **data context** (properties registered via `init$` or `add$()`). Class property fallbacks are **not** resolved during this walk. Always define `^`-targeted properties in the parent's `init$`:
+> ```js
+> class ParentComponent extends Symbiote {
+>   init$ = {
+>     onButtonClicked: () => { console.log('clicked'); },
+>     parentTitle: 'Hello',
+>   }
+> }
+> ```
+
+This is useful for composition, customization, and responsibility splitting:
+```js
+html`
+  <my-text-editor>
+    <complete-toolbar></complete-toolbar>
+  </my-text-editor>
+`;
+```
+Or:
+```js
+html`
+  <my-text-editor>
+    <simplified-toolbar></simplified-toolbar>
+    <symbol-counter></symbol-counter>
+  </my-text-editor>
+`;
+```
+
+> Like in CSS, pop-up properties have no collision guard — use additional prefixes in uncontrolled environments.
+
+## Shared context
+
+Shared context works similarly to native HTML radio inputs — set the `name` attribute and different inputs connect into one workflow.
+
+In 3.x, an explicit context name is **required** for shared properties. Set it using the `ctx` HTML attribute:
+```html
+<upload-btn ctx="gallery"></upload-btn>
+<file-list ctx="gallery"></file-list>
+```
+
+Or using the `--ctx` CSS custom property:
+```css
+.gallery-section {
+  --ctx: gallery;
+}
+```
+```html
+<div class="gallery-section">
+  <upload-btn></upload-btn>
+  <file-list></file-list>
+</div>
+```
+
+The CSS approach is useful when:
+- You want **layout-driven grouping** — components inherit the context from their visual container rather than repeating the attribute on each one
+- You need to **reassign context at different DOM levels** — just like any CSS custom property, `--ctx` cascades and can be overridden in nested selectors
+- You work in a **framework-agnostic setup** — CSS can be managed separately from markup, so context assignment doesn't depend on template engine or host framework
+
+Then use the `*` token to define shared properties:
+```js
+class UploadBtn extends Symbiote {
+  init$ = { '*files': [] }
+
+  onUpload() {
+    this.$['*files'] = [...this.$['*files'], newFile];
+  }
+}
+
+class FileList extends Symbiote {
+  init$ = { '*files': [] }  // same shared prop — first-registered value wins
+}
+```
+
+Both components access the same `*files` state — no parent component, no prop drilling, no global store.
+
+### Context name resolution
+
+The context name is resolved in this order (first match wins):
+
+1. `ctx="name"` HTML attribute
+2. `--ctx` CSS custom property (inherited from ancestors)
+
+> **IMPORTANT**: In 3.x, `*` properties **require** an explicit `ctx` attribute or `--ctx` CSS variable. Without one, the shared context is not created, `*` props have no effect, and dev mode will warn about it.
+
+## CSS Data context
+
+Symbiote components can initiate their properties from CSS custom property values:
+```css
+:root {
+  --header: 'CSS Data';
+  --text: 'Hello!';
+}
+```
+
+> CSS custom property values should be valid JSON values, parseable with `JSON.parse()`. Use numbers for boolean flags (`0`/`1`).
+
+Use CSS values in templates directly:
+```js
+class TestApp extends Symbiote {}
+
+TestApp.template = html`
+  <h1>{{--header}}</h1>
+  <div>{{--text}}</div>
+`;
+```
+
+> CSS custom properties are used for value initialization only. After that, they act like normal local context properties.
+
+More details in the [CSS Data](./css-data.md) section.
+
+## Property token summary
+
+| Token | Context Type | Example |
+|-------|-------------|---------|
+| _(none)_ | Local | `myProperty` |
+| `^` | Pop-up | `^parentProp` |
+| `*` | Shared | `*sharedProp` |
+| `/` | Named | `APP/myProp` |
+| `--` | CSS Data | `--my-css-var` |
+| `@` | Attribute | `@my-attribute` |
+| `+` | Computed | `+computedProp` |
+
+---
+
+# CSS Data Binding
+
+Symbiote components can read CSS custom property values into component state. This enables CSS-driven configuration: theme values, layout parameters, localized strings — all settable from CSS without touching JavaScript.
+
+## `cssInit$`
+
+Use `cssInit$` to define properties initialized from CSS custom properties:
+```js
+class MyWidget extends Symbiote {
+  cssInit$ = {
+    '--columns': 1,       // fallback value if CSS prop not set
+    '--label': '',
+  }
+}
+
+MyWidget.template = html`
+  <span>{{--label}}</span>
+`;
+```
+
+```css
+my-widget {
+  --columns: 3;
+  --label: 'Click me';
+}
+```
+
+CSS values are parsed automatically — quoted strings become strings, numbers become numbers.
+
+> Values should be valid JSON, parseable with `JSON.parse()`. Use numbers for boolean flags (`0`/`1`).
+
+## `--` prefix in templates
+
+You can bind to CSS custom properties directly in templates:
+```js
+class TestApp extends Symbiote {}
+
+TestApp.template = html`
+  <h1>{{--header}}</h1>
+  <div>{{--text}}</div>
+`;
+```
+
+```css
+:root {
+  --header: 'CSS Data';
+  --text: 'Hello!';
+}
+```
+
+> CSS custom properties are used for value initialization only. After that, they act like normal local context properties.
+
+## Updating CSS data
+
+Call `this.updateCssData()` to re-read CSS custom properties after runtime CSS changes.
+
+Call `this.dropCssDataCache()` to clear the cached CSS data.
+
+### Reacting to layout changes
+
+CSS data is read once on initialization. To react dynamically — for example, when container queries change custom property values — use `ResizeObserver`:
+
+```js
+class AdaptiveWidget extends Symbiote {
+  cssInit$ = {
+    '--layout': 'stack',
+  }
+
+  renderCallback() {
+    new ResizeObserver(() => this.updateCssData()).observe(this);
+  }
+}
+```
+
+```css
+adaptive-widget {
+  container-type: inline-size;
+  --layout: 'stack';
+}
+
+@container (min-width: 600px) {
+  adaptive-widget {
+    --layout: 'grid';
+  }
+}
+```
+
+> [!WARNING]
+> **CSS data bindings and SSR.** Computed styles (`getComputedStyle`) are not available during server-side rendering. In `ssrMode` / `isoMode` components, CSS data properties will use their init value (from `cssInit$` or empty string). Enable `devMode` to see warnings for this.
+
+## Why CSS as data?
+
+- **Browser-native**: CSS custom properties are a platform feature for passing context down the DOM cascade — no JS library needed.
+- **Shadow DOM friendly**: CSS custom properties are accessible inside nested shadow roots, unlike other CSS properties.
+- **Flexible**: Redefine values at any level using `style` or `class` attributes.
+- **Framework-agnostic**: Works with any external framework, library, or meta-platform.
+- **CSP-safe**: Unlike inline scripts, CSS is typically allowed by CSP policies — making it ideal for configuration.
+
+---
+
+# Dev Mode
+
+Enable verbose warnings during development to catch common mistakes early.
+
+## Enabling
+
+```js
+Symbiote.devMode = true;
+```
+
+This also sets `PubSub.devMode = true`.
+
+## Dev messages module
+
+All warning and error messages are stored in an optional module. Without it, warnings print short numeric codes like `[Symbiote W5]`. Import the dev messages module once to get full human-readable messages and automatically enable `devMode`:
+
+```js
+import '@symbiotejs/symbiote/core/devMessages.js';
+```
+
+This single import enables the full dev experience — both verbose messages and dev-only diagnostics. It is typically added in your development entry point and removed (or excluded via tree-shaking) for production builds.
+
+## Warning codes reference
+
+| Code | Type | Guard | Description |
+|------|------|-------|-------------|
+| W1 | warn | always | PubSub: cannot read/publish/subscribe — property not found |
+| W2 | warn | devMode | PubSub: type change detected on publish |
+| W3 | warn | always | PubSub: context already registered |
+| W4 | warn | always | PubSub: context not found |
+| W5 | warn | always | Custom template selector not found |
+| W6 | warn | devMode | `*prop` used without `ctx` attribute or `--ctx` CSS variable |
+| W7 | warn | devMode | Shared prop already has a value — keeping existing |
+| W8 | warn | always | Tag already registered with a different class |
+| W9 | warn | always | CSS data parse error |
+| W10 | warn | devMode | CSS data binding will not read computed styles during SSR |
+| W11 | warn | devMode | Binding key not found in `init$` (auto-initialized to `null`) |
+| W12 | warn | devMode | Text-node binding has no hydration attribute in SSR/ISO mode |
+| W13 | warn | always | AppRouter message |
+| W14 | warn | always | History API is not available |
+| E15 | error | always | `this` used in template interpolation |
+| W16 | warn | always | Itemize data must be Array or Object |
+
+## Usage
+
+Enable `devMode` and load messages in development, omit for production:
+```js
+// development — one import does it all
+import '@symbiotejs/symbiote/core/devMessages.js';
+
+// or, if you only want devMode without full messages:
+Symbiote.devMode = true;
+
+// production — no overhead, all dev checks are fully gated,
+// messages module is not loaded
+```
+
+---
+
+# Symbiote.js Examples
+
+Complete, working examples covering major Symbiote.js features. Each example includes JavaScript, HTML, and CSS where applicable.
+
+---
+
+## 1. Basic Component
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class MyComponent extends Symbiote {
+  count = 0;
+  increment() {
+    this.$.count++;
+  }
+}
+
+MyComponent.template = html`
+  <h2>{{count}}</h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+`;
+
+MyComponent.reg('my-component');
+```
+
+```html
+<my-component></my-component>
+```
+
+---
+
+## 2. Attributes
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class MyComponent extends Symbiote {
+  init$ = {
+    '@attr': 'initial value',
+    prop: 'initial value',
+    checked: true,
+  }
+}
+
+MyComponent.bindAttributes({
+  'data-attr': 'prop',
+});
+
+MyComponent.template = html`
+  <h2>{{@attr}}</h2>
+  <div>{{prop}}</div>
+  <input type="checkbox" ${{'@checked': 'checked'}}>
+`;
+
+MyComponent.reg('my-component');
+```
+
+```html
+<my-component attr="CUSTOM VALUE" data-attr="CUSTOM VALUE 2"></my-component>
+```
+
+---
+
+## 3. Tag Names (Dynamic and Auto-generated)
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class Com1 extends Symbiote {}
+Com1.template = `<button>Component 1</button>`;
+Com1.reg('my-component');
+
+class Com2 extends Symbiote {}
+Com2.template = `<button>Component 2</button>`;
+
+class MyApp extends Symbiote {}
+
+MyApp.template = html`
+  <h2>Tag name is defined explicitly (${Com1.is}), but used dynamically:</h2>
+  <${Com1.is} />
+
+  <h2>Auto-generated tag name: ${Com2.is}</h2>
+  <${Com2.is} />
+
+  <h2>Tag name is used in markup directly:</h2>
+  <my-component />
+`;
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app></my-app>
+```
+
+---
+
+## 4. Manual Template Rendering
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+const HTML = '<h2>{{text}}</h2>';
+
+class MyApp extends Symbiote {
+  text = 'Hello world!';
+  initCallback() {
+    this.render(HTML);
+  }
+}
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app></my-app>
+```
+
+---
+
+## 5. Template Processor (Custom Styling)
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+import { applyStyles } from '@symbiotejs/symbiote/utils';
+
+const styles = {
+  host: {
+    'display': 'inline-block',
+    'padding': '20px',
+    'border': '1px solid currentColor',
+  },
+  first_name: {
+    'color': '#f00',
+    'font-size': '20px',
+  },
+  last_name: {
+    'color': '#00f',
+    'font-size': '18px',
+  },
+};
+
+class StyledComponent extends Symbiote {
+  constructor() {
+    super();
+    this.templateProcessors.add((fr) => {
+      let cssElArr = [...fr.querySelectorAll('[css]')];
+      cssElArr.forEach((el) => {
+        let cssName = el.getAttribute('css');
+        applyStyles(el, styles[cssName]);
+      });
+    });
+    applyStyles(this, styles.host);
+  }
+}
+
+class MyApp extends StyledComponent {}
+
+MyApp.template = `
+  <div css="first_name">{{firstName}}</div>
+  <div css="last_name">{{lastName}}</div>
+`;
+
+MyApp.bindAttributes({
+  'first-name': 'firstName',
+  'last-name': 'lastName',
+});
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app first-name="John" last-name="Snow"></my-app>
+```
+
+---
+
+## 6. External Custom Template
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class MyCom extends Symbiote {
+  allowCustomTemplate = true;
+  text = 'MY TEXT';
+}
+
+MyCom.reg('my-com');
+```
+
+```html
+<template id="my-tpl">
+  <h1>{{text}}</h1>
+</template>
+
+<my-com use-template="template#my-tpl"></my-com>
+```
+
+---
+
+## 7. Named Context
+
+```js
+import Symbiote, { html, PubSub } from '@symbiotejs/symbiote';
+
+PubSub.registerCtx({
+  name: 'rnd-pro',
+  login: () => {
+    alert('Logged in');
+  },
+}, 'USER');
+
+const appCtx = PubSub.registerCtx({
+  text: 'Some text',
+  onButtonClick: () => {
+    console.log(appCtx.read('text'));
+    PubSub.getCtx('USER').pub('name', 'NEW NAME ' + Date.now());
+  }
+}, 'APP');
+
+class MyDumbComponent extends Symbiote {}
+
+MyDumbComponent.template = html`
+  <h3>User name: {{USER/name}}</h3>
+  <button ${{onclick: 'USER/login'}}>Login</button>
+  <button ${{onclick: 'APP/onButtonClick'}}>Click me!</button>
+`;
+
+MyDumbComponent.reg('my-dumb-component');
+```
+
+```html
+<my-dumb-component></my-dumb-component>
+```
+
+---
+
+## 8. Shared Context
+
+Components with the same `ctx` attribute share `*`-prefixed properties. The `--ctx` CSS custom property enables CSS-cascaded context inheritance.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class CtxEl extends Symbiote {
+  init$ = {
+    '*time': 'Click me to show time!',
+  };
+
+  renderCallback() {
+    this.onclick = () => {
+      this.$['*time'] = Date.now();
+    };
+  }
+}
+
+CtxEl.template = '{{*time}}';
+CtxEl.reg('ctx-el');
+```
+
+```html
+<h3>Manual context name (same-level elements):</h3>
+<ctx-el ctx="ctx1"></ctx-el>
+<ctx-el ctx="ctx1"></ctx-el>
+
+<h3>CSS-based context (cascading via --ctx):</h3>
+<div style="--ctx: 'ctx1'">
+  <ctx-el>
+    <ctx-el></ctx-el>
+  </ctx-el>
+</div>
+```
+
+```css
+ctx-el {
+  display: inline-block;
+  border: 1px solid #00f;
+  padding: 20px;
+  user-select: none;
+}
+```
+
+---
+
+## 9. All Context Types
+
+Demonstrates local, attribute, named (`X/`), shared (`*`), and pop-up (`^`) contexts in one component.
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class MyApp extends Symbiote {
+  init$ = {
+    localCtxProp: 'LOCAL',
+    attributeProp: 'Initial value...',
+    'X/namedCtxProp': 'NAMED',
+    '*sharedCtxProp': 'SHARED',
+  };
+
+  onUpdate() {
+    let updStr = ' updated... ';
+    this.$.localCtxProp += updStr;
+    this.$.attributeProp += updStr;
+    this.$['X/namedCtxProp'] += updStr;
+    this.$['*sharedCtxProp'] += updStr;
+  }
+}
+
+MyApp.template = html`
+  <div>{{localCtxProp}}</div>
+  <div>{{attributeProp}}</div>
+  <div>{{X/namedCtxProp}}</div>
+  <div>{{*sharedCtxProp}}</div>
+  <button ${{onclick: 'onUpdate'}}>Update</button>
+  <inner-el></inner-el>
+`;
+
+MyApp.bindAttributes({
+  'attr-test': 'attributeProp',
+});
+
+MyApp.reg('my-app');
+
+class InnerEl extends Symbiote {}
+InnerEl.template = '<h1>{{^attributeProp}}</h1>';
+InnerEl.reg('inner-el');
+```
+
+```html
+<my-app attr-test="HTML ATTRIBUTE VALUE" ctx="my-ctx"></my-app>
+```
+
+```css
+my-app {
+  display: block;
+
+  > * {
+    border: 1px solid green;
+    margin: 10px;
+    padding: 10px;
+  }
+
+  inner-el {
+    display: inline-block;
+  }
+}
+```
+
+---
+
+## 10. CSS Data Binding
+
+CSS custom properties used as reactive component state.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class MyCom extends Symbiote {}
+
+MyCom.template = `
+  <h2>{{--heading}}</h2>
+  <div>{{--text}}</div>
+`;
+
+MyCom.reg('my-com');
+```
+
+```html
+<my-com class="css-data-1"></my-com>
+<my-com class="css-data-2"></my-com>
+```
+
+```css
+my-com {
+  display: block;
+  padding: 10px;
+  margin: 10px;
+  border: 1px solid green;
+}
+
+.css-data-1 {
+  --heading: 'CSS Data 1';
+  --text: 'Some text...';
+}
+
+.css-data-2 {
+  --heading: 'CSS Data 2';
+  --text: 'Some other text...';
+}
+```
+
+---
+
+## 11. Dynamic List Rendering (Itemize with `item-tag`)
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class TableRow extends Symbiote {
+  renderCallback() {
+    this.onclick = () => {
+      this.classList.toggle('selected');
+    };
+  }
+}
+
+TableRow.template = `
+  <td>{{rowNum}}</td>
+  <td>Random number: {{randomNum}}</td>
+  <td>{{date}}</td>
+`;
+
+TableRow.reg('table-row');
+
+class TableApp extends Symbiote {
+  tableData = [];
+
+  generateTableData() {
+    let data = [];
+    for (let i = 0; i < 1000; i++) {
+      data.push({
+        rowNum: i + 1,
+        randomNum: Math.random() * 100,
+        date: Date.now(),
+      });
+    }
+    this.$.tableData = data;
+  }
+}
+
+TableApp.template = html`
+  <button ${{onclick: 'generateTableData'}}>Generate data</button>
+  <table itemize="tableData" item-tag="table-row"></table>
+`;
+
+TableApp.reg('table-app');
+```
+
+```html
+<table-app></table-app>
+```
+
+```css
+table-row {
+  display: table-row;
+}
+table-row.selected {
+  background-color: rgba(255, 0, 200, .3);
+}
+td {
+  background-color: rgba(0, 0, 0, .1);
+  padding: 2px;
+}
+```
+
+---
+
+## 12. Alternative List Rendering (DOM API + animateOut)
+
+Direct DOM manipulation for lists, using `ref`, `animateOut`, and CSS enter/exit transitions.
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class ListItem extends Symbiote {
+  onRemove() {
+    Symbiote.animateOut(this);
+  }
+
+  get checked() {
+    return this.ref.checkbox.checked;
+  }
+
+  clear() {
+    this.$.text = '';
+  }
+
+  renderCallback() {
+    this.ref.edit.focus();
+  }
+}
+
+ListItem.template = html`
+  <input ref="checkbox" type="checkbox">
+  <div
+    ref="edit"
+    contenteditable="true"
+    ${{textContent: 'text'}}></div>
+  <button ${{onclick: 'onRemove'}}>Remove Item</button>
+`;
+
+ListItem.reg('list-item');
+
+class MyApp extends Symbiote {
+  get items() {
+    return [...this.ref.list_wrapper.children];
+  }
+
+  onAddItem() {
+    this.ref.list_wrapper.appendChild(new ListItem());
+  }
+
+  onClearChecked() {
+    this.items.forEach((item) => {
+      if (item.checked) item.clear();
+    });
+  }
+
+  onRemoveChecked() {
+    this.items.forEach((item) => {
+      if (item.checked) Symbiote.animateOut(item);
+    });
+  }
+
+  renderCallback() {
+    this.onAddItem();
+  }
+}
+
+MyApp.template = html`
+  <div ref="list_wrapper"></div>
+  <div class="toolbar">
+    <button ${{onclick: 'onAddItem'}}>Add Item</button>
+    <button ${{onclick: 'onClearChecked'}}>Clear Checked</button>
+    <button ${{onclick: 'onRemoveChecked'}}>Remove Checked</button>
+  </div>
+`;
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app></my-app>
+```
+
+```css
+list-item {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: min-content auto min-content;
+  border-bottom: 1px solid currentColor;
+  transition: .4s;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  &[leaving] {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+```
+
+---
+
+## 13. Nested Lists
+
+`processInnerHtml = true` lets you write bindings directly in the component's HTML using the plain `bind=` attribute syntax.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class NestApp extends Symbiote {
+  processInnerHtml = true;
+  data = [];
+  buttonActionName = 'Generate';
+
+  onGenerateData() {
+    this.set$({ buttonActionName: 'Update' });
+    let data = [];
+    for (let i = 0; i < 3; i++) {
+      data.push({
+        name: i + 1,
+        nestedData: [
+          { nestedName: 'Nested A', nestedText: Date.now(), nestedData: [
+            { nestedName: '111', nestedText: Date.now() },
+            { nestedName: '222', nestedText: Date.now() },
+          ]},
+        ],
+      });
+    }
+    this.$.data = data;
+  }
+}
+
+NestApp.reg('nest-app');
+```
+
+```html
+<nest-app>
+  <button bind="onclick: onGenerateData">{{buttonActionName}} list data</button>
+  <div itemize="data">
+    <div>{{name}}</div>
+    <div itemize="nestedData">
+      <div>{{nestedName}}</div>
+      <div>{{nestedText}}</div>
+      <div itemize="nestedData">
+        <div>{{nestedName}}</div>
+        <div>{{nestedText}}</div>
+      </div>
+    </div>
+  </div>
+</nest-app>
+```
+
+---
+
+## 14. CSS-Defined Table Rendering
+
+Using CSS `display` values to create table layout from custom elements.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class MyTable extends Symbiote {
+  tableData = [];
+  onSelect(e) {
+    e.target?.closest('table-row')?.classList.toggle('selected');
+  }
+}
+
+MyTable.template = /*html*/ `
+  <table-css
+    bind="onclick: onSelect"
+    itemize="tableData"
+    item-tag="table-row">
+    <td-css>{{rowNumber}}</td-css>
+    <td-css>{{date}}</td-css>
+  </table-css>
+`;
+
+MyTable.reg('my-table');
+```
+
+```html
+<my-table></my-table>
+
+<script>
+  window.onload = () => {
+    document.querySelector('my-table').$.tableData = [
+      { rowNumber: 1, date: Date.now() },
+      { rowNumber: 2, date: Date.now() },
+      { rowNumber: 3, date: Date.now() },
+    ];
+  }
+</script>
+```
+
+```css
+table-css {
+  display: table;
+  border-spacing: 2px;
+
+  table-row {
+    display: table-row;
+    &.selected { background-color: rgba(255, 0, 200, .3); }
+    td-css {
+      display: table-cell;
+      border: 1px solid currentColor;
+      padding: 4px;
+    }
+  }
+}
+```
+
+---
+
+## 15. Customized Built-in Element as List Item
+
+```js
+import {} from 'https://cdn.jsdelivr.net/npm/@ungap/custom-elements/+esm';
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+window.customElements.define('option-item', class extends HTMLOptionElement {}, {
+  extends: 'option',
+});
+
+class MyApp extends Symbiote {
+  init$ = {
+    options: [
+      { value: '1', textContent: 'Option 1' },
+      { value: '2', textContent: 'Option 2' },
+      { value: '3', textContent: 'Option 3' },
+    ],
+    selectedValue: '1',
+  };
+
+  onChange(e) {
+    this.$.selectedValue = e.target.value;
+  }
+}
+
+MyApp.template = html`
+  <h3>Selected value: {{selectedValue}}</h3>
+  <select ${{
+    onchange: 'onChange',
+    itemize: 'options',
+    'item-tag': 'option-item',
+  }}></select>
+`;
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app></my-app>
+```
+
+---
+
+## 16. SSR Markup Hydration
+
+`ssrMode = true` skips template injection and attaches bindings to server-rendered HTML. The component connects to existing DOM without re-rendering.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class MyApp extends Symbiote {
+  ssrMode = true;
+  heading = 'Some heading after hydration';
+  text = 'Some text after hydration...';
+  onUpdate() {
+    this.notify('heading');
+    this.notify('text');
+  }
+}
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app>
+  <h1 bind="textContent: heading">Hello world!</h1>
+  <div bind="textContent: text">Some initial text from server...</div>
+  <button bind="onclick: onUpdate">Click me!</button>
+</my-app>
+```
+
+---
+
+## 17. SSR CSS Variables Binding
+
+CSS custom properties read reactively at runtime, with SSR hydration mode.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class MyCom extends Symbiote {
+  ssrMode = true;
+  onUpdate() {
+    this.$['--text'] = `Updated text... (${Date.now()})`;
+  }
+}
+
+MyCom.reg('my-com');
+```
+
+```html
+<my-com>
+  <button bind="onclick: onUpdate">Update</button>
+  <div>{{--text}}</div>
+</my-com>
+
+<div container>
+  <my-com>
+    <h1>{{--heading}}</h1>
+    <div>{{--text}}</div>
+  </my-com>
+</div>
+
+<my-com class="my-class">
+  <h1>{{--heading}}</h1>
+  <h2>{{--local-custom-data}}</h2>
+  <div>{{--text}}</div>
+</my-com>
+```
+
+```css
+:root {
+  --heading: 'Root CSS heading';
+  --text: 'Root CSS text...';
+}
+
+[container] {
+  --heading: 'Container heading';
+  --text: 'Container text...';
+}
+
+.my-class {
+  --heading: 'CSS class heading';
+  --text: 'CSS class text...';
+  --local-custom-data: 'Some custom data...';
+}
+
+my-com {
+  display: block;
+  padding: 20px;
+  border: 1px solid blue;
+  margin-bottom: 10px;
+}
+```
+
+---
+
+## 18. Localization via PubSub
+
+Using a named PubSub context as a reactive l10n store.
+
+```js
+import Symbiote, { html, PubSub } from '@symbiotejs/symbiote';
+
+const lMap = {
+  EN: { users: 'Users', comments: 'Comments', likes: 'Likes' },
+  ES: { users: 'Usuarios', comments: 'Comentarios', likes: 'Gustos' },
+  RU: { users: 'Пользователи', comments: 'Комментарии', likes: 'Лайки' },
+};
+
+const l10nCtx = PubSub.registerCtx(lMap.EN, 'L10N');
+
+class MyApp extends Symbiote {
+  numberOfUsers = 10;
+  numberOfComments = 2;
+  numberOfLikes = 12;
+
+  onLangSelect(e) {
+    l10nCtx.multiPub(lMap[e.target.value]);
+  }
+}
+
+MyApp.template = html`
+  <select ${{onchange: 'onLangSelect'}}>
+    ${Object.keys(lMap).map(lang => `<option>${lang}</option>`).join('')}
+  </select>
+  <div>{{L10N/users}} -- {{numberOfUsers}}</div>
+  <div>{{L10N/comments}} -- {{numberOfComments}}</div>
+  <div>{{L10N/likes}} -- {{numberOfLikes}}</div>
+`;
+
+MyApp.reg('my-app');
+```
+
+```html
+<my-app></my-app>
+```
+
+---
+
+## 19. Icons via Template Processor
+
+Custom template processor that replaces `[icon]` attributes with inline SVG.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+const ICON_SET = {
+  star: 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z',
+  ok: 'M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z',
+};
+
+function getSvg(iconName) {
+  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="${ICON_SET[iconName] || ICON_SET.star}"></path>
+  </svg>`.trim();
+}
+
+class AppSuper extends Symbiote {
+  constructor() {
+    super();
+    this.templateProcessors.add((fr) => {
+      [...fr.querySelectorAll('[icon]')].forEach((el) => {
+        let icon = document.createElement('icon-el');
+        icon.innerHTML = getSvg(el.getAttribute('icon'));
+        el.prepend(icon);
+      });
+    });
+  }
+}
+
+class MyCom extends AppSuper {}
+
+MyCom.template = `
+  <h1 icon="star">Header</h1>
+  <button icon="ok">Button</button>
+`;
+
+MyCom.reg('my-com');
+```
+
+```html
+<my-com></my-com>
+```
+
+---
+
+## 20. Icons via Computed Attribute Binding
+
+`isoMode` component using a computed property (`+path`) to drive an SVG attribute.
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+const ICONS = {
+  star: 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z',
+  ok: 'M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z',
+};
+
+class IconSvg extends Symbiote {
+  isoMode = true;
+  init$ = {
+    '@name': 'star',
+    '+path': () => ICONS[this.$['@name']],
+  }
+}
+
+IconSvg.template = html`
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path ${{'@d': '+path'}}></path>
+  </svg>
+`;
+
+IconSvg.reg('icon-svg');
+```
+
+```html
+<h1><icon-svg name="star"></icon-svg> Heading</h1>
+<button><icon-svg name="ok"></icon-svg> Ok</button>
+```
+
+---
+
+## 21. CSS-Driven Icons
+
+SVG path driven entirely by a CSS custom property (`--path`). Zero JS for icon switching.
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class ICon extends Symbiote {}
+
+ICon.template = html`
+  <svg viewBox="0 0 24 24">
+    <path ${{'@d': '--path'}} />
+  </svg>
+`;
+
+ICon.reg('i-con');
+```
+
+```html
+<i-con></i-con>
+<i-con home></i-con>
+<i-con dashboard></i-con>
+```
+
+```css
+i-con {
+  display: inline-flex;
+  height: 60px;
+  width: 60px;
+
+  --path: "M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z";
+
+  svg {
+    width: 100%;
+    height: 100%;
+    path {
+      fill: currentColor;
+      d: path(var(--path));
+    }
+  }
+
+  &[home] {
+    --path: "M10,20V14H14V20H20V12H24L12,0L0,12H4V20H10Z";
+  }
+  &[dashboard] {
+    --path: "M3,3H11V11H3V3M13,3H21V11H13V3M13,13H21V21H13V13M3,13H11V21H3V13Z";
+  }
+}
+```
+
+---
+
+## 22. Universal Tabs
+
+Tab navigation using shared context (`*currentTabName`) with no parent coordinator component.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+class SuperTabs extends Symbiote {
+  init$ = {
+    '*currentTabName': 'first',
+  };
+
+  renderCallback() {
+    this.tabEls = [...this.querySelectorAll('[tab]')];
+    this.tabEls.forEach((el) => {
+      let tab = el.getAttribute('tab');
+      if (el.hasAttribute('current')) {
+        this.$['*currentTabName'] = tab;
+      }
+      el.onclick = () => {
+        this.$['*currentTabName'] = tab;
+      };
+    });
+    this.sub('*currentTabName', (val) => {
+      this.tabEls.forEach((el) => {
+        el.toggleAttribute('current', el.getAttribute('tab') === val);
+      });
+    });
+  }
+}
+
+SuperTabs.reg('super-tabs');
+
+class SuperTabsView extends Symbiote {
+  renderCallback() {
+    this.tabCtxEls = [...this.querySelectorAll('[tab-ctx]')];
+    this.sub('*currentTabName', (val) => {
+      this.tabCtxEls.forEach((el) => {
+        el.toggleAttribute('active', el.getAttribute('tab-ctx') === val);
+      });
+    });
+  }
+}
+
+SuperTabsView.reg('super-tabs-view');
+```
+
+```html
+<super-tabs ctx="section-select">
+  <button tab="first">First</button>
+  <button tab="second">Second</button>
+  <button tab="third">Third</button>
+</super-tabs>
+
+<super-tabs-view ctx="section-select">
+  <div tab-ctx="first">First content</div>
+  <div tab-ctx="second">Second content</div>
+  <div tab-ctx="third">Third content</div>
+</super-tabs-view>
+```
+
+```css
+super-tabs {
+  display: inline-flex;
+  gap: 2px;
+  [tab][current] {
+    background-color: transparent;
+    pointer-events: none;
+  }
+}
+
+super-tabs-view {
+  display: block;
+  [tab-ctx] { display: none; }
+  [tab-ctx][active] { display: contents; }
+}
+```
+
+---
+
+## 23. Widget Routing via PubSub
+
+Custom router using a PubSub named context and computed properties — no AppRouter required.
+
+```js
+import Symbiote, { html, PubSub } from '@symbiotejs/symbiote';
+
+const routes = [
+  { route: 'home', title: 'Home', options: { timestamp: Date.now() } },
+  { route: 'user', title: 'User', options: { timestamp: Date.now() } },
+  { route: 'settings', title: 'Settings', options: { timestamp: Date.now() } },
+];
+
+const router = PubSub.registerCtx(routes[0], 'R');
+
+class AppShell extends Symbiote {
+  init$ = {
+    routes: structuredClone(routes),
+
+    '+optionsJson': {
+      deps: ['R/options'],
+      fn: () => JSON.stringify(this.$['R/options'], undefined, 2),
+    },
+    '+sectionHtml': {
+      deps: ['R/route'],
+      fn: () => {
+        let sec = this.$['R/route'];
+        return `<${sec}-section></${sec}-section>`;
+      },
+    },
+
+    onNav: (e) => {
+      let route = e.target.getAttribute('route');
+      if (route) {
+        let routeDescriptor = routes.find((desc) => desc.route === route);
+        if (routeDescriptor) {
+          routeDescriptor.options.timestamp = Date.now();
+          router.multiPub(routeDescriptor);
+        }
+      }
+    },
+  }
+}
+
+AppShell.template = html`
+  <h1>Section title: {{R/title}}</h1>
+  <h2>Current route: {{R/route}}</h2>
+  <nav itemize="routes">
+    <button ${{onclick: '^onNav', '@route': 'route'}}>{{title}}</button>
+  </nav>
+  <code>{{+optionsJson}}</code>
+  <div ${{innerHTML: '+sectionHtml'}}></div>
+`;
+
+AppShell.reg('app-shell');
+```
+
+```html
+<app-shell></app-shell>
+```
+
+---
+
+## 24. AI-Assisted Smart Textarea
+
+SSR hydration mode with `ref`, async handlers, and attribute-driven configuration.
+
+```js
+import Symbiote from '@symbiotejs/symbiote';
+
+const CFG = {
+  apiUrl: 'https://api.openai.com/v1/chat/completions',
+  apiKey: '<YOUR_API_KEY>',
+};
+
+const textStyles = [
+  'Free informal speech, jokes, memes, emoji, possibly long',
+  'Casual chat, friendly tone, occasional emoji, short and relaxed',
+  'Medium formality, soft style, compact',
+  'Neutral tone, clear and direct, minimal slang',
+  'Professional tone, polite and respectful, no emoji',
+  'Strict business language, polite and grammatically correct',
+  'Highly formal, authoritative, complex vocabulary, long and structured',
+];
+
+class SmartTextarea extends Symbiote {
+  ssrMode = true;
+  #sourceText = '';
+
+  init$ = {
+    '@model': 'gpt-4o',
+    currentTextStyle: textStyles[3],
+
+    saveSourceText: () => {
+      this.#sourceText = this.ref.text.value;
+    },
+    revertChanges: () => {
+      this.ref.text.value = this.#sourceText;
+    },
+    onTextStyleChange: (e) => {
+      this.$.currentTextStyle = textStyles[e.target.value - 1];
+    },
+    askAi: async () => {
+      if (!this.ref.text.value.trim()) {
+        alert('Your text input is empty');
+        return;
+      }
+      let response = await fetch(CFG.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${CFG.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.$['@model'],
+          messages: [
+            {
+              role: 'system',
+              content: JSON.stringify({
+                useLanguage: this.ref.lang.value || 'Same as input language',
+                textStyle: this.$.currentTextStyle,
+              }),
+            },
+            {
+              role: 'assistant',
+              content: 'You are a text writing assistant. Rewrite the input text according to the parameters provided.',
+            },
+            {
+              role: 'user',
+              content: this.ref.text.value,
+            },
+          ],
+          temperature: 0.7,
+        }),
+      });
+      let aiResponse = await response.json();
+      this.ref.text.value = aiResponse?.choices?.[0]?.message.content || this.ref.text.value;
+    },
+  }
+}
+
+SmartTextarea.reg('smart-textarea');
+```
+
+```html
+<smart-textarea model="gpt-4o-mini">
+  <textarea
+    bind="oninput: saveSourceText"
+    placeholder="AI assisted text input..."
+    ref="text"></textarea>
+
+  <input type="text" placeholder="Preferred Language" ref="lang">
+
+  <label>Text style: {{currentTextStyle}}</label>
+  <input
+    bind="onchange: onTextStyleChange"
+    type="range" min="1" max="7" step="1">
+
+  <button bind="onclick: askAi">Rewrite text</button>
+  <button bind="onclick: revertChanges">Revert AI changes</button>
+</smart-textarea>
+```
+
+```css
+smart-textarea {
+  display: inline-flex;
+  flex-flow: column;
+  gap: 10px;
+  width: 500px;
+
+  textarea {
+    width: 100%;
+    height: 200px;
+  }
+}
+```
+
+---
+
+## 25. rootStyles (Light DOM Adopted Stylesheets)
+
+```js
+import Symbiote, { html, css } from '@symbiotejs/symbiote';
+
+class MyCard extends Symbiote {
+  init$ = {
+    '@title': 'Card title',
+    '@text': 'Card text content...',
+  }
+}
+
+MyCard.template = html`
+  <h3>{{@title}}</h3>
+  <p>{{@text}}</p>
+  <button>Action</button>
+`;
+
+MyCard.rootStyles = css`
+  my-card {
+    display: block;
+    padding: 20px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 8px;
+    background-color: var(--card-bg, #f9f9f9);
+    margin: 10px;
+    max-width: 300px;
+
+    & h3 { margin: 0 0 8px; color: var(--heading-color, #333); }
+    & p { margin: 0 0 12px; color: var(--text-color, #666); }
+    & button {
+      background-color: var(--accent, #0057ff);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  }
+`;
+
+MyCard.reg('my-card');
+```
+
+```html
+<my-card title="Default theme"></my-card>
+
+<div style="--card-bg: #1a1a2e; --heading-color: #e0e0ff; --text-color: #a0a0cc; --accent: #7c4dff;">
+  <my-card title="Dark theme" text="Styled via CSS custom properties."></my-card>
+</div>
+```
+
+---
+
+## 26. shadowStyles (Shadow DOM Isolation)
+
+```js
+import Symbiote, { html, css } from '@symbiotejs/symbiote';
+
+class MyWidget extends Symbiote {
+  init$ = {
+    '@label': 'Widget',
+    count: 0,
+  }
+  increment() {
+    this.$.count++;
+  }
+}
+
+MyWidget.template = html`
+  <div class="header">{{@label}}</div>
+  <div class="body">
+    <span class="count">{{count}}</span>
+    <button ${{onclick: 'increment'}}>+1</button>
+  </div>
+`;
+
+MyWidget.shadowStyles = css`
+  :host {
+    display: inline-block;
+    border: 2px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: sans-serif;
+    margin: 8px;
+  }
+  .header {
+    background: #333;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  .body {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .count {
+    font-size: 28px;
+    font-weight: bold;
+    min-width: 2ch;
+    text-align: center;
+  }
+  button {
+    background: #0057ff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 18px;
+    cursor: pointer;
+    &:hover { background: #0040cc; }
+  }
+`;
+
+MyWidget.reg('my-widget');
+```
+
+```html
+<my-widget label="Counter A"></my-widget>
+<my-widget label="Counter B"></my-widget>
+```
+
+---
+
+# Flags
+
+Flags are settings that enable or disable specific features or behaviors.
+
+## Complete list
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `renderShadow` | `false` | Render template into Shadow DOM |
+| `ssrMode` | `false` | Hydrate server-rendered HTML |
+| `isoMode` | `false` | Isomorphic mode: hydrate if children exist, render template otherwise |
+| `isVirtual` | `false` | Replace element with its template fragment |
+| `allowCustomTemplate` | `false` | Allow `use-template` attribute |
+| `pauseRender` | `false` | Skip automatic rendering |
+| `processInnerHtml` | `false` | Process existing inner HTML |
+| `readyToDestroy` | `true` | Allow cleanup on disconnect |
+| `allowTemplateInits` | `true` | Auto-add props found in template |
+| `lazyMode` | `false` | Defer initialization until component enters the viewport |
+| `mcpToolMode` | `false` | Generate experimental WebMCP tools from bound event handlers |
+
+## renderShadow
+
+Enables Shadow DOM mode. When enabled, you can use standard slots and `:host` selectors:
+```js
+class MyComponent extends Symbiote {
+
+  renderShadow = true;
+
+}
+```
+
+## ssrMode
+
+Enables the hydration workflow — the component uses its own nested markup as a template (provided by the server as regular HTML).
+
+Text and attribute bindings are activated on first update, not at state initialization:
+```js
+class MyComponent extends Symbiote {
+
+  ssrMode = true;
+
+}
+```
+
+In 3.x, `ssrMode` supports both light DOM and Declarative Shadow DOM hydration. Template injection is skipped; bindings attach to existing DOM.
+
+> **Note**: `ssrMode` is a client-side flag. It is separate from `__SYMBIOTE_SSR` (server-side global). See [SSR](./ssr.md) for details.
+
+## isoMode
+
+Isomorphic rendering flag. If the component has children when it connects on the client (server-rendered content), it behaves like `ssrMode = true` — hydrates existing DOM. If the component has **no children**, it renders the template normally:
+```js
+class MyComponent extends Symbiote {
+
+  isoMode = true;
+
+}
+```
+
+This is useful for components that may or may not be server-rendered — the same component code works in both scenarios without conditional logic.
+
+## isVirtual
+
+The component renders its template only, without the wrapping Custom Element. The Custom Element is used as a placeholder and disappears after initial rendering. Data bindings continue to work in memory:
+```js
+class MyComponent extends Symbiote {
+
+  isVirtual = true;
+
+}
+```
+
+## allowCustomTemplate
+
+The component's template is taken from an accessible part of the document by the provided selector:
+```js
+class MyComponent extends Symbiote {
+
+  allowCustomTemplate = true;
+
+}
+```
+
+Then use the `use-template` attribute:
+```html
+<template id="my-tpl">
+  <h1>{{someHeading}}</h1>
+</template>
+
+<my-component use-template="template#my-tpl"></my-component>
+```
+
+## pauseRender
+
+Disables the default render stage to allow additional logic before rendering. Call `render()` manually:
+```js
+class MyComponent extends Symbiote {
+
+  pauseRender = true;
+
+  initCallback() {
+    fetch('../my-data.json').then((response) => {
+      response.json().then((data) => {
+        this.set$(data);
+        this.render();
+      });
+    });
+  }
+
+}
+```
+
+## processInnerHtml
+
+Similar to `ssrMode`, but all initiated data is rendered immediately. You can use standard template binding syntax for text nodes:
+```js
+class MyComponent extends Symbiote {
+
+  processInnerHtml = true;
+
+}
+```
+
+```html
+<my-component>
+  <h1>{{someHeading}}</h1>
+</my-component>
+```
+
+## readyToDestroy
+
+Controls whether the component is destroyed when removed from DOM. Set to `false` to **disable** destruction:
+```js
+class MyComponent extends Symbiote {
+
+  readyToDestroy = false;
+
+}
+```
+
+See also: `destructionDelay` in [Lifecycle](./lifecycle.md).
+
+## allowTemplateInits
+
+Controls automated property initialization from template mentions. Disable to require explicit `init$` declarations:
+```js
+class MyComponent extends Symbiote {
+
+  allowTemplateInits = false;
+
+}
+
+// The 'heading' property won't be auto-initialized:
+MyComponent.template = html`
+  <h1>{{heading}}</h1>
+`;
+```
+
+## lazyMode
+
+Defers component initialization until it enters the viewport using a global \`IntersectionObserver\`. When the component scrolls out of view, its internal DOM is cleared to save memory, and its dimensions (\`min-height\` and \`min-width\`) are preserved to prevent scrollbar jumping. State updates are preserved while hidden and applied when the component re-enters the viewport.
+
+```js
+class MyComponent extends Symbiote {
+
+  lazyMode = true;
+
+}
+```
+
+This is most commonly used by adding the \`lazy\` attribute to an \`itemize\` container to optimize rendering of massive lists:
+
+```html
+<div itemize="myItems" lazy>
+  <template>
+    <h3>{{title}}</h3>
+    <div>{{description}}</div>
+  <template>
+</div>
+```
+
+## mcpToolMode
+
+Enables experimental WebMCP auto-tool generation for bound event handlers. WebMCP is an optional extension, so import it before WebMCP-enabled components render:
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+import '@symbiotejs/symbiote/webmcp';
+
+Symbiote.mcpToolMode = true; // global opt-in
+```
+
+You can also enable it per component:
+
+```js
+class MyComponent extends Symbiote {
+  mcpToolMode = true;
+}
+```
+
+See [WebMCP Experimental](./webmcp.md) for tool descriptors, naming, and browser requirements.
+
+---
+
+# Get Started
+
+## NPM installation
+
+```shell
+npm i @symbiotejs/symbiote
+```
+
+> If you are using CDN module sharing approach, you should add the package to `devDependencies`, because it will be used for static analysis only (TypeScript and "Go to Definition" support).
+
+Installation as a `dev` dependency:
+```shell
+npm install @symbiotejs/symbiote --save-dev
+```
+
+## HTTPS/CDN
+
+To easily share Symbiote.js as a common dependency between independent application parts (widgets, micro-frontends, meta-applications), you can use one of the modern code CDNs:
+```js
+import Symbiote from 'https://esm.run/@symbiotejs/symbiote';
+```
+
+TypeScript support (my-types.d.ts):
+```ts
+declare module 'https://esm.run/@symbiotejs/symbiote' {
+  export * from '@symbiotejs/symbiote';
+}
+```
+In some cases, you will need to add `maxNodeModuleJsDepth` setting to your `tsconfig.json` file:
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "maxNodeModuleJsDepth": 2
+  }
+}
+```
+
+You can also publish your own Symbiote.js build as a regular static file to your own server and use it via HTTPS. HTTPS-imports are supported in all modern browsers.
+
+It's convenient to define a common base class for your application to manage the HTTPS dependency in one place:
+```js
+import Symbiote from 'https://esm.run/@symbiotejs/symbiote';
+
+export class AppComponent extends Symbiote {
+  // Your code...
+}
+```
+
+## Git submodule (optional)
+
+Initial submodule connection:
+```shell
+git submodule add -b main https://github.com/symbiotejs/symbiote.js.git ./symbiote
+```
+
+Activation at the cloned host repository and getting updates:
+```shell
+git submodule update --init --recursive --remote
+```
+
+Switch to a certain revision:
+```shell
+cd symbiote && git checkout <VERSION_TAG>
+```
+
+`package.json` scripts section example:
+```json
+{
+  "scripts": {
+    "git-modules": "git submodule update --init --recursive --remote",
+    "sym-version": "cd symbiote && git checkout <VERSION_TAG> && cd ..",
+    "setup": "npm run git-modules && npm run sym-version && npm i"
+  }
+}
+```
+
+Then:
+```shell
+npm run setup
+```
+
+## Your first Symbiote component
+
+Create the HTML file `my-app.html`:
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "@symbiotejs/symbiote": "https://esm.run/@symbiotejs/symbiote"
+    }
+  }
+</script>
+
+<script type="module">
+  import Symbiote, { html, css } from '@symbiotejs/symbiote';
+
+  class MyComponent extends Symbiote {
+    count = 0;
+    increment() {
+      this.$.count++;
+    }
+  }
+
+  // Define template:
+  MyComponent.template = html`
+    <h2>{{count}}</h2>
+    <button ${{onclick: 'increment'}}>Click me!</button>
+  `;
+
+  // Describe styles:
+  MyComponent.rootStyles = css`
+    my-component {
+      color: #f00;
+    }
+  `;
+
+  // Register the new HTML-tag in browser:
+  MyComponent.reg('my-component');
+</script>
+
+<my-component></my-component>
+```
+
+That's it! Open this HTML file in your browser and check the result.
+
+> To run this example, you'll need a browser and a text editor only. No installation, build setup or local server is required.
+
+> **IMPORTANT**: `template`, `rootStyles` and `shadowStyles` are **static property setters** — they must be assigned **outside** the class body. Using `static template = html\`...\`` inside the class **will NOT work**.
+
+## Export structure
+
+### Core (`@symbiotejs/symbiote`)
+`Symbiote` (default), `html`, `css`, `PubSub`, `DICT`, `animateOut`
+
+### Utils (`@symbiotejs/symbiote/utils`)
+`UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
+
+### WebMCP experimental (`@symbiotejs/symbiote/webmcp`)
+`ToolDescriptor`, `installWebMCP`, `webMCPRegistry`, `syncWebMCPTools`, `unregisterWebMCPTools`, `getActiveWebMCPTools`
+
+Individual module imports (tree-shaking):
+```js
+import Symbiote from '@symbiotejs/symbiote/core/Symbiote.js';
+import { PubSub } from '@symbiotejs/symbiote/core/PubSub.js';
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+import { html } from '@symbiotejs/symbiote/core/html.js';
+import { css } from '@symbiotejs/symbiote/core/css.js';
+import { ToolDescriptor } from '@symbiotejs/symbiote/core/webmcp.js';
+```
+
+## Platform specs & standards
+
+It's important to know what Web Components are in general. Some links to useful platform documentation (MDN):
+- [Custom Elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
+- [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM)
+- [Templates and slots](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_templates_and_slots)
+- [Constructable Stylesheets](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet)
+- [CSS Custom Properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties)
+- [ECMAScript Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import)
+- [Import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap)
+
+---
+
+# Lifecycle
+
+Symbiote component is an extension of a native Custom Element, so it has all regular [lifecycle stages](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#using_the_lifecycle_callbacks):
+- `constructor()`
+- `connectedCallback()`
+- `disconnectedCallback()`
+- `adoptedCallback()`
+- `attributeChangedCallback(name, oldValue, newValue)`
+
+## Additional lifecycle callbacks
+
+| Method | When called |
+|--------|------------|
+| `initCallback()` | Once, after state initialized, before render (if `pauseRender=true`) or normally after render |
+| `renderCallback()` | Once, after template is rendered and attached to DOM |
+| `destroyCallback()` | On disconnect, after delay, only if `readyToDestroy=true` |
+
+`renderCallback()` is the most common place to describe component logic:
+```js
+class MyComponent extends Symbiote {
+
+  renderCallback() {
+    // You have access to data and all DOM API methods here
+    // this.ref, this.$, DOM children are all available
+  }
+
+}
+```
+
+## Destruction and cleanup
+
+By default, components are destroyed when disconnected from DOM (after a 100ms delay). This delay allows synchronous DOM moves (e.g. list reordering) without triggering destruction.
+
+If you do **NOT** plan to permanently remove your component from DOM or keep it just in memory, disable destruction:
+```js
+class MyComponent extends Symbiote {
+
+  readyToDestroy = false;
+
+}
+```
+
+Otherwise, the component will be destroyed on DOM detachment if you don't return it back with a synchronous DOM API call.
+
+### `destructionDelay`
+
+Configure the delay (in milliseconds) before cleanup in `disconnectedCallback`:
+```js
+class MyComponent extends Symbiote {
+
+  destructionDelay = 500; // default is 100
+
+}
+```
+
+This is useful when components might be temporarily removed and re-added to the DOM (animations, transitions, sorting, caching, etc.) or for some in-memory calculations.
+
+### `destroyCallback()`
+
+Called when the component is about to be destroyed and removed from memory:
+```js
+class MyComponent extends Symbiote {
+
+  destroyCallback() {
+    // Clean up external resources, event listeners, etc.
+  }
+
+}
+```
+
+## Exit animations
+
+`animateOut(el)` delays element removal until CSS transitions finish. This works with the destruction lifecycle — the `[leaving]` attribute is set, the transition plays, and only then the element is removed from the DOM and destroyed:
+
+```css
+my-item {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  &[leaving] { opacity: 0; }
+}
+```
+
+The itemize API uses `animateOut` automatically for item removal.
+
+> More details in the [Animations](./animations.md) section.
+
+---
+
+# List Rendering
+
+## Using `itemize` API
+
+To create a dynamic list inside your component, use the `itemize` attribute on the list container element:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    userList: [
+      { firstName: 'John', secondName: 'Snow' },
+      { firstName: 'Peter', secondName: 'Sand' },
+    ],
+  };
+
+}
+
+MyComponent.template = html`
+  <div itemize="userList">
+    <template>
+      <div>First name: {{firstName}}</div>
+      <div>Second name: {{secondName}}</div>
+    </template>
+  </div>
+`;
+```
+
+The `itemize` value points to a key in the component's data context. You can use any type of data context token or a computed list property:
+
+Pop-up (parent must define `userList` in `init$`):
+```js
+html`<div itemize="^userList">...item template</div>`;
+```
+
+Named:
+```js
+html`<div itemize="APP/userList">...item template</div>`;
+```
+
+Computed:
+```js
+class MyComponent extends Symbiote {
+  init$ = {
+    rawData: [
+      { date: Date.now(), isVisible: true },
+      { date: Date.now(), isVisible: false },
+    ],
+    '+userList': () => this.$.rawData.filter((item) => item.isVisible),
+  };
+}
+
+MyComponent.template = html`
+  <div itemize="+userList"> ... </div>
+`;
+```
+
+> You can also use the `${{itemize: 'prop'}}` binding syntax if preferred — it produces the same result.
+
+## List items
+
+> **CRITICAL**: Items inside `itemize` are full Symbiote components with their own state scope.
+> There are two patterns — **dumb items** and **smart items** — and they differ in how event handlers and logic are bound.
+
+### Dumb items (inline `<template>`)
+
+When you define the item markup directly inside a `<template>` tag, items have **no class definition** — they only receive data properties from the array. Any event handler, method, or additional data must come from an **external context** — not from the item itself.
+
+All standard Symbiote context prefixes work inside dumb item templates:
+
+| Prefix | Source | Example |
+|--------|--------|---------|
+| `^` | Pop-up (parent component) | `${{onclick: '^onItemClick'}}` |
+| `/` | Named context | `${{onclick: 'APP/onItemClick'}}` |
+| `*` | Shared context | `${{onclick: '*onItemClick'}}` |
+
+The most common pattern is `^` (pop-up to parent):
+
+```js
+class MyList extends Symbiote {
+  init$ = {
+    userList: [
+      { firstName: 'John', secondName: 'Snow' },
+      { firstName: 'Peter', secondName: 'Sand' },
+    ],
+  };
+
+  onItemClick(e) {
+    console.log('Item clicked');
+  }
+}
+
+MyList.template = html`
+  <div itemize="userList">
+    <template>
+      <div>{{firstName}} {{secondName}}</div>
+      <button ${{onclick: '^onItemClick'}}>Click</button>
+    </template>
+  </div>
+`;
+```
+
+> **Context prefix is required here.** Without it, the binding looks for the handler on the item itself — which doesn't have it, so the event handler breaks silently.
+
+This pattern is best for **simple, display-only items** where all logic lives outside the item.
+
+### Smart items (custom `item-tag` component)
+
+When you define a separate Symbiote component for items, each item has its **own class, template, methods, and state**. Handlers defined on the item component bind directly — **no `^` needed**:
+
+```js
+class UserCard extends Symbiote {
+  firstName = '';
+  secondName = '';
+
+  onCardClick() {
+    alert(`Hello ${this.$.firstName} ${this.$.secondName}!`);
+  }
+}
+
+UserCard.template = html`
+  <div>{{firstName}} {{secondName}}</div>
+  <button ${{onclick: 'onCardClick'}}>Click</button>
+`;
+
+UserCard.reg('user-card');
+```
+
+Use it in the parent list:
+```js
+html`
+  <div itemize="userList" item-tag="user-card"></div>
+`;
+```
+
+> **No `^` needed** — `onCardClick` is the item's own method. You can still use `^` to reach the parent list component if needed (e.g., `${{onclick: '^removeItem'}}`).
+
+This pattern is best for **items with their own logic, lifecycle, or complex templates**.
+
+### Styling list items
+
+By default, all list items are Symbiote components wrapped with a corresponding custom element. If you don't need an extra container for styling, use `display: contents` CSS — this is added to each item by default when you don't set custom tag names.
+
+Use `item-tag` to assign a named tag for styling:
+```css
+user-card {
+  display: flex;
+  gap: 8px;
+}
+```
+
+### Item template
+
+We recommend wrapping item templates in the `<template>` tag:
+```js
+html`
+  <div itemize="listData" item-tag="my-list-item">
+    <template>
+      <div>{{firstName}}</div>
+      <div>{{secondName}}</div>
+    </template>
+  </div>
+`;
+```
+
+> The `<template>` tag helps the browser ignore specific tag behavior before the template is copied as item contents. When using an external component as a list item, template wrapping is not necessary.
+
+## Data types and structure
+
+Source data can be `Array` or `Object` collections. Each item descriptor should have a flat structure.
+
+For `Object` collections, each item key is reflected via the `_KEY_` property:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    userList: {
+      id1: { firstName: 'John', secondName: 'Snow' },
+      id2: { firstName: 'Peter', secondName: 'Sand' },
+    },
+  };
+
+}
+
+MyComponent.template = html`
+  <div itemize="userList" item-tag="user-card">
+    <template>
+      <div>ID: {{_KEY_}}</div>
+      <div>{{firstName}}</div>
+      <div>{{secondName}}</div>
+    </template>
+  </div>
+`;
+```
+
+## Dynamic updates
+
+Assign a new data collection to trigger re-render:
+```js
+this.$.userList = await (await window.fetch('https://<MY-DATA-ENDPOINT>.io')).json();
+```
+
+Existing items are updated in-place via `set$`, new items appended, excess removed. Setting the value to `null` or `false` clears the entire list.
+
+## Exit animations
+
+Both itemize processors use `animateOut` automatically for item removal. Items with CSS `transition` + `[leaving]` styles will animate out before being removed:
+```css
+user-card {
+  opacity: 1;
+  transition: opacity 0.3s;
+
+  &[leaving] {
+    opacity: 0;
+  }
+}
+```
+
+More details in the [Animations](./animations.md) section.
+
+## Keyed itemize processor
+
+For performance-critical lists, use the optional keyed itemize processor with reference-equality fast paths and key-based reconciliation:
+```js
+import { itemizeProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor-keyed.js';
+import { itemizeProcessor as defaultProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor.js';
+
+class BigList extends Symbiote {
+  constructor() {
+    super();
+    this.templateProcessors.delete(defaultProcessor);
+    this.templateProcessors = new Set([itemizeProcessor, ...this.templateProcessors]);
+  }
+}
+```
+
+Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-ops.
+
+## Lazy initialization (Massive lists)
+
+For extremely large lists, you can add the `lazy` attribute to the `itemize` container. This enables `lazyMode` on all generated list items, heavily optimizing memory usage and initial render time:
+
+```html
+<div itemize="myItems" lazy></div>
+```
+
+When `lazy` is used, items will defer their initialization until they enter the viewport using a global `IntersectionObserver`. When they scroll out of view, their internal DOM is automatically cleared to save memory, while their physical dimensions (`min-height` and `min-width`) are preserved to prevent the scrollbar from jumping. Any state updates that occur while the item is out of view are safely cached and applied seamlessly when the item re-enters the viewport.
+
+## Nested lists
+
+List nesting is fully supported. To render hierarchical data, define a custom item component that contains its own `itemize`:
+```js
+class CategoryItem extends Symbiote {
+  name = '';
+  init$ = { items: [] }
+}
+
+CategoryItem.template = html`
+  <h3>{{name}}</h3>
+  <ul itemize="items">
+    <template>
+      <li>{{title}}</li>
+    </template>
+  </ul>
+`;
+
+CategoryItem.reg('category-item');
+```
+
+Then use it in the parent:
+```js
+class MyApp extends Symbiote {
+
+  init$ = {
+    categories: [
+      {
+        name: 'Frontend',
+        items: [
+          { title: 'Symbiote.js' },
+          { title: 'HTML' },
+          { title: 'CSS' },
+        ],
+      },
+      {
+        name: 'Backend',
+        items: [
+          { title: 'Node.js' },
+          { title: 'Rust' },
+        ],
+      },
+    ],
+  };
+
+}
+
+MyApp.template = html`
+  <div itemize="categories" item-tag="category-item"></div>
+`;
+```
+
+Each nesting level is an independent Symbiote component with its own state scope, so updates at any level are handled efficiently.
+
+## Custom raw web components as items
+
+Symbiote.js allows using any custom component as a list item, including raw web components for maximum performance:
+```js
+class TableRow extends HTMLElement {
+
+  set rowData(data) {
+    data.forEach((cellContent, idx) => {
+      if (!this.children[idx]) {
+        this.appendChild(document.createElement('td'));
+      }
+      this.children[idx].textContent = cellContent;
+    });
+  }
+
+}
+
+window.customElements.define('table-row', TableRow);
+
+class MyTable extends Symbiote {
+
+  init$ = {
+    tableData: [],
+  }
+
+  initCallback() {
+    window.setInterval(() => {
+      let data = [];
+      for (let i = 0; i < 10000; i++) {
+        data.push({ rowData: [i + 1, Date.now()] });
+      }
+      this.$.tableData = data;
+    }, 1000);
+  }
+
+}
+
+MyTable.rootStyles = css`
+  table-row {
+    display: table-row;
+  }
+  td {
+    border: 1px solid currentColor;
+  }
+`;
+
+MyTable.template = html`
+  <h1>Hello table!</h1>
+  <table itemize="tableData" item-tag="table-row"></table>
+`;
+
+MyTable.reg('my-table');
+```
+
+> The `itemize` API can be used as a convenient benchmarking tool — test your components for performance by adding them into large lists.
+
+---
+
+# Properties
+
+## Property initialization
+
+For simple components, define properties as class fields — Symbiote picks them up automatically via fallback:
+```js
+class MyComponent extends Symbiote {
+  myProp = 'some value';
+  someOtherProp = 123;
+  oneMoreProp = true;
+}
+```
+
+For complex components with shared context, computed props, or many reactive properties, use `init$` to explicitly declare state:
+```js
+class MyComponent extends Symbiote {
+  init$ = {
+    myProp: 'some value',
+    '*sharedProp': [],
+    '+computed': () => this.$.myProp.length,
+  }
+}
+```
+The `init$` map should be a flat object that provides access to all values by top-level keys. Nested property key access (e.g. `'obj.prop'`) is **not supported** — use flat names instead.
+
+## Reading and writing values
+
+Use the `$` proxy (a standard JavaScript `Proxy` object) to access property values:
+```js
+class MyComponent extends Symbiote {
+  time = Date.now();
+
+  renderCallback() {
+    // Write a new value:
+    this.$.time = Date.now();
+
+    // Read current value:
+    console.log(this.$.time);
+  }
+}
+```
+
+## Bulk updates
+
+To change multiple property values at once, use the `set$` method:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    firstProp: 'some value',
+    secondProp: 'some value',
+  }
+
+  renderCallback() {
+    this.set$({
+      firstProp: 'new value',
+      secondProp: 'new value',
+    });
+  }
+
+}
+```
+
+The optional second argument `forcePrimitives` triggers callbacks even if the value hasn't changed (for primitive types):
+```js
+this.set$({ count: 0 }, true); // forces notification even though value may be the same
+```
+
+## Property subscription
+
+To subscribe to property changes, use the `sub` method:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    myProp: 'some value',
+  }
+
+  renderCallback() {
+    this.sub('myProp', (newVal) => {
+      console.log(newVal);
+    });
+
+    // This will invoke the subscription callback:
+    this.$.myProp = 'Changed value';
+  }
+
+}
+```
+
+The third argument `init` (default `true`) controls whether the handler is called immediately with the current value:
+```js
+this.sub('myProp', handler, false); // don't call handler immediately
+```
+
+To trigger change notification manually:
+```js
+this.notify('myProp');
+```
+
+## Adding properties dynamically
+
+Add properties to the context at runtime:
+```js
+this.add('newProp', 'initial value');     // single property
+this.add$({ prop1: 'a', prop2: 'b' });   // bulk add
+```
+
+Check if a property exists:
+```js
+this.has('myProp'); // true / false
+```
+
+## Computed properties
+
+Computed properties recalculate their values automatically when dependencies change. Use the `+` prefix for the property name.
+
+### Local computed (auto-tracked)
+
+Dependencies are recorded automatically when the function executes:
+```js
+class MyComponent extends Symbiote {
+
+  init$ = {
+    a: 1,
+    b: 2,
+    '+sum': () => this.$.a + this.$.b, // auto-tracks 'a' and 'b'
+  }
+
+}
+
+MyComponent.template = html`<div>{{+sum}}</div>`;
+```
+
+> Computed values are recalculated asynchronously (via `queueMicrotask`). The computed doesn't make an excess re-render if the final value has not changed.
+
+### Cross-context computed (explicit deps)
+
+When a computed property depends on external named context properties, you must declare dependencies explicitly:
+```js
+init$ = {
+  local: 0,
+  '+total': {
+    deps: ['GAME/score'],
+    fn: () => this.$['GAME/score'] + this.$.local,
+  },
+};
+```
+
+To trigger manual recalculation:
+```js
+this.notify('+computedText');
+```
+
+## Property context and tokens
+
+Symbiote components can interact with different types of properties, not just local ones. The context type is set by key prefixes:
+
+| Prefix | Meaning | Description |
+|--------|---------|-------------|
+| _(none)_ | Local | Component's own local state |
+| `^` | Pop-up | Direct access to upper level component property (must be in parent's `init$`) |
+| `*` | Shared | Share properties between components in the same workflow context |
+| `/` | Named | Access abstract named data context |
+| `--` | CSS Data | Initiate property from CSS custom property value |
+| `@` | Attribute | Bind state property to HTML attribute value |
+| `+` | Computed | Auto-calculated derived value |
+
+> More details in the [Context](./context.md) section.
+
+---
+
+# PubSub
+
+`PubSub` is the main Symbiote.js entity for data manipulation. It implements the [Publish-Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) pattern and provides everything you need to organize data flow inside and outside your components. It is integrated into the `Symbiote` base class but can also be used standalone:
+```js
+import { PubSub } from '@symbiotejs/symbiote';
+
+let myDataCtx = PubSub.registerCtx({
+  myProp: 'some value',
+  myOtherProp: 'some other value',
+});
+```
+
+## Static methods
+
+### PubSub.registerCtx()
+
+Create and register a `PubSub` instance.
+
+```js
+registerCtx(schema)
+registerCtx(schema, id)
+
+// > PubSub instance
+```
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `schema` | `Object<string, *>` | yes | Property map |
+| `id` | `String \| Symbol` | no | Context ID |
+
+```js
+let myDataCtx = PubSub.registerCtx({
+  myProp: 'some value',
+  myOtherProp: 'some other value',
+}, 'MY_CTX_ID');
+```
+
+### PubSub.getCtx()
+
+Get a PubSub object from the registry.
+
+```js
+getCtx(id)
+getCtx(id, notify)
+
+// > PubSub instance or null
+```
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `id` | `String \| Symbol` | yes | Context ID |
+| `notify` | `Boolean` | no | Trigger notification on retrieval |
+
+```js
+let myDataCtx = PubSub.getCtx('MY_CTX_ID');
+```
+
+### PubSub.deleteCtx()
+
+Remove a `PubSub` object from the registry and clear memory.
+
+```js
+PubSub.deleteCtx('MY_CTX_ID');
+```
+
+## Instance methods
+
+### pub()
+
+Publish a new property value.
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `propertyKey` | `String` | yes | Property name |
+| `newValue` | `*` | yes | Property value |
+
+```js
+myDataCtx.pub('propertyName', 'newValue');
+```
+
+### multiPub()
+
+Publish multiple changes at once.
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `propertyMap` | `Object<string, *>` | yes | Key/value update map |
+
+```js
+myDataCtx.multiPub({
+  propertyName: 'new value',
+  otherPropertyName: 'other new value',
+});
+```
+
+### sub()
+
+Subscribe to property changes.
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `propertyName` | `String` | yes | Property name |
+| `handler` | `(newValue) => void` | yes | Update handler |
+
+```js
+myDataCtx.sub('propertyName', (newValue) => {
+  console.log(newValue);
+});
+```
+
+### read()
+
+Read a property value.
+
+```js
+myDataCtx.read('propertyName');
+```
+
+### has()
+
+Check whether a property exists.
+
+```js
+myDataCtx.has('propertyName'); // true / false
+```
+
+### add()
+
+Add a new property.
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `propertyName` | `String` | yes | Property name |
+| `initValue` | `*` | yes | Initial value |
+
+```js
+myDataCtx.add('propertyName', 'init value');
+```
+
+### notify()
+
+Manually invoke all subscription handlers for a property.
+
+```js
+myDataCtx.notify('propertyName');
+```
+
+## Dev mode
+
+Enable `PubSub.devMode` for verbose warnings (type mismatches, missing properties):
+```js
+Symbiote.devMode = true; // also sets PubSub.devMode
+```
+
+See [Dev Mode](./dev-mode.md) for details.
+
+---
+
+# Routing
+
+Symbiote.js has a built-in SPA routing solution based on the standard [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API).
+
+> In 3.x, `AppRouter` is imported separately from the main package:
+> ```js
+> import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+> ```
+> Or use the `full` entry point to get everything in one import:
+> ```js
+> import Symbiote, { html, css, AppRouter } from '@symbiotejs/symbiote/full';
+> ```
+
+> [!TIP]
+> **Importmap users**: If you resolve `@symbiotejs/symbiote` and `AppRouter` via separate importmap entries (e.g. different CDN URLs), PubSub contexts will still work correctly — `PubSub.globalStore` is shared via `globalThis.__SYMBIOTE_PUBSUB_STORE` across all module copies.
+
+## Path-based routing (recommended)
+
+Routes with the `pattern` property use path-based URLs with `:param` extraction:
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+
+const routerCtx = AppRouter.initRoutingCtx('R', {
+  home:     { pattern: '/',            title: 'Home', default: true },
+  user:     { pattern: '/users/:id',   title: 'User Profile' },
+  settings: { pattern: '/settings',    title: 'Settings' },
+  notFound: { pattern: '/404',         title: 'Not Found', error: true },
+});
+
+// Navigate programmatically:
+AppRouter.navigate('user', { id: '42' });
+// URL becomes: /users/42
+
+// React to route changes in any component:
+class AppShell extends Symbiote {
+  renderCallback() {
+    this.sub('R/route', (route) => {
+      console.log('Route:', route);
+    });
+    this.sub('R/options', (opts) => {
+      console.log('Params:', opts); // { id: '42' }
+    });
+  }
+}
+
+AppShell.template = html`
+  <h1>{{R/title}}</h1>
+  <div ref="viewport"></div>
+`;
+
+AppShell.reg('app-shell');
+```
+
+## Query-string routing (legacy/alternative)
+
+Routes **without** `pattern` use query-string mode automatically:
+```js
+const routerCtx = AppRouter.initRoutingCtx('R', {
+  home:  { title: 'Home', default: true },
+  about: { title: 'About' },
+  error: { title: 'Error...', error: true },
+});
+
+AppRouter.navigate('about', { section: 'team' });
+// URL becomes: ?about&section=team
+```
+
+Mode is auto-detected: routes with `pattern` → path-based, without → query-string.
+
+## Route guards
+
+Register a guard function that runs before every navigation:
+```js
+let unsub = AppRouter.beforeRoute((to, from) => {
+  if (!isAuth && to.route === 'settings') {
+    return 'login'; // redirect to 'login' route
+  }
+  // return false to cancel navigation
+  // return nothing to proceed
+});
+
+unsub(); // remove guard
+```
+
+## Lazy loaded routes
+
+Use `load` in route descriptors for dynamic imports (loaded once, cached):
+```js
+AppRouter.initRoutingCtx('R', {
+  settings: {
+    pattern: '/settings',
+    title: 'Settings',
+    load: () => import('./pages/settings.js'),
+  },
+});
+```
+
+## Static methods
+
+### AppRouter.initRoutingCtx()
+
+```js
+initRoutingCtx(id, routingMap)
+// > PubSub instance
+```
+
+| Argument | Type | Required | Description |
+|:--|:--|:--|:--|
+| `id` | `String` | yes | Context ID |
+| `routingMap` | `Object<string, RouteDescriptor>` | yes | Routing map |
+
+`RouteDescriptor` type:
+
+| Property | Type | Required | Description |
+|:--|:--|:--|:--|
+| `pattern` | `String` | no | URL path pattern (enables path-based mode) |
+| `title` | `String \| Function` | no | Page title (string or `() => string` for dynamic/localized titles) |
+| `default` | `Boolean` | no | Default route |
+| `error` | `Boolean` | no | Error (404) route |
+| `load` | `Function` | no | Lazy loader `() => import(...)` |
+
+### AppRouter.navigate()
+
+Navigate and dispatch route change event:
+```js
+AppRouter.navigate('user', { id: '42' });
+```
+
+> **Migration note**: `applyRoute()` from 2.x has been renamed to `navigate()` in 3.x.
+
+### AppRouter.reflect()
+
+Update the URL without triggering a route change event:
+```js
+AppRouter.reflect('user', { id: '42' });
+```
+
+### AppRouter.notify()
+
+Read the current URL, run guards, lazy load if needed, and dispatch the route change event:
+```js
+AppRouter.notify();
+```
+
+### AppRouter.readAddressBar()
+
+Read and parse the current URL:
+```js
+let { route, options } = AppRouter.readAddressBar();
+```
+
+### AppRouter.beforeRoute()
+
+Register a route guard. Returns an unsubscribe function:
+```js
+let unsub = AppRouter.beforeRoute((to, from) => { ... });
+unsub();
+```
+
+### AppRouter.setRoutingMap()
+
+Extend routes dynamically:
+```js
+AppRouter.setRoutingMap({
+  new_route: { pattern: '/new', title: 'New Section' },
+});
+```
+
+### AppRouter.setSeparator()
+
+Set custom separator for query-string mode (default: `&`):
+```js
+AppRouter.setSeparator('@');
+```
+
+### AppRouter.setDefaultTitle()
+
+Set default page title when route title is not defined. Accepts a string or a function:
+```js
+AppRouter.setDefaultTitle('My App');
+AppRouter.setDefaultTitle(() => i18n.t('app.title'));
+```
+
+### Dynamic titles (i18n)
+
+Both route `title` and `defaultTitle` accept a function `() => string` that is called at navigation time. This enables localized or computed page titles:
+```js
+AppRouter.initRoutingCtx('R', {
+  home: {
+    pattern: '/',
+    title: () => t('pages.home'),
+    default: true,
+  },
+  about: {
+    pattern: '/about',
+    title: () => t('pages.about'),
+  },
+});
+
+AppRouter.setDefaultTitle(() => t('app.title'));
+```
+The function is re-evaluated on every `navigate()` / `notify()`, so language changes take effect on the next navigation.
+
+### AppRouter.removePopstateListener()
+
+Remove the popstate event listener.
+
+## SSR & isomorphic usage
+
+`AppRouter` is SSR-safe. In Node.js or linkedom environments, `initRoutingCtx()` creates the PubSub context (so `{{R/title}}` bindings resolve during server rendering) while browser-only APIs are skipped automatically:
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
+
+await SSR.init();
+
+// Works in both browser and SSR — creates the 'R' context:
+AppRouter.initRoutingCtx('R', {
+  home: { pattern: '/', title: 'Home', default: true },
+  about: { pattern: '/about', title: 'About' },
+});
+
+await import('./my-app.js');
+let html = SSR.renderToString('my-app');
+SSR.destroy();
+```
+
+In SSR, `navigate()`, `reflect()`, and `notify()` are no-ops — they return immediately without errors.
+
+---
+
+# Security
+
+## Trusted Types
+
+Symbiote.js is compatible with strict Content Security Policy (CSP) headers that require [Trusted Types](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API).
+
+Template `innerHTML` writes use a Trusted Types policy when the API is available:
+```js
+// Symbiote creates a passthrough policy automatically:
+// trustedTypes.createPolicy('symbiote', { createHTML: (s) => s })
+```
+
+### CSP configuration
+
+To use Symbiote.js with strict Trusted Types:
+```
+Content-Security-Policy: require-trusted-types-for 'script'; trusted-types symbiote
+```
+
+The policy name is `'symbiote'`.
+
+> No sanitization is performed — templates are developer-authored, not user input. The policy exists to satisfy the Trusted Types API requirement.
+
+## CSP nonce for SSR styles
+
+When using [SSR](./ssr.md), component styles (`rootStyles` / `shadowStyles`) are serialized as inline `<style>` tags. A strict `style-src` CSP policy will block these unless you provide a **nonce**.
+
+All SSR methods accept an optional `{ nonce }` parameter:
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+let nonce = crypto.randomUUID(); // generate per request
+
+let html = await SSR.processHtml('<my-app></my-app>', { nonce });
+// or
+let html = SSR.renderToString('my-app', {}, { nonce });
+```
+
+Output:
+```html
+<my-app><style nonce="...">my-app { display: block; }</style>...</my-app>
+```
+
+Then set a matching CSP header:
+```
+Content-Security-Policy: style-src 'nonce-<value>'
+```
+
+> On the client side, Symbiote.js applies styles via `adoptedStyleSheets`, which is CSP-safe and requires no nonce.
+
+---
+
+# SSR and Your Server Setup
+
+Practical recipes for serving Symbiote.js SSR with Node.js — static build or streaming, with Express, Fastify, or plain `http`.
+
+> [!NOTE]
+> These examples assume you've already read the [SSR basics](./ssr.md). Make sure `linkedom` is installed.
+
+## Project structure
+
+A typical isomorphic setup:
+
+```
+project/
+├── app/              # shared state and config
+├── components/       # Symbiote components (isoMode = true)
+├── dist/             # build output and static assets
+├── node/
+│   ├── server.js     # dev server
+│   ├── ssr.js        # static SSR build script
+│   ├── imports.js    # server-side component imports
+│   └── main-tpl.html # HTML shell template
+└── package.json
+```
+
+**`node/imports.js`** — import all isomorphic modules for server rendering:
+```js
+import '../app/app.js';
+import '../components/app-shell/app-shell.js';
+import '../components/nav-menu/nav-menu.js';
+// ... other isomorphic components
+```
+
+**`node/main-tpl.html`** — HTML shell with a content placeholder:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My App</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "@symbiotejs/symbiote": "https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote@latest/core/full.js/+esm"
+      }
+    }
+  </script>
+  <script type="module" src="./browser-imports.js"></script>
+  <link rel="stylesheet" href="./globals.css">
+</head>
+<body>{{CONTENT}}</body>
+</html>
+```
+
+---
+
+## Static SSR build
+
+Generate a static HTML file at build time. This is ideal for static hosting:
+
+```js
+// node/ssr.js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+import fs from 'fs';
+
+await SSR.init();
+await import('./imports.js');
+
+let html = await SSR.processHtml('<app-shell></app-shell>', {
+  nonce: Date.now().toString(36),
+});
+SSR.destroy();
+
+const template = fs.readFileSync('./node/main-tpl.html', 'utf-8');
+html = template.replace('{{CONTENT}}', html);
+fs.writeFileSync('./dist/index.html', html);
+```
+
+```json
+// package.json
+{
+  "scripts": {
+    "ssr": "node ./node/ssr.js"
+  }
+}
+```
+
+---
+
+## Dev server with streaming SSR
+
+A development server that serves SSR-streamed HTML on the root route and static assets from the project:
+
+```js
+// node/server.js
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+const PORT = 3000;
+const DIST_DIR = path.resolve('./dist');
+const ROOT_DIR = path.resolve('.');
+
+const MIME = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+};
+
+// Init SSR once at startup:
+await SSR.init();
+await import('./imports.js');
+
+const tpl = fs.readFileSync('./node/main-tpl.html', 'utf-8');
+const [head, tail] = tpl.split('{{CONTENT}}');
+
+function serveFile(filePath, res) {
+  try {
+    let stat = fs.statSync(filePath);
+    if (stat.isFile()) {
+      let ext = path.extname(filePath);
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+      fs.createReadStream(filePath).pipe(res);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`);
+
+  if (url.pathname !== '/') {
+    // Try dist/ first, then project root (for ESM modules):
+    if (serveFile(path.join(DIST_DIR, url.pathname), res)) return;
+    if (serveFile(path.join(ROOT_DIR, url.pathname), res)) return;
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+
+  // SSR streaming for root:
+  let nonce = Date.now().toString(36);
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.write(head);
+  for await (let chunk of SSR.renderToStream('app-shell', {}, { nonce })) {
+    res.write(chunk);
+  }
+  res.end(tail);
+});
+
+server.listen(PORT, () => console.log(`\nSSR server: http://localhost:${PORT}\n`));
+```
+
+```json
+// package.json
+{
+  "scripts": {
+    "dev": "node ./node/server.js"
+  }
+}
+```
+
+---
+
+## Express
+
+### Streaming SSR
+
+```js
+import express from 'express';
+import fs from 'fs';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();
+await import('./node/imports.js');
+
+const tpl = fs.readFileSync('./node/main-tpl.html', 'utf-8');
+const [head, tail] = tpl.split('{{CONTENT}}');
+
+const app = express();
+app.use(express.static('./dist', { index: false }));
+
+app.get('/', async (req, res) => {
+  let nonce = Date.now().toString(36);
+  res.type('html');
+  res.write(head);
+  for await (let chunk of SSR.renderToStream('app-shell', {}, { nonce })) {
+    res.write(chunk);
+  }
+  res.end(tail);
+});
+
+app.listen(3000, () => console.log('http://localhost:3000'));
+```
+
+### String SSR
+
+```js
+app.get('/', async (req, res) => {
+  let nonce = Date.now().toString(36);
+  let content = SSR.renderToString('app-shell', {}, { nonce });
+  res.type('html').send(tpl.replace('{{CONTENT}}', content));
+});
+```
+
+---
+
+## Fastify
+
+### Streaming SSR
+
+```js
+import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import fs from 'fs';
+import path from 'path';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();
+await import('./node/imports.js');
+
+const tpl = fs.readFileSync('./node/main-tpl.html', 'utf-8');
+const [head, tail] = tpl.split('{{CONTENT}}');
+
+const app = Fastify();
+
+app.register(fastifyStatic, {
+  root: path.resolve('./dist'),
+  prefix: '/',
+  wildcard: false,
+});
+
+app.get('/', async (req, reply) => {
+  let nonce = Date.now().toString(36);
+  reply.type('text/html');
+  reply.raw.write(head);
+  for await (let chunk of SSR.renderToStream('app-shell', {}, { nonce })) {
+    reply.raw.write(chunk);
+  }
+  reply.raw.end(tail);
+});
+
+app.listen({ port: 3000 }, () => console.log('http://localhost:3000'));
+```
+
+### String SSR
+
+```js
+app.get('/', async (req, reply) => {
+  let nonce = Date.now().toString(36);
+  let content = SSR.renderToString('app-shell', {}, { nonce });
+  reply.type('text/html').send(tpl.replace('{{CONTENT}}', content));
+});
+```
+
+---
+
+## Key points
+
+- **Init once** — call `SSR.init()` and import components at server startup, not per-request
+- **`SSR.destroy()` is for build scripts only** — don't call it in a running server
+- **Streaming** (`renderToStream`) gives faster TTFB on large pages
+- **String** (`renderToString`) is simpler and works well for small pages or build steps
+- **CSP nonce** — pass `{ nonce }` to add `nonce` attributes to SSR-generated `<style>` tags
+
+> [!IMPORTANT]
+> SSR rendering is synchronous. Async subscription callbacks won't affect SSR output. Initialize any state that must appear in SSR via class properties or `init$`. See [SSR → Context detection](./ssr.md#ssr-context-detection).
+
+---
+
+# Server-Side Rendering (SSR)
+
+Symbiote.js provides a simple SSR solution via `node/SSR.js`. It doesn't need a virtual DOM, a reconciler, or framework-specific server packages — just one class.
+
+Requirements: [linkedom](https://github.com/WebReflection/linkedom) (optional peer dependency).
+
+### Install linkedom
+
+```
+npm install linkedom
+```
+
+> [!NOTE]
+> Minimum supported version is `0.16.0`. linkedom is listed as an optional peer dependency, so it won't be installed automatically with Symbiote.js — you need to add it yourself when using SSR features.
+
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+```
+
+## Basic usage — `processHtml`
+
+Process any HTML string, render all Symbiote components found within, and return the result:
+```js
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();                 // patches globals with linkedom env
+await import('./my-component.js'); // component reg() works normally
+
+let html = await SSR.processHtml('<div><my-component></my-component></div>');
+// => '<div><my-component><style>...</style><template shadowrootmode="open">...</template>content</my-component></div>'
+
+SSR.destroy();                    // cleanup globals
+```
+
+If `SSR.init()` was already called, `processHtml` reuses the existing environment; otherwise it auto-initializes and auto-destroys after.
+
+## Using `html` helper on the server
+
+You can define server-side templates using the `html` helper — it outputs clean HTML with `bind=` attributes:
+```js
+import { html } from '@symbiotejs/symbiote/core/html.js';
+
+export default html`
+<my-component>
+  <h2 ${{textContent: 'count'}} ref="count">0</h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+</my-component>
+`;
+```
+
+This transforms to:
+```html
+<my-component>
+  <h2 ref="count" bind="textContent: count">0</h2>
+  <button bind="onclick: increment">Click me!</button>
+</my-component>
+```
+
+## `renderToString`
+
+Render a single component to an HTML string:
+```js
+await SSR.init();
+await import('./my-component.js');
+
+let html = SSR.renderToString('my-component', { title: 'Hello' });
+// => '<my-component title="Hello"><h1>Hello</h1></my-component>'
+
+SSR.destroy();
+```
+
+## Streaming — `renderToStream`
+
+For large pages, stream HTML chunks instead of building a string:
+```js
+import http from 'node:http';
+import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
+
+await SSR.init();
+await import('./my-app.js');
+
+http.createServer(async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.write('<!DOCTYPE html><html><body>');
+  for await (let chunk of SSR.renderToStream('my-app')) {
+    res.write(chunk);
+  }
+  res.end('</body></html>');
+}).listen(3000);
+```
+
+## API reference
+
+| Method | Description |
+|--------|-------------|
+| `SSR.init()` | `async` — creates linkedom document, polyfills CSSStyleSheet/NodeFilter/MutationObserver/adoptedStyleSheets, patches globals |
+| `SSR.processHtml(html, options?)` | `async` — parses HTML string, renders all custom elements, returns processed HTML. Auto-inits if needed |
+| `SSR.renderToString(tagName, attrs?, options?)` | Creates element, triggers `connectedCallback`, serializes to HTML string |
+| `SSR.renderToStream(tagName, attrs?, options?)` | Async generator — yields HTML chunks (same output as `renderToString`, streamed for lower TTFB) |
+| `SSR.destroy()` | Removes global patches, cleans up document |
+
+**Options:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `nonce` | `string` | CSP nonce value to add to generated `<style>` tags. See [Security → CSP nonce](./security.md#csp-nonce-for-ssr-styles) |
+
+## Styles in SSR output
+
+- **rootStyles** → `<style>` tag as the first child of the component (light DOM, deduplicated per constructor)
+- **shadowStyles** → `<style>` inside the Declarative Shadow DOM `<template>`
+- Both are supported simultaneously on the same component
+
+### CSP nonce
+
+Pass `{ nonce }` to add a `nonce` attribute to all generated `<style>` tags for [CSP compliance](./security.md#csp-nonce-for-ssr-styles):
+```js
+let html = await SSR.processHtml('<my-app></my-app>', { nonce: 'abc123' });
+// <style nonce="abc123">...</style>
+```
+
+On the client, styles are applied via `adoptedStyleSheets` — no nonce needed.
+
+## Shadow DOM output
+
+Shadow components produce Declarative Shadow DOM markup with styles inlined:
+```html
+<my-shadow>
+  <style>my-shadow { display: block; }</style>
+  <template shadowrootmode="open">
+    <style>:host { color: red; }</style>
+    <h1>Content</h1>
+    <slot></slot>
+  </template>
+  Light DOM content here
+</my-shadow>
+```
+
+## SSR context detection
+
+`SSR.init()` sets `globalThis.__SYMBIOTE_SSR = true`. This is separate from the instance `ssrMode` flag:
+
+| Flag | Scope | Purpose |
+|------|-------|---------|
+| `__SYMBIOTE_SSR` | Server (global) | Preserves binding attributes (`bind`, `ref`, `itemize`) in HTML output. Bypasses `ssrMode` effects |
+| `ssrMode` | Client (instance) | Skips template injection, hydrates existing DOM with bindings |
+| `isoMode` | Client (instance) | Isomorphic mode: hydrates if children exist, renders template otherwise |
+
+> [!IMPORTANT]
+> **SSR rendering is synchronous.** Async subscription callbacks (e.g. with `await import(...)`) will not affect SSR output — the HTML is serialized before the callback resolves. Any state that must appear in SSR output should be initialized synchronously via class properties or `init$`.
+
+## Client-side hydration
+
+Use `isoMode = true` to make components work in both SSR and client-only scenarios. It detects children automatically: hydrates pre-rendered content when it exists, renders from template otherwise. No conditional logic needed:
+
+```js
+class MyComponent extends Symbiote {
+  isoMode = true;
+  count = 0;
+  increment() {
+    this.$.count++;
+  }
+}
+
+MyComponent.template = html`
+  <h2 ${{textContent: 'count'}} ref="count">0</h2>
+  <button ${{onclick: 'increment'}}>Click me!</button>
+`;
+MyComponent.reg('my-component');
+```
+
+> [!TIP]
+> `isoMode` is the recommended default for isomorphic components. It works correctly whether the component was server-rendered or created dynamically on the client.
+
+### Hydration flow
+
+1. **Server**: `SSR.processHtml()` / `SSR.renderToString()` produces HTML with `bind=` / `itemize=` attributes preserved
+2. **Client**: `isoMode` detects pre-rendered children → attaches bindings to existing DOM (no template injection)
+3. State mutations on client update DOM reactively
+
+> [!WARNING]
+> **Text-node bindings (`{{prop}}`) are not hydratable.** They produce no `bind=` attribute in SSR output, so the client has no marker to re-attach the binding. The server-rendered value will display correctly, but won't update on the client. Use `${{textContent: 'prop'}}` for text that must stay reactive after hydration. Enable `devMode` to see warnings for this.
+
+> [!WARNING]
+> **CSS data bindings (`cssInit$`, `--prop`) use fallback values during SSR.** Computed styles are not available on the server — `getCssData()` returns `null` and the init value is used instead. If your component relies on CSS-driven configuration, ensure the `cssInit$` fallback is a sensible server-side default. Enable `devMode` to see warnings for this.
+
+### `ssrMode` — strict SSR-only
+
+For components that are **always** server-rendered and never created client-side, you can use `ssrMode = true` instead. Unlike `isoMode`, it unconditionally skips template injection — the component must have pre-rendered content:
+
+```js
+class MyComponent extends Symbiote {
+  ssrMode = true;
+  // ...
+}
+```
+
+### `isVirtual` — clean HTML without wrappers
+
+For server-only components that should produce clean HTML without custom element tags, use `isVirtual = true`. The component replaces itself with its template fragment — only the inner content appears in the output:
+
+```js
+class PageHeader extends Symbiote {
+  isVirtual = true;
+  init$ = {
+    title: 'My Page',
+  };
+}
+PageHeader.template = html`<header><h1 ${{textContent: 'title'}}></h1></header>`;
+PageHeader.reg('page-header');
+
+let html = SSR.renderToString('page-header');
+// => '<header><h1>My Page</h1></header>'
+// No <page-header> wrapper in output
+```
+
+This is useful when you want the organizational benefits of components (encapsulated state, templates, styles) during development, but need standard HTML elements in the final output — for example, generating static pages, emails, or content consumed by systems that don't support custom elements.
+
+---
+
+# Styling
+
+Symbiote.js utilizes the [CSSStyleSheet API](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet) for efficient in-memory style manipulation. It works similarly to the styles of built-in browser elements (inputs, video tags), but you have full control.
+
+This API also helps parse CSS rules in JavaScript without Content Security Policy (CSP) violations.
+
+You can style your components using any other styling approach — or combine them. Symbiote components support regular stylesheets for Document or Shadow Roots.
+
+## Style interfaces
+
+Every Symbiote component has two major static style interfaces:
+
+### rootStyles (Light DOM)
+
+Creates and adds a stylesheet via `adoptedStyleSheets` to the closest root in the document:
+```js
+class MyComponent extends Symbiote {}
+
+MyComponent.rootStyles = css`
+  my-component {
+    display: block;
+    color: var(--text-color);
+
+    & button {
+      color: var(--accent);
+    }
+  }
+`;
+
+MyComponent.reg('my-component');
+```
+
+Use the custom tag name as the CSS selector.
+
+### shadowStyles (Shadow DOM)
+
+Creates and adds a stylesheet to the component's Shadow Root. If the Shadow Root doesn't exist, it's created automatically:
+```js
+class MyComponent extends Symbiote {}
+
+MyComponent.shadowStyles = css`
+  :host {
+    display: block;
+  }
+  button {
+    color: red;
+  }
+`;
+
+MyComponent.reg('my-component');
+```
+
+> You can combine shadow scope styles with external scope styles for maximum control.
+
+### addRootStyles / addShadowStyles
+
+Append additional stylesheets:
+```js
+MyComponent.addRootStyles(anotherSheet);
+MyComponent.addShadowStyles(anotherSheet);
+```
+
+## `css` tag function
+
+The `css` tag function returns a `CSSStyleSheet` instance (constructable stylesheet):
+```js
+import { css } from '@symbiotejs/symbiote';
+
+let styles = css`
+  h1 {
+    color: red;
+  }
+`;
+```
+
+### CSS processing
+
+You can add processing via `css.useProcessor()`:
+```js
+css.useProcessor((cssText) => {
+  return cssText.replaceAll('red', 'green');
+});
+```
+
+Or add a processing sequence:
+```js
+class MyComponent extends Symbiote {}
+
+let randomTag = 'tag-' + Math.round(Math.random() * Date.now());
+MyComponent.reg(randomTag);
+
+css.useProcessor(
+  (cssText) => cssText.replaceAll(' blue;', ' green;'),
+  (cssText) => cssText.replaceAll('random-tag', randomTag),
+);
+
+MyComponent.rootStyles = css`
+  random-tag {
+    background-color: blue;
+  }
+`;
+```
+
+## SSR style output
+
+When using [server-side rendering](./ssr.md):
+- **rootStyles** → emitted as `<style>` tag as the first child of the component (light DOM, deduplicated per constructor)
+- **shadowStyles** → emitted inside the Declarative Shadow DOM `<template>`
+- Both are supported simultaneously on the same component
+
+---
+
+# Templates
+
+The core template mechanic in Symbiote.js is native browser HTML-string parsing via standard DOM API methods. This is the fastest way to create a component template instance in the object model representation.
+
+## Runtime-agnostic by design
+
+Symbiote.js templates are runtime and context agnostic. This applies to all template sources: strings produced by the `html` helper, plain HTML strings, external template modules, and `<template>` elements selected with `use-template`.
+
+Templates do not execute inside a component instance and do not close over `this`. They describe markup and named bindings only; the actual component instance and data context are resolved later, when the template is rendered or hydrated.
+
+This is an important difference from many component libraries where the template is also an instance-bound render function. In Symbiote.js, representation can stay separate from component logic, which makes templates reusable, replaceable, SSR-friendly, and easy to define outside JavaScript classes:
+```js
+// Universal for browser or Node.js environment:
+export const cardTemplate = html`
+  <h2>{{title}}</h2>
+  <button ${{onclick: 'onSelect'}}>Select</button>
+`;
+```
+
+For typing details, see [TypeScript](./typescript.md).
+
+## `html` helper
+
+The `html` tag function constructs templates using compact binding-maps:
+```js
+import { html } from '@symbiotejs/symbiote';
+
+const myTemplate = html`
+  <button ${{onclick: 'onBtnClick'}}>Click me!</button>
+`;
+```
+In this example, we created the button and connected it to a `onBtnClick` handler, which should be defined in the component state.
+
+Every binding-map is a simple JavaScript object that describes connections between the element's own properties and the component's data. It is standard JavaScript template literal syntax with no special additions.
+
+### Dual-mode interpolation
+
+The `html` function supports two interpolation modes:
+
+- **Object** → converted to `bind="prop:key;"` attribute (reactive binding)
+- **String / number** → concatenated as-is (native interpolation, useful for SSR page shells)
+
+Example:
+```js
+const btnText = 'Click me!';
+const myTemplate = html`
+  <button ${{onclick: 'onBtnClick'}}>${btnText}</button>
+`;
+```
+
+This dual-mode design means `html` works for both component templates and full-page SSR output — no separate "server-only template" function is needed.
+
+### Self-closing custom elements
+
+In standard HTML, self-closing syntax is only meaningful for void elements. Custom elements should normally be written with explicit closing tags:
+```js
+html`<my-component></my-component>`;
+```
+
+For convenience, the `html` helper expands empty custom element tags that use self-closing syntax:
+```js
+html`<my-component />`;
+html`<my-component/>`;
+// Both output: '<my-component></my-component>'
+```
+
+This normalization only applies to hyphenated custom element names. Native void elements keep their original form, and an existing closing tag is not duplicated:
+```js
+html`<input />`; // '<input />'
+html`<my-component/></my-component>`; // '<my-component></my-component>'
+```
+
+## Binding to text nodes
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class MyComponent extends Symbiote {
+  name = 'John';
+  btnTxt = 'Click me!';
+  onBtnClick() {
+    console.log('Button clicked!');
+  }
+}
+
+MyComponent.template = html`
+  <h1>Hello {{name}}!</h1>
+  <button ${{onclick: 'onBtnClick'}}>{{btnTxt}}</button>
+`;
+```
+Text node bindings use double braces syntax — `{{myProp}}`. For each text node binding, its own text node (`Text()`) will be created.
+
+> [!IMPORTANT]
+> **SSR / ISO limitation:** `{{prop}}` bindings work by splitting DOM text nodes at runtime — they produce **no HTML attributes** in SSR output. This means the server renders the initial value correctly, but the client hydration pass has no marker to re-attach the binding. For hydratable text, use `${{textContent: 'prop'}}` instead. Enable `devMode` to get a warning when this occurs.
+
+More about standard [Text Nodes](https://developer.mozilla.org/en-US/docs/Web/API/Text).
+
+## Binding to template element's own properties
+
+```js
+MyComponent.template = html`
+  <button ${{onclick: 'handlerName'}}>Click</button>
+`;
+```
+The `${{key: 'value'}}` interpolation creates a `bind="key:value;"` attribute. Keys are DOM element property names; values are component reactive state property names (as strings).
+
+### Class property fallback (3.x)
+
+For any binding key not found in `init$`, Symbiote falls back to a **class property** (own instance property) with the same name. Functions are automatically bound to the component instance:
+```js
+class MyComp extends Symbiote {
+  // Approach 1: state property in init$
+  init$ = { count: 0 };
+
+  // Approach 2: class property (fallback)
+  label = 'Click me';
+  onSubmit() { console.log('submitted'); }
+}
+
+MyComp.template = html`
+  <label>{{label}}</label>
+  <button ${{onclick: 'onSubmit'}}>{{count}}</button>
+`;
+```
+
+> Value properties are checked via `Object.hasOwn`, so inherited `HTMLElement` properties like `title`, `hidden`, etc. are never picked up. Prototype methods are also resolved as fallback handlers.
+
+> [!TIP]
+> Use class property fallback for **simple components** — it keeps the code compact and readable.  For **complex components** with many reactive properties, prefer `init$` to explicitly separate reactive state from regular class properties.
+
+## Binding to element's nested properties
+
+Symbiote.js allows binding to nested properties of template elements:
+```js
+MyComponent.template = html`
+  <div ${{'style.color': 'myCssValue'}}>Some text...</div>
+`;
+```
+
+You can also bind to a nested component's reactive state directly, using the `$` proxy key:
+```js
+MyComponent.template = html`
+  <my-component ${{'$.nestedPropName': 'propName'}}></my-component>
+`;
+```
+
+## Binding to HTML attributes
+
+To bind a property to an element's attribute, use the `@` prefix:
+```js
+MyComponent.template = html`
+  <div ${{'@hidden': 'isHidden'}}></div>
+  <input ${{'@disabled': 'isDisabled'}}>
+  <div ${{'@data-value': 'myValue'}}></div>
+`;
+```
+The `@` prefix means "bind to HTML attribute" (not DOM property). For boolean attributes: `true` → attribute present, `false` → attribute removed.
+
+> `@` is for binding syntax only — do NOT use it as a regular HTML attribute prefix (`<div ${{'@hidden': 'isHidden'}}></div>` will be rendered as `<div hidden></div>` if `isHidden` is `true`, and as `<div></div>` if `isHidden` is `false`).
+
+## Type casting
+
+You can cast any property value to `boolean` using `!`:
+
+Inversion:
+```js
+html`<div ${{'@hidden': '!showContent'}}> ... </div>`;
+```
+
+Double inversion is supported:
+```js
+html`<div ${{'@contenteditable': '!!hasText'}}> ... </div>`;
+```
+
+## Property tokens (key prefixes)
+
+| Prefix | Meaning | Example |
+|--------|---------|---------|
+| _(none)_ | Local state | `{{count}}` |
+| `^` | Pop-up | `{{^parentProp}}` |
+| `*` | Shared context | `{{*sharedProp}}` |
+| `/` | Named context | `{{APP/myProp}}` |
+| `--` | CSS Data | `{{--my-css-var}}` |
+| `+` | Computed | `'+sum': () => ...` |
+
+> The `^` prefix resolves properties registered in the parent's data context (`init$` or `add$()`). Class property fallbacks are **not** checked during the parent walk.
+
+> More details in the [Context](./context.md) section.
+
+## Loose-coupling alternative
+
+Templates can be written as plain HTML without any JavaScript context:
+```html
+<div bind="textContent: myProp"></div>
+<div bind="onclick: handler; @hidden: !flag"></div>
+```
+
+## Shadow DOM slots
+
+> [Slots](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) allow you to define placeholders in your template that can be filled with external markup.
+
+Shadow DOM slots work out of the box, as expected by standard. No additional processors needed. To enable Shadow DOM, set the `renderShadow` flag in your component or define shadow styles:
+```js
+class MyComponent extends Symbiote {
+  renderShadow = true;
+}
+
+// Or just define shadow styles:
+MyComponent.shadowStyles = css`
+  :host {
+    display: block;
+  }
+`;
+
+// Then you can use standard Shadow DOM slots:
+MyComponent.template = html`
+  <slot></slot>
+`;
+```
+
+## Light DOM Slots (Symbiote.js feature, non-standard)
+
+Since version 2.x, light DOM slot processing must be imported and added explicitly:
+```js
+import { slotProcessor } from '@symbiotejs/symbiote/core/slotProcessor.js';
+
+class MyWrapper extends Symbiote {
+  constructor() {
+    super();
+    this.templateProcessors.add(slotProcessor);
+  }
+}
+
+MyWrapper.template = html`
+  <header><slot name="header"></slot></header>
+  <main><slot></slot></main>
+`;
+```
+
+Usage:
+```html
+<my-wrapper>
+  <h1 slot="header">Title</h1>
+  <p>Default slot content</p>
+</my-wrapper>
+```
+
+## Element references
+
+Use the `ref` attribute to get element references in your code:
+```js
+html`
+  <div>
+    <input ref="nameInput">
+    <button ref="submitBtn" ${{onclick: 'onSubmit'}}>Submit</button>
+  </div>
+`;
+```
+
+Reference names should be unique. Access them via `this.ref`:
+```js
+class MyComponent extends Symbiote {
+  renderCallback() {
+    this.ref.nameInput.focus();
+    this.ref.submitBtn.disabled = true;
+  }
+}
+```
+
+## Dynamic list rendering
+
+To render efficient dynamic reactive lists, use the `itemize` API:
+```js
+class MyComponent extends Symbiote {
+  listData = [
+    { firstName: 'John', secondName: 'Snow' },
+    { firstName: 'Jane', secondName: 'Stone' },
+  ];
+}
+
+MyComponent.template = html`
+  <h1>My list:</h1>
+  <ul itemize="listData">
+    <template>
+      <li>{{firstName}} - {{secondName}}</li>
+    </template>
+  </ul>
+`;
+```
+
+> More information about `itemize` API in the [List Rendering](./list-rendering.md) section.
+
+## External customizable templates
+
+Symbiote.js allows components to connect templates defined elsewhere in the HTML document.
+
+Set the `allowCustomTemplate` flag:
+```js
+class MyComponent extends Symbiote {
+  allowCustomTemplate = true;
+}
+```
+
+Define templates somewhere in HTML markup:
+```html
+<template id="first">
+  <h1>{{headingText}}</h1>
+</template>
+
+<template id="second">
+  <h2>{{headingText}}!</h2>
+</template>
+```
+
+Use them:
+```html
+<my-component use-template="#first"></my-component>
+<my-component use-template="#second"></my-component>
+```
+
+---
+
+# TypeScript
+
+Symbiote.js is written in JavaScript and ships generated `.d.ts` files. You can use it from JavaScript with JSDoc static analysis, from TypeScript directly, or from a mixed codebase.
+
+The important design detail is that Symbiote templates are runtime-agnostic. A template can come from the `html` helper, a plain string, a separate module, a server-rendered string, or a DOM `<template>` selected with `use-template`. Because templates are not bound to one component instance at author time, not every template binding can be expressed as a complete compile-time TypeScript relationship.
+
+Symbiote uses a hybrid approach:
+
+- TypeScript/JSDoc types describe component classes, state, methods, helpers, and public APIs.
+- Runtime diagnostics validate template bindings when a template is connected to an actual component instance and data context.
+
+## JSDoc Approach
+
+The recommended default is JavaScript with TypeScript checking enabled. This keeps Symbiote close to the platform while still giving editors static analysis and "Go to Definition" support.
+
+Enable checking in individual files:
+```js
+// @ts-check
+```
+
+Or enable it for the project:
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true
+  }
+}
+```
+
+Describe component state with JSDoc and pass it to the generic `Symbiote` base class:
+```js
+// @ts-check
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+/**
+ * @typedef {{
+ *   count: number,
+ *   label: string
+ * }} CounterState
+ */
+
+/** @extends {Symbiote<CounterState>} */
+class MyCounter extends Symbiote {
+  /** @type {CounterState} */
+  init$ = {
+    count: 0,
+    label: 'Count',
+  };
+
+  increment() {
+    this.$.count += 1;
+  }
+}
+
+MyCounter.template = html`
+  <h2>{{label}}: {{count}}</h2>
+  <button ${{onclick: 'increment'}}>+</button>
+`;
+
+MyCounter.reg('my-counter');
+```
+
+This gives static checks for normal JavaScript code:
+
+- `this.$.count` is known as a number.
+- `this.$.label` is known as a string.
+- `set$()`, `add$()`, and `sub()` can use the declared state shape.
+
+The template remains a runtime-agnostic string. The binding name `'increment'` is intentionally not a direct function reference; it is resolved later from the rendered component instance.
+
+## Typed Binding Objects
+
+Inline binding objects are concise:
+```js
+html`<button ${{onclick: 'increment'}}>+</button>`;
+```
+
+For larger templates, or when you want stronger editor checks on binding declarations, define binding objects separately and type them as a relationship between element properties and template context keys.
+
+In JSDoc, define a reusable binding-map helper:
+```js
+// @ts-check
+import { html } from '@symbiotejs/symbiote';
+
+/**
+ * @typedef {{
+ *   count: number,
+ *   label: string
+ * }} CounterState
+ */
+
+/**
+ * @template {object} El
+ * @template {object} Ctx
+ * @typedef {Partial<Record<Extract<keyof El, string>, Extract<keyof Ctx, string>>>} BindingMap
+ */
+
+/**
+ * @typedef {CounterState & {
+ *   increment: () => void
+ * }} CounterTemplateCtx
+ */
+
+/** @satisfies {BindingMap<HTMLButtonElement, CounterTemplateCtx>} */
+const incrementBtn = {
+  onclick: 'increment',
+  textContent: 'label',
+};
+
+MyCounter.template = html`
+  <button ${incrementBtn}>Click me!</button>
+`;
+```
+
+This checks both sides of the binding:
+
+- object keys must be properties of `HTMLButtonElement` (`onclick`, `textContent`, etc.)
+- object values must be keys of `CounterTemplateCtx` (`increment`, `label`, etc.)
+
+So `onclik: 'increment'` or `textContent: 'lable'` can be caught by TypeScript before the template runs.
+
+In `.ts` files, use the same pattern with native TypeScript types:
+```ts
+import { html } from '@symbiotejs/symbiote';
+
+type BindingMap<El, Ctx> = Partial<Record<
+  Extract<keyof El, string>,
+  Extract<keyof Ctx, string>
+>>;
+
+type CounterState = {
+  count: number;
+  label: string;
+};
+
+type CounterTemplateCtx = CounterState & {
+  increment: () => void;
+};
+
+const incrementBtn = {
+  onclick: 'increment',
+  textContent: 'label',
+} satisfies BindingMap<HTMLButtonElement, CounterTemplateCtx>;
+
+MyCounter.template = html`
+  <button ${incrementBtn}>Click me!</button>
+`;
+```
+
+This pattern keeps template markup readable and moves binding descriptors into regular JavaScript objects where TypeScript/JSDoc can help with object shape, reuse, imports, and refactoring. It still cannot prove that the template will always be rendered by a component with the same runtime context, because templates are portable runtime artifacts. For that final check, use `devMode` diagnostics.
+
+## TypeScript Files
+
+You can also write components in `.ts` files:
+```ts
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+type CounterState = {
+  count: number;
+  label: string;
+};
+
+class MyCounter extends Symbiote<CounterState> {
+  init$ = {
+    count: 0,
+    label: 'Count',
+  };
+
+  increment() {
+    this.$.count += 1;
+  }
+}
+
+MyCounter.template = html`
+  <h2>{{label}}: {{count}}</h2>
+  <button ${{onclick: 'increment'}}>+</button>
+`;
+```
+
+This is useful when the application already has a TypeScript build step. Symbiote itself does not require one.
+
+## Hybrid Template Checks
+
+Template bindings can point to several runtime data sources:
+
+- local state: `{{title}}`
+- class property or method fallbacks: `${{onclick: 'onClick'}}`
+- pop-up context: `{{^parentTitle}}`
+- shared context: `{{*selectedId}}`
+- named context: `{{APP/userName}}`
+- CSS data: `{{--theme-color}}`
+
+Those sources are resolved when the template is rendered, not when the template string is declared. This is what allows the same template to be reused across components, loaded from external markup, hydrated from SSR output, or selected with `use-template`.
+
+To catch mistakes that TypeScript cannot reliably see in runtime-agnostic templates, enable development diagnostics:
+```js
+import '@symbiotejs/symbiote/core/devMessages.js';
+```
+
+Or enable only the flags:
+```js
+Symbiote.devMode = true;
+```
+
+Symbiote then adds runtime checks around template binding behavior:
+
+- missing binding keys can be reported when they are auto-initialized from the template
+- type changes in reactive state can be reported by `PubSub`
+- text-node bindings in SSR/ISO mode can warn when they cannot be hydrated
+- invalid template interpolation patterns are reported by the `html` helper
+
+For stricter template validation, disable automatic template initialization:
+```js
+class MyComponent extends Symbiote {
+  allowTemplateInits = false;
+
+  init$ = {
+    title: 'Hello',
+  };
+}
+
+MyComponent.template = html`
+  <h1>{{title}}</h1>
+`;
+```
+
+With `allowTemplateInits = false`, template bindings must resolve to explicitly registered state or external contexts. Class property and method fallbacks are not silently added from the template. This is useful for larger codebases where a typo in a template should surface immediately during development.
+
+## Practical Rule
+
+Use TypeScript or JSDoc for everything that exists as JavaScript: component state, public methods, helper functions, context objects, and external APIs.
+
+Use Symbiote dev/runtime diagnostics for template binding correctness, because templates are intentionally portable runtime artifacts rather than instance-bound TypeScript render functions.
+
+---
+
+# WebMCP Experimental
+
+Symbiote.js can expose the current browser UI state as native WebMCP tools. This feature is experimental and intended for testing with browser builds that expose native WebMCP APIs, such as Chrome Canary 150.
+
+Install the experimental npm release with the `webmcp` tag:
+
+```shell
+npm i @symbiotejs/symbiote@webmcp
+```
+
+## Activation
+
+WebMCP is optional. Import the extension before WebMCP-enabled components render:
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+```
+
+## Automatic Tools
+
+Enable `mcpToolMode` globally or per component to generate tools from bound event handlers:
+
+```js
+Symbiote.mcpToolMode = true;
+
+class WebmcpCounter extends Symbiote {
+  count = 0;
+
+  incrementCount() {
+    this.$.count++;
+    return this.$.count;
+  }
+}
+
+WebmcpCounter.template = html`
+  <h2>{{count}}</h2>
+  <button ${{onclick: 'incrementCount'}}>Increment</button>
+`;
+
+WebmcpCounter.reg('webmcp-counter');
+```
+
+The generated tool name keeps the handler key and custom element tag:
+
+```text
+incrementCount_in_webmcp-counter
+```
+
+Generated list item tools include item identity when available. For keyed `itemize` data, `_KEY_` is used:
+
+```text
+selectItem_in_list-item_alpha
+```
+
+Popup bindings such as `^removeItem` are registered on the ancestor component that owns the handler, with source item context included in the tool name:
+
+```text
+removeItem_in_task-list_task-item_alpha
+```
+
+## Explicit Tool Descriptors
+
+Use `ToolDescriptor` for descriptions, input schemas, execution logic, and dynamic visibility:
+
+```js
+class WebmcpPanel extends Symbiote {
+  componentDescription = async () => {
+    return 'Visible order editor with selected item state.';
+  };
+
+  init$ = {
+    canSubmit: false,
+    submit_order: new ToolDescriptor({
+      description: 'Submit the currently visible order.',
+      deps: ['canSubmit'],
+      when: () => this.$.canSubmit,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          note: { type: 'string' },
+        },
+      },
+      execute: ({ note = '' }) => {
+        return this.submitOrder(note);
+      },
+    }),
+  };
+}
+```
+
+`when()` is not auto-tracked. Add `deps` for every state key that should re-check tool visibility.
+
+If a `ToolDescriptor` does not provide a custom `name`, component-owned tools use:
+
+```text
+<stateKey>_in_<custom-element-name>
+```
+
+Context-owned descriptors keep the raw state key as the default name.
+
+## Context Tools
+
+`ToolDescriptor` values inside named or shared `PubSub` contexts are registered once per context:
+
+```js
+import { PubSub } from '@symbiotejs/symbiote';
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+
+PubSub.registerCtx({
+  search_docs: new ToolDescriptor({
+    description: 'Search the current documentation context.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+      },
+      required: ['query'],
+    },
+    execute: ({ query }) => {
+      return searchDocs(query);
+    },
+  }),
+}, 'DOCS');
+```
+
+Template bindings to external named contexts can trigger context tool registration without duplicating tools per component.
+
+## Component Context
+
+Use `componentDescription` to give agents extra page-specific context. It can be a string or an async function:
+
+```js
+class UserCard extends Symbiote {
+  componentDescription = async () => {
+    let data = await fetch('/api/current-user-context').then((res) => res.text());
+    return data;
+  };
+}
+```
+
+The returned text is appended to each component-owned tool description.
+
+## Notes
+
+- This is an experimental release. Names, metadata shape, and browser APIs may change.
+- Import `@symbiotejs/symbiote/webmcp` before rendering participating components.
+- The original `bind` attribute is preserved in `mcpToolMode` so agent tooling can inspect Symbiote-specific markup context.
+- Browser-side tool registration follows component lifecycle: tools register when components render and unregister when components leave the DOM.

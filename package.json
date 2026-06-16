@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -9,11 +9,12 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
     "prepublishOnly": "npm test",
-    "pub": "npm run types && npm publish",
-    "postinstall": "node scripts/postinstall.js",
-    "test": "node --test test/node/*.test.js && npx playwright test",
+    "build:llms": "node scripts/build-llms.js",
+    "pub": "npm test && npm run types && npm run build:llms && npm publish",
     "test:unit": "node --test test/node/*.test.js",
-    "test:browser": "npx playwright test"
+    "test:browser": "npx playwright test",
+    "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
+    "test": "node --test test/node/*.test.js && npx playwright test && npm run test:webmcp:native"
   },
   "files": [
     "core/*",
@@ -21,10 +22,12 @@
     "node/*",
     "types/*",
     "scripts/*",
+    "docs/*",
     "README.md",
-    "AI_REFERENCE.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "llms.txt",
+    "llms-full.txt"
   ],
   "module": "./core/index.js",
   "types": "./types/core/index.d.ts",
@@ -39,6 +42,10 @@
     "./full": {
       "types": "./types/core/full.d.ts",
       "default": "./core/full.js"
+    },
+    "./webmcp": {
+      "types": "./types/core/webmcp.d.ts",
+      "default": "./core/webmcp.js"
     },
     "./node": {
       "default": "./node/index.js"
@@ -99,6 +106,10 @@
       "types": "./types/core/ownElements.d.ts",
       "default": "./core/ownElements.js"
     },
+    "./core/parseProp.js": {
+      "types": "./types/core/parseProp.d.ts",
+      "default": "./core/parseProp.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"
@@ -110,6 +121,10 @@
     "./core/warn.js": {
       "types": "./types/core/warn.d.ts",
       "default": "./core/warn.js"
+    },
+    "./core/webmcp.js": {
+      "types": "./types/core/webmcp.d.ts",
+      "default": "./core/webmcp.js"
     },
     "./utils/UID.js": {
       "types": "./types/utils/UID.d.ts",
@@ -157,38 +172,41 @@
   },
   "keywords": [
     "web components",
-    "SSR",
-    "SSG",
-    "server side rendering for web components",
-    "ui library",
-    "data flow",
-    "design system",
-    "symbiote.js",
-    "symbiote",
-    "widget",
-    "microfrontends",
-    "meta application",
-    "frontend",
-    "typescript",
-    "javascript",
     "custom elements",
     "shadow dom",
-    "shadow root",
+    "symbiote.js",
+    "symbiote",
+    "ui library",
+    "reactive",
+    "state manager",
+    "pubsub",
+    "isomorphic",
+    "SSR",
+    "server side rendering",
+    "server side rendering for web components",
+    "hydration",
+    "zero-dependency",
+    "WebMCP",
+    "webmcp integration",
+    "Agent UI",
+    "microfrontends",
+    "widget",
+    "design system",
+    "data flow",
     "constructable stylesheets",
     "adopted stylesheets",
     "css custom properties",
-    "pubsub",
     "import maps",
-    "cdn imports",
-    "https imports",
-    "reactive html attributes",
-    "MIT",
-    "JSDA",
+    "typescript",
+    "javascript",
+    "frontend",
     "jsda-kit"
   ],
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "esbuild": "^0.25.12",
     "linkedom": "^0.18.12",
+    "puppeteer": "^25.1.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {

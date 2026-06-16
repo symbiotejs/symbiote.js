@@ -37,4 +37,26 @@ export const DICT = {
   TEXT_NODE_OPEN_TOKEN: '{{',
   // Text node binding token:
   TEXT_NODE_CLOSE_TOKEN: '}}',
+  // WebMCP component event handler metadata key:
+  MCP_EVENTS_KEY: '__symbioteMcpEventHandlers',
+  // WebMCP ToolDescriptor marker key:
+  MCP_TOOL_DESCRIPTOR_MARKER: '__symbioteToolDescriptor',
+  // WebMCP owner id metadata key:
+  MCP_OWNER_ID_KEY: '__symbioteMcpOwnerId',
+  // WebMCP global hook for owner sync:
+  MCP_SYNC_OWNER_KEY: '__SYMBIOTE_WEBMCP_SYNC_OWNER',
+  // WebMCP global hook for owner cleanup:
+  MCP_UNREGISTER_OWNER_KEY: '__SYMBIOTE_WEBMCP_UNREGISTER_OWNER',
+  // WebMCP global hook for PubSub context registration:
+  MCP_PUBSUB_REGISTERED_KEY: '__SYMBIOTE_WEBMCP_PUBSUB_REGISTERED',
+  // WebMCP global hook for PubSub context deletion:
+  MCP_PUBSUB_DELETED_KEY: '__SYMBIOTE_WEBMCP_PUBSUB_DELETED',
+  // WebMCP global hook for PubSub property changes:
+  MCP_PUBSUB_CHANGED_KEY: '__SYMBIOTE_WEBMCP_PUBSUB_CHANGED',
+  // WebMCP itemize item visible index metadata key:
+  MCP_ITEM_INDEX_KEY: '__symbioteMcpItemIndex',
+  // WebMCP itemize item stable key metadata key:
+  MCP_ITEM_KEY_KEY: '__symbioteMcpItemKey',
+  // WebMCP forwarded event target owners metadata key:
+  MCP_EVENT_TARGET_OWNERS_KEY: '__symbioteMcpEventTargetOwners',
 };

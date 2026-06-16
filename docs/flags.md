@@ -16,6 +16,7 @@ Flags are settings that enable or disable specific features or behaviors.
 | `readyToDestroy` | `true` | Allow cleanup on disconnect |
 | `allowTemplateInits` | `true` | Auto-add props found in template |
 | `lazyMode` | `false` | Defer initialization until component enters the viewport |
+| `mcpToolMode` | `false` | Generate experimental WebMCP tools from bound event handlers |
 
 ## renderShadow
 
@@ -177,6 +178,27 @@ This is most commonly used by adding the \`lazy\` attribute to an \`itemize\` co
   <template>
 </div>
 ```
+
+## mcpToolMode
+
+Enables experimental WebMCP auto-tool generation for bound event handlers. WebMCP is an optional extension, so import it before WebMCP-enabled components render:
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+import '@symbiotejs/symbiote/webmcp';
+
+Symbiote.mcpToolMode = true; // global opt-in
+```
+
+You can also enable it per component:
+
+```js
+class MyComponent extends Symbiote {
+  mcpToolMode = true;
+}
+```
+
+See [WebMCP Experimental](./webmcp.md) for tool descriptors, naming, and browser requirements.
 
 ---
 

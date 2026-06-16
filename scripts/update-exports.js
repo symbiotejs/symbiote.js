@@ -33,6 +33,10 @@ async function run() {
       types: './types/core/full.d.ts',
       default: './core/full.js',
     },
+    './webmcp': {
+      types: './types/core/webmcp.d.ts',
+      default: './core/webmcp.js',
+    },
     './node': {
       default: './node/index.js',
     },

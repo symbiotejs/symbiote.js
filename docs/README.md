@@ -1,7 +1,7 @@
 # Symbiote.js Documentation
 
 > **Version 3.x** — A lightweight, standards-first UI library built on Web Components.
-> Zero dependencies. ~6.6 KB brotli / ~7.3 KB gzip. No virtual DOM, no compiler, no build step required.
+> Zero dependencies. ~7.3 KB brotli / ~8.1 KB gzip. No virtual DOM, no compiler, no build step required.
 
 ## Getting Started
 
@@ -29,6 +29,7 @@
 
 ## Features
 
+- [**WebMCP Experimental**](./webmcp.md) — Expose live UI state and handlers as browser-native tools
 - [**Routing**](./routing.md) — SPA routing with path patterns, guards, lazy loading
 - [**SSR**](./ssr.md) — Server-side rendering, streaming, hydration
 - [**SSR and Your Server Setup**](./ssr-server.md) — Static build, streaming, Express or Fastify
@@ -48,7 +49,10 @@
 
 - [Lit vs Symbiote.js](./lit-vs-symbiote.md) — Side-by-side comparison
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
-- [AI Reference](../AI_REFERENCE.md) — Comprehensive API reference for AI assistants
+- [Common Mistakes](./common-mistakes.md) — Patterns that frequently cause bugs
+- [Examples](./examples.md) — 26 complete working examples
+- [llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
+- [llms-full.txt](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
 - [Changelog](../CHANGELOG.md)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)
 - [GitHub Discussions](https://github.com/symbiotejs/symbiote.js/discussions)

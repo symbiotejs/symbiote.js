@@ -253,6 +253,7 @@ export class PubSub {
     }
     this.store[prop] = val;
     this.notify(prop, val);
+    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
 
   /**
@@ -274,6 +275,7 @@ export class PubSub {
     }
     this.store[prop] = val;
     this.notify(prop, val);
+    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
 
   /** @returns {T} */
@@ -298,6 +300,17 @@ export class PubSub {
     for (let prop in updObj) {
       this.pub(prop, updObj[prop]);
     }
+  }
+
+  /** @param {keyof T} prop */
+  delete(prop) {
+    if (!this.#storeIsProxy && !(prop in this.store)) {
+      PubSub.#warn('delete', prop, this);
+      return;
+    }
+    delete this.store[prop];
+    this.notify(prop, null);
+    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
 
   /** @param {keyof T} prop */
@@ -386,11 +399,14 @@ export class PubSub {
         }
       }
     }
+    globalThis[DICT.MCP_PUBSUB_REGISTERED_KEY]?.(data, uid);
     return data;
   }
 
   /** @param {String | Symbol} uid */
   static deleteCtx(uid) {
+    let ctx = PubSub.globalStore.get(uid);
+    ctx && globalThis[DICT.MCP_PUBSUB_DELETED_KEY]?.(ctx, uid);
     PubSub.globalStore.delete(uid);
   }
 

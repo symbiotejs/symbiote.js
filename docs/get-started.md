@@ -136,6 +136,9 @@ That's it! Open this HTML file in your browser and check the result.
 ### Utils (`@symbiotejs/symbiote/utils`)
 `UID`, `setNestedProp`, `applyStyles`, `applyAttributes`, `create`, `kebabToCamel`, `reassignDictionary`
 
+### WebMCP experimental (`@symbiotejs/symbiote/webmcp`)
+`ToolDescriptor`, `installWebMCP`, `webMCPRegistry`, `syncWebMCPTools`, `unregisterWebMCPTools`, `getActiveWebMCPTools`
+
 Individual module imports (tree-shaking):
 ```js
 import Symbiote from '@symbiotejs/symbiote/core/Symbiote.js';
@@ -143,6 +146,7 @@ import { PubSub } from '@symbiotejs/symbiote/core/PubSub.js';
 import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
 import { html } from '@symbiotejs/symbiote/core/html.js';
 import { css } from '@symbiotejs/symbiote/core/css.js';
+import { ToolDescriptor } from '@symbiotejs/symbiote/core/webmcp.js';
 ```
 
 ## Platform specs & standards

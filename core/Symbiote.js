@@ -4,6 +4,7 @@ import { DICT } from './dictionary.js';
 import { animateOut } from './animateOut.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
+import { parseProp } from './parseProp.js';
 
 import PROCESSORS from './tpl-processors.js';
 import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
@@ -45,6 +46,15 @@ export class Symbiote extends HTMLElement {
   /** @type {HTMLTemplateElement} */
   static __tpl;
 
+  /** @type {Boolean} */
+  static mcpToolMode = false;
+
+  /** @type {string | (() => string | Promise<string>)} */
+  static componentDescription;
+
+  /** @type {string | (() => string | Promise<string>)} */
+  componentDescription;
+
   static set devMode(val) {
     devState.devMode = val;
   }
@@ -76,6 +86,7 @@ export class Symbiote extends HTMLElement {
    * @param {Boolean} [shadow]
    */
   render(template, shadow = this.renderShadow) {
+    this[DICT.MCP_EVENTS_KEY] = [];
     /** @type {DocumentFragment} */
     let fr;
     if ((shadow || this.#super.shadowStyleSheets) && !this.shadowRoot) {
@@ -150,6 +161,7 @@ export class Symbiote extends HTMLElement {
       } catch (e) {
         if (!globalThis.__SYMBIOTE_SSR) throw e;
       }
+      this.syncWebMCPTools?.();
     };
 
     if (this.#super.shadowStyleSheets) {
@@ -192,6 +204,21 @@ export class Symbiote extends HTMLElement {
     this.allowTemplateInits = true;
     /** @type {Boolean} */
     this.lazyMode = false;
+    /** @type {Boolean} */
+    this.mcpToolMode = false;
+  }
+
+  syncWebMCPTools() {
+    if (globalThis.__SYMBIOTE_SSR) return;
+    let sync = globalThis[DICT.MCP_SYNC_OWNER_KEY];
+    if (sync) {
+      sync(this);
+    }
+  }
+
+  unregisterWebMCPTools() {
+    if (globalThis.__SYMBIOTE_SSR) return;
+    globalThis[DICT.MCP_UNREGISTER_OWNER_KEY]?.(this);
   }
 
   /** @returns {String} */
@@ -228,47 +255,10 @@ export class Symbiote extends HTMLElement {
    * @template {Symbiote} T
    * @param {String} prop
    * @param {T} fnCtx
+   * @returns {import('./parseProp.js').ParsedProp | null}
    */
-  static #parseProp(prop, fnCtx) {
-    /** @type {PubSub} */
-    let ctx;
-    /** @type {String} */
-    let name;
-    let first = prop.charCodeAt(0);
-    // Fast path for common local props (no prefix, no /)
-    // Char codes: * = 42, ^ = 94, @ = 64, + = 43, - = 45
-    if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
-      return { ctx: fnCtx.localCtx, name: prop };
-    }
-    if (first === 42) {
-      ctx = fnCtx.sharedCtx;
-      name = prop.slice(1);
-    } else if (first === 94) {
-      name = prop.slice(1);
-      let found = fnCtx;
-      while (found && !found?.has?.(name)) {
-        // @ts-expect-error
-        found = found.parentElement || found.parentNode || found.host;
-      }
-      ctx = found?.localCtx || fnCtx.localCtx;
-    } else if (prop.includes('/')) {
-      let slashIdx = prop.indexOf('/');
-      ctx = PubSub.getCtx(prop.slice(0, slashIdx), false);
-      if (!ctx) {
-        return null;
-      }
-      name = prop.slice(slashIdx + 1);
-    } else if (first === 45 && prop.charCodeAt(1) === 45) {
-      ctx = fnCtx.localCtx;
-      name = prop;
-      if (!ctx.has(name)) {
-        fnCtx.bindCssData(name);
-      }
-    } else {
-      ctx = fnCtx.localCtx;
-      name = prop;
-    }
-    return { ctx, name };
+  static parseProp(prop, fnCtx) {
+    return parseProp(prop, fnCtx);
   }
 
   /**
@@ -284,7 +274,7 @@ export class Symbiote extends HTMLElement {
       }
       handler(val);
     };
-    let parsed = Symbiote.#parseProp(/** @type {string} */ (prop), this);
+    let parsed = Symbiote.parseProp(/** @type {string} */ (prop), this);
     if (!parsed) {
       // Named context not found — defer subscription
       let slashIdx = /** @type {string} */ (prop).indexOf('/');
@@ -317,14 +307,14 @@ export class Symbiote extends HTMLElement {
 
   /** @param {String} prop */
   notify(prop) {
-    let parsed = Symbiote.#parseProp(prop, this);
+    let parsed = Symbiote.parseProp(prop, this);
     if (!parsed) return;
     parsed.ctx.notify(parsed.name);
   }
 
   /** @param {String} prop */
   has(prop) {
-    let parsed = Symbiote.#parseProp(prop, this);
+    let parsed = Symbiote.parseProp(prop, this);
     if (!parsed) return false;
     return parsed.ctx.has(parsed.name);
   }
@@ -336,7 +326,7 @@ export class Symbiote extends HTMLElement {
    * @param {Boolean} [rewrite]
    */
   add(prop, val, rewrite = false) {
-    let parsed = Symbiote.#parseProp(prop, this);
+    let parsed = Symbiote.parseProp(prop, this);
     if (!parsed) return;
     parsed.ctx.add(parsed.name, val, rewrite);
   }
@@ -362,9 +352,9 @@ export class Symbiote extends HTMLElement {
           if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
             this.localCtx.pub(prop, val);
           } else {
-          let parsed = Symbiote.#parseProp(prop, this);
-          if (!parsed) return true;
-          parsed.ctx.pub(parsed.name, val);
+            let parsed = Symbiote.parseProp(prop, this);
+            if (!parsed) return true;
+            parsed.ctx.pub(parsed.name, val);
           }
           return true;
         },
@@ -373,7 +363,7 @@ export class Symbiote extends HTMLElement {
           if (first !== 42 && first !== 94 && first !== 64 && first !== 43 && first !== 45 && !prop.includes('/')) {
             return this.localCtx.read(prop);
           }
-          let parsed = Symbiote.#parseProp(prop, this);
+          let parsed = Symbiote.parseProp(prop, this);
           if (!parsed) return undefined;
           return parsed.ctx.read(parsed.name);
         },
@@ -516,6 +506,8 @@ export class Symbiote extends HTMLElement {
         }
         this.render();
       }
+    } else {
+      this.syncWebMCPTools?.();
     }
     this.connectedOnce = true;
   }
@@ -589,6 +581,7 @@ export class Symbiote extends HTMLElement {
     if (!this.connectedOnce) {
       return;
     }
+    this.unregisterWebMCPTools();
     this.dropCssDataCache();
     if (!this.readyToDestroy) {
       return;

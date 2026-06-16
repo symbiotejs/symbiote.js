@@ -18,5 +18,16 @@ export namespace DICT {
     let TEXT_NODE_SKIP_ATTR: string;
     let TEXT_NODE_OPEN_TOKEN: string;
     let TEXT_NODE_CLOSE_TOKEN: string;
+    let MCP_EVENTS_KEY: string;
+    let MCP_TOOL_DESCRIPTOR_MARKER: string;
+    let MCP_OWNER_ID_KEY: string;
+    let MCP_SYNC_OWNER_KEY: string;
+    let MCP_UNREGISTER_OWNER_KEY: string;
+    let MCP_PUBSUB_REGISTERED_KEY: string;
+    let MCP_PUBSUB_DELETED_KEY: string;
+    let MCP_PUBSUB_CHANGED_KEY: string;
+    let MCP_ITEM_INDEX_KEY: string;
+    let MCP_ITEM_KEY_KEY: string;
+    let MCP_EVENT_TARGET_OWNERS_KEY: string;
 }
 //# sourceMappingURL=dictionary.d.ts.map

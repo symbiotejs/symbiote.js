@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "files": [
-    "core/index.js"
+    "core/index.js",
+    "core/full.js",
+    "core/webmcp.js"
   ],
   "compilerOptions": {
     "declaration": true,
