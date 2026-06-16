@@ -49,7 +49,10 @@
 
 - [Lit vs Symbiote.js](./lit-vs-symbiote.md) — Side-by-side comparison
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
-- [AI Reference](../AI_REFERENCE.md) — Comprehensive API reference for AI assistants
+- [Common Mistakes](./common-mistakes.md) — Patterns that frequently cause bugs
+- [Examples](./examples.md) — 26 complete working examples
+- [llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
+- [llms-full.txt](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
 - [Changelog](../CHANGELOG.md)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)
 - [GitHub Discussions](https://github.com/symbiotejs/symbiote.js/discussions)
