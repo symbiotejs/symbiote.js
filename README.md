@@ -66,43 +66,6 @@ npm i @symbiotejs/symbiote
 import Symbiote, { html, css } from '@symbiotejs/symbiote';
 ```
 
-## Isomorphic Web Components
-
-One component. Server-rendered or client-rendered - automatically. Set `isoMode = true` and the component figures it out: if server-rendered content exists, it hydrates; otherwise it renders from template. No conditional logic, no separate server/client versions:
-```js
-class MyComponent extends Symbiote {
-  isoMode = true;
-  count = 0;
-  increment() {
-    this.$.count++;
-  }
-}
-
-MyComponent.template = html`
-  <h2 ${{textContent: 'count'}}></h2>
-  <button ${{onclick: 'increment'}}>Click me!</button>
-`;
-MyComponent.reg('my-component');
-```
-
-This exact code runs **everywhere** - SSR on the server, hydration on the client, or pure client rendering. No framework split, no `'use client'` directives, no hydration mismatch errors.
-
-### SSR - one class, zero config
-
-Server rendering doesn't need a virtual DOM, a reconciler, or framework-specific packages:
-
-```js
-import { SSR } from '@symbiotejs/symbiote/node/SSR.js';
-
-await SSR.init();              // patches globals with linkedom
-await import('./my-app.js');   // components register normally
-
-let html = await SSR.processHtml('<my-app></my-app>');
-SSR.destroy();
-```
-
-For large pages, stream HTML chunks with `SSR.renderToStream()` for faster TTFB. See [SSR docs](./docs/ssr.md) and [server setup recipes](./docs/ssr-server.md).
-
 ## Core concepts
 
 ### Reactive state
@@ -131,7 +94,7 @@ This makes it easy to control Symbiote-based widgets and microfrontends from any
 
 ### Templates
 
-Templates are plain HTML strings - context-free, easy to test, easy to move between files:
+Templates are plain HTML strings - runtime-agnostic, easy to test, easy to move between files:
 
 ```js
 // Separate file: my-component.template.js
@@ -149,33 +112,23 @@ The `html` function supports two interpolation modes:
 
 ### Itemize (dynamic reactive lists)
 
-Render lists from data arrays with efficient updates:
+Render lists from data arrays or objects with efficient updates:
 ```js
 class TaskList extends Symbiote {
   tasks = [
     { name: 'Buy groceries' },
     { name: 'Write docs' },
   ];
-  init$ = {
-    // Needs to be defined in init$ for pop-up binding to work
-    onItemClick: () => {
-      console.log('clicked!');
-    },
-  }
 }
 
 TaskList.template = html`
-  <div itemize="tasks">
+  <ul itemize="tasks">
     <template>
-      <div ${{onclick: '^onItemClick'}}>{{name}}</div>
+      <li>{{name}}</li>
     </template>
-  </div>
+  </ul>
 `;
 ```
-
-Items have their own state scope. Use the **`^` prefix** to reach higher-level component properties and handlers - `'^onItemClick'` binds to the parent's `onItemClick`, not the item's. Properties referenced via `^` must be defined in the parent's `init$`.
-
-> **Performance Tip:** For massive lists, add the `lazy` attribute to the container (`<div itemize="tasks" lazy>`). It defers component initialization until they enter the viewport and cleans them up when they leave, heavily optimizing memory and rendering performance.
 
 ### Pop-up binding (`^`)
 
@@ -189,14 +142,11 @@ The `^` prefix works in any nested component template - it walks up the DOM tree
 <button ${{onclick: '^parentHandler'}}>Click</button>
 ```
 
-> **Note:** Class property fallbacks are not checked by the `^` walk - the parent must define the property in `init$`.
-
 ### Named data contexts
 
 Share state across components without prop drilling:
-
 ```js
-import { PubSub } from '@symbiotejs/symbiote';
+import { PubSub, html } from '@symbiotejs/symbiote';
 
 PubSub.registerCtx({
   user: 'Alex',
@@ -205,6 +155,9 @@ PubSub.registerCtx({
 
 // Any component can read/write:
 this.$['APP/user'] = 'New name';
+
+// Any template can use property directly:
+let template = html`<h2>{{APP/user}}</h2>`;
 ```
 
 ### Shared context (`*`)
@@ -237,11 +190,10 @@ class StatusBar extends Symbiote {
 
 All three components access the same `*files` state - no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
 
-The context name can also be inherited via CSS custom property `--ctx`, enabling layout-driven grouping.
-
-### Routing (optional module)
+### Application routing
 
 ```js
+// Import optional module:
 import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
 
 AppRouter.initRoutingCtx('R', {
@@ -251,23 +203,7 @@ AppRouter.initRoutingCtx('R', {
 });
 ```
 
-### Exit animations
-
-CSS-driven transitions with zero JS animation code:
-
-```css
-task-item {
-  opacity: 1;
-  transition: opacity 0.3s;
-
-  @starting-style { opacity: 0; }  /* enter */
-  &[leaving] { opacity: 0; }       /* exit  */
-}
-```
-
-`animateOut(el)` sets `[leaving]`, waits for `transitionend`, then removes. Itemize uses this automatically.
-
-### Styling
+### CSS Styling
 
 Shadow DOM is **optional** in Symbiote - use it when you need isolation, skip it when you don't. This gives full flexibility:
 
@@ -284,6 +220,8 @@ MyComponent.rootStyles = css`
 `;
 ```
 
+This style will be applied to nearest upper shadow root, if exists and to common document if not.
+
 **Shadow DOM** - opt-in isolation when needed:
 
 ```js
@@ -297,9 +235,9 @@ Isolated.shadowStyles = css`
 
 All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` - no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
 
-### CSS Data Binding
+### CSS Data
 
-Components can read CSS custom properties as reactive state via `cssInit$`:
+Components can read CSS custom property values to initiate reactive state:
 
 ```css
 my-widget {
@@ -315,8 +253,6 @@ MyWidget.template = html`
 `;
 ```
 
-CSS values are parsed automatically - quoted strings become strings, numbers become numbers. Call `this.updateCssData()` to re-read after runtime CSS changes. This enables CSS-driven configuration: theme values, layout parameters, or localized strings - all settable from CSS without touching JS.
-
 ## Best for
 
 - **Complex widgets** embedded in any host application
@@ -326,10 +262,6 @@ CSS values are parsed automatically - quoted strings become strings, numbers bec
 - **SSR-powered apps** - lightweight server rendering without framework lock-in
 - **Framework-agnostic solutions** - one codebase, any context
 - **Modern AI-first web** - expose the application state to WebMCP tools automatically
-
-## Browser support
-
-All modern browsers: Chrome, Firefox, Safari, Edge, Opera.
 
 ## Docs & Examples
 
