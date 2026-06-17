@@ -1,12 +1,6 @@
-# WebMCP Experimental
+# WebMCP
 
-Symbiote.js can expose the current browser UI state as native WebMCP tools. This feature is experimental and intended for testing with browser builds that expose native WebMCP APIs, such as Chrome Canary 150.
-
-Install the experimental npm release with the `webmcp` tag:
-
-```shell
-npm i @symbiotejs/symbiote@webmcp
-```
+Symbiote.js can expose the current browser UI state as native WebMCP tools.
 
 ## Activation
 
@@ -14,7 +8,7 @@ WebMCP is optional. Import the extension before WebMCP-enabled components render
 
 ```js
 import Symbiote, { html } from '@symbiotejs/symbiote';
-import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+import '@symbiotejs/symbiote/webmcp';
 ```
 
 ## Automatic Tools
@@ -64,6 +58,8 @@ removeItem_in_task-list_task-item_alpha
 Use `ToolDescriptor` for descriptions, input schemas, execution logic, and dynamic visibility:
 
 ```js
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+
 class WebmcpPanel extends Symbiote {
   componentDescription = async () => {
     return 'Visible order editor with selected item state.';

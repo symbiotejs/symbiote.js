@@ -22,7 +22,7 @@ import { parseProp } from './parseProp.js';
  * @property {string | ((owner?: any) => string)} [description]
  * @property {Object | ((owner?: any) => Object)} [inputSchema]
  * @property {(args?: Object, owner?: any, event?: Event) => any} [execute]
- * @property {() => boolean} [when]
+ * @property {(owner?: any) => boolean} [when]
  * @property {string[]} [deps]
  * @property {string[]} [exposedTo]
  * @property {Object} [annotations]
@@ -53,6 +53,7 @@ let installedClasses = new WeakSet();
 let pendingOwnerSync = new WeakSet();
 /** @type {WeakMap<object, number>} */
 let ownerVersions = new WeakMap();
+let _modelContext;
 
 function isToolDescriptor(val) {
   return !!val?.[DICT.MCP_TOOL_DESCRIPTOR_MARKER];
@@ -244,13 +245,16 @@ function ownerId(owner) {
 }
 
 function getModelContext() {
+  if (_modelContext) return _modelContext;
   let docCtx = /** @type {any} */ (globalThis.document)?.modelContext;
   if (docCtx?.registerTool) {
-    return docCtx;
+    _modelContext = docCtx;
+    return _modelContext;
   }
   let navCtx = /** @type {any} */ (globalThis.navigator)?.modelContext;
   if (navCtx?.registerTool) {
-    return navCtx;
+    _modelContext = navCtx;
+    return _modelContext;
   }
   return null;
 }
@@ -591,13 +595,16 @@ function scheduleOwnerSync(owner) {
 }
 
 export class ToolDescriptor {
+  /** @type {((args?: Object, owner?: any, event?: Event) => any) | undefined} */
+  #fn;
+
   /** @param {ToolDescriptorOptions} options */
   constructor(options = {}) {
     this[DICT.MCP_TOOL_DESCRIPTOR_MARKER] = true;
     this.name = options.name;
     this.description = options.description || 'Symbiote WebMCP tool.';
     this.inputSchema = options.inputSchema || emptySchema();
-    this.fn = options.execute;
+    this.#fn = options.execute;
     this.when = options.when;
     this.deps = options.deps || [];
     this.exposedTo = options.exposedTo;
@@ -611,15 +618,15 @@ export class ToolDescriptor {
    * @returns {any}
    */
   execute(args = {}, owner, event) {
-    if (typeof this.fn !== 'function') {
+    if (typeof this.#fn !== 'function') {
       throw new Error('ToolDescriptor requires an execute function.');
     }
-    return this.fn.call(owner, args || {}, owner, event);
+    return this.#fn.call(owner, args || {}, owner, event);
   }
 }
 
 export const webMCPRegistry = (() => {
-  let existing = PubSub.getCtx(REGISTRY_UID, false);
+  let existing = PubSub.getCtx(REGISTRY_UID);
   let root = existing || PubSub.registerCtx({}, REGISTRY_UID);
   ensureNestedCtx(root, 'tools');
   ensureNestedCtx(root, 'owners');
@@ -662,10 +669,53 @@ export function registerWebMCPTool(owner, key, descriptor) {
         webMCPRegistry.store.tools.add(publicName, resolvedEntry, true);
       }
       return resolvedEntry;
+    }).catch((e) => {
+      setDiagnostic('lastError', e);
+      throw e;
     });
   }
   webMCPRegistry.store.tools.add(publicName, entry, true);
   return entry;
+}
+
+/**
+ * @param {any} owner
+ * @param {string} id
+ * @param {{ownerId: string, ownerType: string, ownerName: string, toolsByKey: Record<string, string>}} ownerEntry
+ * @param {Array<{key: string, baseName: string, descriptor: ToolDescriptor, executor: Function}>} desired
+ * @param {string} componentDescription
+ */
+function applyDesiredTools(owner, id, ownerEntry, desired, componentDescription) {
+  let nextKeys = new Set();
+  for (let item of desired) {
+    nextKeys.add(item.key);
+    if (!shouldRegister(item.descriptor, owner)) {
+      let oldName = ownerEntry.toolsByKey[item.key];
+      if (oldName) {
+        unregisterToolName(oldName);
+        delete ownerEntry.toolsByKey[item.key];
+      }
+      continue;
+    }
+    let publicName = ownerEntry.toolsByKey[item.key] || resolveName(item.baseName, id, item.key);
+    if (hasToolName(publicName)) {
+      unregisterToolName(publicName);
+    }
+    let entry = makeEntryWithComponentDescription(publicName, item.key, item.descriptor, owner, item.executor, componentDescription);
+    ownerEntry.toolsByKey[item.key] = publicName;
+    webMCPRegistry.store.tools.add(publicName, entry, true);
+  }
+  for (let key in ownerEntry.toolsByKey) {
+    if (!nextKeys.has(key)) {
+      unregisterToolName(ownerEntry.toolsByKey[key]);
+      delete ownerEntry.toolsByKey[key];
+    }
+  }
+  if (Object.keys(ownerEntry.toolsByKey).length) {
+    updateOwnerEntry(id, ownerEntry);
+  } else if (webMCPRegistry.store.owners.has(id)) {
+    webMCPRegistry.store.owners.delete(id);
+  }
 }
 
 /** @param {any} owner */
@@ -688,44 +738,15 @@ export function syncWebMCPTools(owner) {
       ownerName: ownerName(owner),
       toolsByKey: {},
     };
-  let nextKeys = new Set();
-  for (let item of desired) {
-    nextKeys.add(item.key);
-    if (!shouldRegister(item.descriptor, owner)) {
-      let oldName = ownerEntry.toolsByKey[item.key];
-      if (oldName) {
-        unregisterToolName(oldName);
-        delete ownerEntry.toolsByKey[item.key];
-      }
-      continue;
-    }
-    let publicName = ownerEntry.toolsByKey[item.key] || resolveName(item.baseName, id, item.key);
-    if (hasToolName(publicName)) {
-      unregisterToolName(publicName);
-    }
-    let entry = makeEntry(publicName, item.key, item.descriptor, owner, item.executor);
-    ownerEntry.toolsByKey[item.key] = publicName;
-    if (entry instanceof Promise) {
-      entry.then((resolvedEntry) => {
-        if (isCurrentOwnerVersion(owner, version)) {
-          webMCPRegistry.store.tools.add(publicName, resolvedEntry, true);
-        }
-      });
-    } else {
-      webMCPRegistry.store.tools.add(publicName, entry, true);
-    }
+  let componentDescription = readComponentDescription(owner);
+  if (typeof componentDescription !== 'string') {
+    componentDescription.then((resolved) => {
+      if (!isCurrentOwnerVersion(owner, version)) return;
+      applyDesiredTools(owner, id, ownerEntry, desired, resolved);
+    }).catch((e) => setDiagnostic('lastError', e));
+    return;
   }
-  for (let key in ownerEntry.toolsByKey) {
-    if (!nextKeys.has(key)) {
-      unregisterToolName(ownerEntry.toolsByKey[key]);
-      delete ownerEntry.toolsByKey[key];
-    }
-  }
-  if (Object.keys(ownerEntry.toolsByKey).length) {
-    updateOwnerEntry(id, ownerEntry);
-  } else if (owners.has(id)) {
-    owners.delete(id);
-  }
+  applyDesiredTools(owner, id, ownerEntry, desired, componentDescription);
 }
 
 /** @param {any} owner */

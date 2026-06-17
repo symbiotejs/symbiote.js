@@ -12,12 +12,12 @@ export class ToolDescriptor {
     name: string;
     description: string | ((owner?: any) => string);
     inputSchema: any;
-    fn: (args?: any, owner?: any, event?: Event) => any;
-    when: () => boolean;
+    when: (owner?: any) => boolean;
     deps: string[];
     exposedTo: string[];
     annotations: any;
     execute(args?: any, owner?: any, event?: Event): any;
+    #private;
 }
 export const webMCPRegistry: PubSub<any>;
 declare namespace _default {
@@ -43,7 +43,7 @@ export type ToolDescriptorOptions = {
     description?: string | ((owner?: any) => string);
     inputSchema?: any | ((owner?: any) => any);
     execute?: (args?: any, owner?: any, event?: Event) => any;
-    when?: () => boolean;
+    when?: (owner?: any) => boolean;
     deps?: string[];
     exposedTo?: string[];
     annotations?: any;
