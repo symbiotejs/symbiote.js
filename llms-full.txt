@@ -2,16 +2,21 @@
 
 <img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
 
-A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no build step required - works directly in the browser. A bundler is recommended for production performance, but entirely optional. **~7.3kb** brotli / **~8.1kb** gzip.
+A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no black boxes, no excess repaints. No build step required - works directly in the browser. A bundler is recommended for production performance, but entirely optional.
 
-Symbiote.js gives you the convenience of a modern framework while staying close to the native platform - HTML, CSS, and DOM APIs. Components are real custom elements that work everywhere: in any framework, in plain HTML, or in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client - server-rendered pages hydrate automatically, no diffing, no mismatch errors.
+Symbiote.js gives you the convenience of a modern framework while staying close to the native platform - HTML, CSS, and DOM APIs. Components are custom elements that work everywhere: in any framework, in plain HTML, in a micro-frontend architecture. And with **isomorphic mode**, the same component code works on the server and the client - server-rendered pages hydrate automatically, no diffing, no mismatch errors.
 
-## What's new?
+Here are the three most important differences between Symbiote.js and other frameworks:
+1. Natural DOM Extension Philosophy - designed to extend platform, not to replace it
+2. Runtime-Agnostic HTML Templates - outstanding flexibility for rendering strategies and further customization
+3. Powerful App-wide State Management - combine data contexts without bloated boilerplate or external tools
 
-- **Experimental WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
+## What's new in v3.x?
+
+- **WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
 - **Server-Side Rendering** - render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
 - **Isomorphic components** - `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
-- **Computed properties** - reactive derived state with microtask batching.
+- **Computed properties refined** - reactive derived state with microtask batching.
 - **Path-based router** - optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
 - **Exit animations** - `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
 - **Dev mode** - `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
@@ -329,18 +334,7 @@ CSS values are parsed automatically - quoted strings become strings, numbers bec
 - **Reusable component libraries** - works in React, Vue, Angular, or plain HTML
 - **SSR-powered apps** - lightweight server rendering without framework lock-in
 - **Framework-agnostic solutions** - one codebase, any context
-
-## Bundle size
-
-| Library | Minified | Gzip | Brotli |
-|---------|----------|------|--------|
-| **Symbiote.js** (core) | 23.6 kb | 8.1 kb | **7.3 kb** |
-| **Symbiote.js** (full, with AppRouter + WebMCP export) | 35.6 kb | 12.1 kb | **11.0 kb** |
-| **Symbiote.js** (WebMCP extension) | 31.4 kb | 10.6 kb | **9.6 kb** |
-| **Lit** 3.3 | 15.5 kb | 6.0 kb | **~5.1 kb** |
-| **React 19 + ReactDOM** | ~186 kb | ~59 kb | **~50 kb** |
-
-Symbiote and Lit have similar base sizes, but Symbiote's **7.3 kb** core includes more built-in features: global state management, lists (itemize API), exit animations, computed properties etc. Lit needs additional packages for comparable features. React is **~7× larger** before adding a router, state manager, or SSR framework.
+- **Modern AI-first web** - expose the application state to WebMCP tools automatically
 
 ## Browser support
 
@@ -5149,15 +5143,9 @@ Use Symbiote dev/runtime diagnostics for template binding correctness, because t
 
 ---
 
-# WebMCP Experimental
+# WebMCP
 
-Symbiote.js can expose the current browser UI state as native WebMCP tools. This feature is experimental and intended for testing with browser builds that expose native WebMCP APIs, such as Chrome Canary 150.
-
-Install the experimental npm release with the `webmcp` tag:
-
-```shell
-npm i @symbiotejs/symbiote@webmcp
-```
+Symbiote.js can expose the current browser UI state as native WebMCP tools.
 
 ## Activation
 
@@ -5165,7 +5153,7 @@ WebMCP is optional. Import the extension before WebMCP-enabled components render
 
 ```js
 import Symbiote, { html } from '@symbiotejs/symbiote';
-import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+import '@symbiotejs/symbiote/webmcp';
 ```
 
 ## Automatic Tools
@@ -5215,6 +5203,8 @@ removeItem_in_task-list_task-item_alpha
 Use `ToolDescriptor` for descriptions, input schemas, execution logic, and dynamic visibility:
 
 ```js
+import { ToolDescriptor } from '@symbiotejs/symbiote/webmcp';
+
 class WebmcpPanel extends Symbiote {
   componentDescription = async () => {
     return 'Visible order editor with selected item state.';
