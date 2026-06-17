@@ -11,8 +11,6 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const EXCLUDE_DOCS = new Set([
   'README.md',             // index only, no content
   'ecosystem.md',          // IDE/tooling setup, not API
-  'lit-vs-symbiote.md',    // comparison article
-  'migration-2x-to-3x.md', // migration guide
   'llms-index.md',         // llms.txt template — not merged into llms-full.txt
 ]);
 

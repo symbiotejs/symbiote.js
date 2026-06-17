@@ -41,13 +41,8 @@
 - [**TypeScript**](./typescript.md) — JSDoc types, TypeScript usage, and hybrid template checks
 - [**Security**](./security.md) — Trusted Types and CSP compliance
 
-## Migration
-
-- [**2.x → 3.x Migration Guide**](./migration-2x-to-3x.md) — Breaking changes and upgrade path
-
 ## Additional Resources
 
-- [Lit vs Symbiote.js](./lit-vs-symbiote.md) — Side-by-side comparison
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [Common Mistakes](./common-mistakes.md) — Patterns that frequently cause bugs
 - [Examples](./examples.md) — 26 complete working examples

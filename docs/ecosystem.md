@@ -105,6 +105,3 @@ npx jsda init
 npx jsda serve
 ```
 
----
-
-Next: [Migration 2.x → 3.x →](./migration-2x-to-3x.md)
