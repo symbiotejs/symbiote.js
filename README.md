@@ -103,20 +103,6 @@ SSR.destroy();
 
 For large pages, stream HTML chunks with `SSR.renderToStream()` for faster TTFB. See [SSR docs](./docs/ssr.md) and [server setup recipes](./docs/ssr-server.md).
 
-### How it compares
-
-| | **Symbiote.js** | **Next.js (React)** | **Lit** (`@lit-labs/ssr`) |
-|--|----------------|---------------------|----|
-| **Isomorphic code** | Same code, `isoMode` auto-detects | Server Components vs Client Components split | Same code, but load-order constraints |
-| **Hydration** | Binding-based - attaches to existing DOM, no diffing | `hydrateRoot()` - must produce identical output or errors | Requires `ssr-client` + hydrate support module |
-| **Packages** | 1 module + `linkedom` peer dep | Full framework buy-in | 3 packages: `ssr`, `ssr-client`, `ssr-dom-shim` |
-| **Streaming** | `renderToStream()` async generator | `renderToPipeableStream()` | Iterable `RenderResult` |
-| **Mismatch handling** | Not needed - bindings attach to whatever DOM exists | Hard errors if server/client output differs | N/A |
-| **Template output** | Clean HTML with `bind=` attributes | HTML with framework markers | HTML with `<!--lit-part-->` comment markers |
-| **Lock-in** | None - standard Web Components | Full framework commitment | Lit-specific, but Web Components |
-
-**Key insight:** There are no hydration mismatches because there's no diffing. The server produces HTML with binding attributes. The client reads those attributes and adds reactivity. That's it.
-
 ## Core concepts
 
 ### Reactive state
