@@ -48,7 +48,6 @@
 - [Examples](./examples.md) — 26 complete working examples
 - [llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
 - [llms-full.txt](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
-- [Changelog](../CHANGELOG.md)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)
 - [GitHub Discussions](https://github.com/symbiotejs/symbiote.js/discussions)
 
