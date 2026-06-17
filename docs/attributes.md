@@ -22,7 +22,7 @@ class MyComponent extends Symbiote {}
 MyComponent.template = html`<h1>{{@attribute-name}}</h1>`;
 ```
 
-Then use it as an attribute in markup:
+Then use it as an component's attribute in markup:
 ```html
 <my-component attribute-name="attribute value"></my-component>
 ```
@@ -46,7 +46,7 @@ MyComponent.observedAttributes = [
 
 ## `bindAttributes()` static method
 
-Bind attributes to property values directly:
+Reflect attribute values to property values:
 ```js
 class MyComponent extends Symbiote {
 

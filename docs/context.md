@@ -1,38 +1,45 @@
 # Context
 
-Usage context is one of the central things in Symbiote.js. Every Symbiote component is able to analyze its environment, read external settings from its actual position in DOM, and provide data to related components. Symbiote.js utilizes the DOM structure as the basic entity for data flow management and interconnection.
+Context is the central concept in Symbiote.js. Rather than passing data through prop chains or maintaining a separate global store, Symbiote uses the DOM structure itself as the data flow graph. Every component can read from and write to multiple data sources - its **context** is the union of all the sources currently accessible to it.
 
-Component context is a sum of all accessible data sources. Each source represents its own type of interaction. Let's have a look at them.
+There are seven context types, each addressed by a token prefix in property keys:
+
+| Token | Context Type | Scope |
+|-------|-------------|-------|
+| _(none)_ | [Local](#local-context) | Component instance |
+| `^` | [Pop-up](#pop-up-context) | Nearest ancestor that owns the property |
+| `*` | [Shared](#shared-context) | All components sharing a `ctx` attribute |
+| `name/` | [Named](#named-context) | Any component, anywhere |
+| `--` | [CSS Data](#css-data-context) | Inherited from the CSS cascade |
+| `@` | [Attribute](./attributes.md) | HTML attribute on the element |
+| `+` | [Computed](./properties.md#computed-properties) | Derived, auto-recalculated value |
+
+---
 
 ## Local context
 
-Local context properties work the same way as component state in most other libraries:
+Local context is the component's own reactive state, scoped to the instance. It works the same way as component state in other frameworks and is invisible to other components.
+
+Define properties in `init$`:
 ```js
 class MyComponent extends Symbiote {
-
   init$ = {
     myProperty: 'some value',
   }
-
 }
 ```
 
-Use the `$` proxy to read and write values:
+Use the `$` proxy to read and write values at runtime:
 ```js
 class MyComponent extends Symbiote {
-
   init$ = {
     myProperty: 'some value',
   }
 
   renderCallback() {
-    // Read:
     console.log(this.$.myProperty); // > 'some value'
-
-    // Write:
     this.$.myProperty = 'new value';
   }
-
 }
 
 MyComponent.template = html`
@@ -40,97 +47,143 @@ MyComponent.template = html`
 `;
 ```
 
+For simple components without shared or computed props, you can also declare properties as plain class fields - Symbiote picks them up automatically via class-field fallback:
+```js
+class MyComponent extends Symbiote {
+  count = 0;
+  label = 'Hello';
+}
+```
+
+> Use `init$` when you need shared (`*`), computed (`+`), or attribute (`@`) props in the same declaration - those tokens are only recognized inside `init$`.
+
+See [Properties →](./properties.md) for the full property API: `add$()`, `sub()`, `set$()`, computed props, and more.
+
+---
+
 ## Named context
 
-Named context is an external abstract data source accessed by its name. It can contain any application data or be used for a dedicated purpose.
+Named context is a global, named data store created independently of any component. Any component can read from or write to it using the `CONTEXT_NAME/property` syntax - regardless of DOM position.
 
-Example — using named context as a localization tool:
+Use named context when data must be shared across unrelated parts of the application.
+
+**Creating a named context:**
+```js
+import { PubSub } from '@symbiotejs/symbiote';
+
+let appCtx = PubSub.registerCtx({
+  theme: 'light',
+  user: null,
+}, 'APP');
+```
+
+**Accessing it from a component:**
+```js
+class MyComponent extends Symbiote {
+  init$ = {
+    'APP/theme': 'light', // optional local fallback - used if the named context hasn't published yet
+  }
+
+  renderCallback() {
+    console.log(this.$['APP/theme']); // read
+    this.$['APP/theme'] = 'dark';     // write - updates the named context for all subscribers
+  }
+}
+
+MyComponent.template = html`
+  <div ${{'@class': 'APP/theme'}}>...</div>
+`;
+```
+
+**Example - localization:**
 ```js
 import Symbiote, { html, PubSub } from '@symbiotejs/symbiote';
 
-// Create localization map for English:
-let EN = {
+let l10nCtx = PubSub.registerCtx({
   users: 'Users',
   comments: 'Comments',
   likes: 'Likes',
-};
-
-// Create localization context:
-let l10nCtx = PubSub.registerCtx(EN, 'L10N');
-
-// Use localized strings in templates:
-class MyComponent extends Symbiote { ... }
+}, 'L10N');
 
 MyComponent.template = html`
   <div>{{L10N/users}} - {{numberOfUsers}}</div>
   <div>{{L10N/comments}} - {{numberOfComments}}</div>
   <div>{{L10N/likes}} - {{numberOfLikes}}</div>
 `;
-```
 
-Use `/` token with the context key to access properties: `L10N/users`.
-
-Switching language:
-```js
-let ES = {
+// Switch language at any time - all subscribed components update instantly:
+l10nCtx.multiPub({
   users: 'Usuarios',
   comments: 'Comentarios',
   likes: 'Gustos',
-};
-
-l10nCtx.multiPub(ES);
+});
 ```
 
-Read and modify named context properties with the `$` proxy:
+You can also read and modify named context directly from any component using the `$` proxy:
 ```js
 class MyComponent extends Symbiote {
   renderCallback() {
-    // Read:
     console.log(this.$['L10N/users']);
-
-    // Modify:
     this.$['L10N/users'] = 'ユーザー';
   }
 }
 ```
 
-More information about `PubSub` in the [PubSub section](./pubsub.md).
+More information about `PubSub` in the [PubSub →](./pubsub.md) section.
+
+---
 
 ## Pop-up context
 
-Pop-up binding helps control component interactions based on their DOM position and hierarchy. It works similarly to the CSS cascade model.
+Pop-up context lets a child component reach a property defined by an ancestor, without the ancestor needing to pass it down explicitly. Symbiote walks up the DOM tree until it finds a component that has the requested property in its data context.
 
-Use the `^` token to reference a higher-level property:
+Use the `^` token to reference a pop-up property - in both text bindings and event handlers:
+```html
+<!-- Text binding to ancestor property: -->
+<div>{{^parentTitle}}</div>
+
+<!-- Handler binding to ancestor method: -->
+<button ${{onclick: '^onButtonClicked'}}>Click me!</button>
+```
+
 ```js
-class MyComponent extends Symbiote {}
+class MyButton extends Symbiote {}
 
-MyComponent.template = html`
+MyButton.template = html`
+  <span>{{^parentTitle}}</span>
   <button ${{onclick: '^onButtonClicked'}}>Click me!</button>
 `;
 ```
-Symbiote walks up the DOM tree until it finds the component with `onButtonClicked` registered in its data context.
+
+Symbiote walks up the DOM tree until it finds a component with the requested property registered in its context:
+```js
+class MyEditor extends Symbiote {
+  init$ = {
+    onButtonClicked: () => console.log('clicked'),
+    editorTitle: 'My Editor',
+  }
+}
+```
 
 > [!IMPORTANT]
-> The `^` lookup only checks the parent's **data context** (properties registered via `init$` or `add$()`). Class property fallbacks are **not** resolved during this walk. Always define `^`-targeted properties in the parent's `init$`:
+> Pop-up lookup only searches the **data context** (properties registered via `init$` or `add$()`). Plain class properties are not resolved this way. Always declare `^`-targeted properties in the parent's `init$`:
 > ```js
 > class ParentComponent extends Symbiote {
 >   init$ = {
->     onButtonClicked: () => { console.log('clicked'); },
+>     onButtonClicked: () => console.log('clicked'),
 >     parentTitle: 'Hello',
 >   }
 > }
 > ```
 
-This is useful for composition, customization, and responsibility splitting:
+Pop-up context is useful for composition - the same child component adapts to whichever ancestor provides the expected behavior:
 ```js
 html`
   <my-text-editor>
     <complete-toolbar></complete-toolbar>
   </my-text-editor>
 `;
-```
-Or:
-```js
+// or:
 html`
   <my-text-editor>
     <simplified-toolbar></simplified-toolbar>
@@ -139,19 +192,21 @@ html`
 `;
 ```
 
-> Like in CSS, pop-up properties have no collision guard — use additional prefixes in uncontrolled environments.
+> Like the CSS cascade, pop-up context has no collision guard. Use additional prefixes (e.g. `myApp_onSave`) in environments you don't fully control.
+
+---
 
 ## Shared context
 
-Shared context works similarly to native HTML radio inputs — set the `name` attribute and different inputs connect into one workflow.
+Shared context is inspired by native HTML `name` attributes - the same way `<input name="group">` connects radio buttons into one workflow, the `ctx` attribute connects Symbiote components into a shared data context. Components with the same `ctx` name access a common reactive store with no intermediary component required.
 
-In 3.x, an explicit context name is **required** for shared properties. Set it using the `ctx` HTML attribute:
+**Assign a context name via the `ctx` HTML attribute:**
 ```html
 <upload-btn ctx="gallery"></upload-btn>
 <file-list ctx="gallery"></file-list>
 ```
 
-Or using the `--ctx` CSS custom property:
+**Or via the `--ctx` CSS custom property**, which cascades like any CSS variable:
 ```css
 .gallery-section {
   --ctx: gallery;
@@ -165,49 +220,64 @@ Or using the `--ctx` CSS custom property:
 ```
 
 The CSS approach is useful when:
-- You want **layout-driven grouping** — components inherit the context from their visual container rather than repeating the attribute on each one
-- You need to **reassign context at different DOM levels** — just like any CSS custom property, `--ctx` cascades and can be overridden in nested selectors
-- You work in a **framework-agnostic setup** — CSS can be managed separately from markup, so context assignment doesn't depend on template engine or host framework
+- You want **layout-driven grouping** - components inherit context from their visual container rather than repeating the attribute on each one
+- You need to **override context at different DOM levels** - just like any CSS custom property, `--ctx` cascades and can be reassigned in nested selectors
+- You work in a **framework-agnostic setup** - CSS context assignment is independent of the host template engine
 
-Then use the `*` token to define shared properties:
+**Define shared properties with the `*` token:**
 ```js
 class UploadBtn extends Symbiote {
   init$ = { '*files': [] }
 
-  onUpload() {
+  onUpload(newFile) {
     this.$['*files'] = [...this.$['*files'], newFile];
   }
 }
 
 class FileList extends Symbiote {
-  init$ = { '*files': [] }  // same shared prop — first-registered value wins
+  init$ = { '*files': [] }  // same shared prop - first-registered value wins
 }
 ```
 
-Both components access the same `*files` state — no parent component, no prop drilling, no global store.
+Both components read and write the same `*files` store. When one updates it, the other reacts automatically - no parent component, no prop drilling, no global store.
 
 ### Context name resolution
 
-The context name is resolved in this order (first match wins):
+The `ctx` name is resolved in this order (first match wins):
 
-1. `ctx="name"` HTML attribute
-2. `--ctx` CSS custom property (inherited from ancestors)
+1. `ctx="name"` HTML attribute on the element
+2. `--ctx` CSS custom property inherited from ancestors
 
-> **IMPORTANT**: In 3.x, `*` properties **require** an explicit `ctx` attribute or `--ctx` CSS variable. Without one, the shared context is not created, `*` props have no effect, and dev mode will warn about it.
+> **IMPORTANT**: In Symbiote 3.x, `*` properties **require** an explicit `ctx` attribute or `--ctx` variable. Without one, no shared context is created, `*` props have no effect, and dev mode will warn (W6).
+
+---
 
 ## CSS Data context
 
-Symbiote components can initiate their properties from CSS custom property values:
+Symbiote components can initialize their properties from CSS custom property values, enabling CSS-driven configuration: theme tokens, layout parameters, or localized strings - all settable from a stylesheet without touching JavaScript.
+
+Use `cssInit$` to explicitly declare CSS-initialized properties with fallback values:
+```js
+class MyWidget extends Symbiote {
+  cssInit$ = {
+    '--columns': 1,
+    '--label': '',
+  }
+}
+
+MyWidget.template = html`
+  <span>{{--label}}</span>
+`;
+```
+
 ```css
-:root {
-  --header: 'CSS Data';
-  --text: 'Hello!';
+my-widget {
+  --columns: 3;
+  --label: 'Click me';
 }
 ```
 
-> CSS custom property values should be valid JSON values, parseable with `JSON.parse()`. Use numbers for boolean flags (`0`/`1`).
-
-Use CSS values in templates directly:
+You can also use `--` bindings directly in templates without `cssInit$`:
 ```js
 class TestApp extends Symbiote {}
 
@@ -216,10 +286,79 @@ TestApp.template = html`
   <div>{{--text}}</div>
 `;
 ```
+```css
+:root {
+  --header: 'CSS Data';
+  --text: 'Hello!';
+}
+```
 
-> CSS custom properties are used for value initialization only. After that, they act like normal local context properties.
+> CSS custom property values must be valid JSON - use quoted strings (`'text'`), numbers, and `0`/`1` for booleans.
 
-More details in the [CSS Data](./css-data.md) section.
+> CSS properties are used for **initialization only**. After the component mounts, they act as normal local context properties and no longer track CSS changes. Call `this.updateCssData()` to re-read them after runtime CSS updates.
+
+Full details - `updateCssData()`, `dropCssDataCache()`, `ResizeObserver` patterns, and SSR caveats - in the [CSS Data →](./css-data.md) section.
+
+---
+
+## Choosing the right context type
+
+| Situation | Use |
+|-----------|-----|
+| Component-local reactive state | Local - no token |
+| Behavior or data passed from an ancestor | Pop-up - `^` |
+| Sibling components sharing a workflow state | Shared - `*` |
+| App-wide data, accessed from anywhere in the tree | Named - `/` |
+| Component configured via CSS / design tokens | CSS Data - `--` |
+| Reacting to HTML attribute values | Attribute - `@` |
+| Values derived from other properties | Computed - `+` |
+
+---
+
+## All context types in one component
+
+A concise example showing local, attribute, named, shared, and pop-up contexts working together:
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class MyApp extends Symbiote {
+  init$ = {
+    localCtxProp: 'LOCAL',
+    '@attr-test': '',         // bound to HTML attribute
+    'APP/namedProp': 'NAMED', // named context
+    '*sharedProp': 'SHARED',  // shared context (requires ctx="..." in HTML)
+  }
+
+  onUpdate() {
+    let suffix = ' updated';
+    this.$.localCtxProp += suffix;
+    this.$['APP/namedProp'] += suffix;
+    this.$['*sharedProp'] += suffix;
+  }
+}
+
+MyApp.template = html`
+  <div>local: {{localCtxProp}}</div>
+  <div>attribute: {{@attr-test}}</div>
+  <div>named: {{APP/namedProp}}</div>
+  <div>shared: {{*sharedProp}}</div>
+  <button ${{onclick: 'onUpdate'}}>Update</button>
+  <inner-el></inner-el>  <!-- reads ^localCtxProp via pop-up -->
+`;
+
+MyApp.reg('my-app');
+
+class InnerEl extends Symbiote {}
+InnerEl.template = html`<h2>pop-up: {{^localCtxProp}}</h2>`;
+InnerEl.reg('inner-el');
+```
+
+```html
+<my-app attr-test="HTML value" ctx="my-ctx"></my-app>
+```
+
+---
 
 ## Property token summary
 
@@ -230,8 +369,8 @@ More details in the [CSS Data](./css-data.md) section.
 | `*` | Shared | `*sharedProp` |
 | `/` | Named | `APP/myProp` |
 | `--` | CSS Data | `--my-css-var` |
-| `@` | Attribute | `@my-attribute` |
-| `+` | Computed | `+computedProp` |
+| `@` | Attribute - see [Attributes →](./attributes.md) | `@my-attribute` |
+| `+` | Computed - see [Properties →](./properties.md#computed-properties) | `+computedProp` |
 
 ---
 

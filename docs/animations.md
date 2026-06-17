@@ -38,7 +38,7 @@ my-item {
 
 ## Itemize integration
 
-Both itemize processors use `animateOut` automatically for item removal. Items with CSS `transition` + `[leaving]` styles will animate out before being removed from the DOM:
+Itemize processors use `animateOut` automatically for item removal. Items with CSS `transition` + `[leaving]` styles will animate out before being removed from the DOM:
 ```css
 user-card {
   opacity: 1;

@@ -243,7 +243,69 @@ Named external contexts (`CTX/prop`) are different: they are registered globally
 
 ---
 
-## 10. Treating `init$` as a plain object
+## 10. Using `{{prop}}` binding syntax inside tag definitions
+
+`{{prop}}` is a **text node** binding — it only works inside element content. Any binding that targets a tag itself — attributes, DOM properties, event handlers, or CSS custom properties — must use `${{}}` or `bind=""` syntax inside the opening tag.
+
+```html
+<!-- WRONG — {{}} syntax does not work inside tag definitions -->
+<div class="{{APP/theme}}">...</div>
+<img src="{{imageUrl}}">
+<button onclick="{{onAction}}">Go</button>
+
+<!-- CORRECT — use ${{}} binding object inside the tag -->
+<div ${{'@class': 'APP/theme'}}>...</div>
+<img ${{'@src': 'imageUrl'}}>
+<button ${{onclick: 'onAction'}}>Go</button>
+<div ${{'style.color': 'colorProp'}}>...</div>
+
+<!-- CORRECT — or use the bind attribute string syntax -->
+<div bind="@class: APP/theme">...</div>
+<img bind="@src: imageUrl">
+<button bind="onclick: onAction">Go</button>
+
+<!-- CORRECT — {{}} works fine in text node content -->
+<h1>Hello, {{userName}}!</h1>
+<p>Theme: {{APP/theme}}</p>
+```
+
+---
+
+## 11. Expecting two-way data binding
+
+Symbiote.js bindings are **one-way by design** — from state to DOM. There is no `v-model`, `[(ngModel)]`, or `bind:value` equivalent. To react to user input, wire the event handler explicitly and write back to state yourself.
+
+```js
+// WRONG — expecting the binding to also update state on user input
+MyComponent.template = html`
+  <input ${{value: 'query'}}>
+`;
+
+// CORRECT — handle the input event and write back to state
+class MyComponent extends Symbiote {
+  init$ = { query: '' }
+}
+
+MyComponent.template = html`
+  <input
+    ${{value: 'query', oninput: 'onInput'}}
+  >
+`;
+```
+```js
+class MyComponent extends Symbiote {
+  init$ = {
+    query: '',
+    onInput: (e) => { this.$.query = e.target.value; },
+  }
+}
+```
+
+This is intentional — explicit event handling keeps data flow predictable and avoids the hidden side effects that two-way binding can introduce.
+
+---
+
+## 12. Treating `init$` as a plain object
 
 `init$` is processed once at connection time to populate the component's reactive context. Mutating it after the fact has no effect. Use `this.$` or `add$()` for runtime changes.
 
