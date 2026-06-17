@@ -206,4 +206,24 @@ describe('native WebMCP integration', () => {
 
     await page.close();
   });
+
+  it('executes named and shared context descriptor tools with input', async () => {
+    let page = await openFixture();
+    await waitForTool(page, 'named_descriptor');
+    await waitForTool(page, 'sharedDescriptor');
+
+    let namedResult = outputOf(await executeTool(page, 'named_descriptor', { value: 'hello' }));
+    assert.equal(namedResult, 'named:hello');
+
+    let namedDefault = outputOf(await executeTool(page, 'named_descriptor'));
+    assert.equal(namedDefault, 'named:named');
+
+    let sharedResult = outputOf(await executeTool(page, 'sharedDescriptor', { value: 'world' }));
+    assert.equal(sharedResult, 'shared:world');
+
+    let sharedDefault = outputOf(await executeTool(page, 'sharedDescriptor'));
+    assert.equal(sharedDefault, 'shared:shared');
+
+    await page.close();
+  });
 });
