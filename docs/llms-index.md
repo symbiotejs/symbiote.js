@@ -8,7 +8,6 @@ Symbiote.js extends HTMLElement natively. State changes update the DOM synchrono
 
 - [Full documentation (single file)](https://rnd-pro.com/symbiote/llms-full.txt): Complete merged reference — paste this into any AI tool for full context
 - [README](https://github.com/symbiotejs/symbiote.js/blob/main/README.md): Overview, quick start, and feature summary
-- [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md): Version history
 
 ## Core concepts
 

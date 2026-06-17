@@ -26,7 +26,6 @@ Here are the three most important differences between Symbiote.js and other fram
 - **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
 - **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
 - **Lazy mode** - `lazyMode` flag defers component initialization and rendering based on viewport visibility. Can also be enabled via the `lazy` attribute on `itemize` containers to efficiently handle massive data sets.
-- And [more](https://github.com/symbiotejs/symbiote.js/blob/webmcp/CHANGELOG.md).
 
 ## Quick start
 
@@ -268,7 +267,6 @@ MyWidget.template = html`
 - [JSDA-Kit](https://github.com/rnd-pro/jsda-kit) - All-in-one companion tool: server, SSG, bundling, import maps, and native Symbiote.js SSR integration
 - [AI / llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
 - [Full docs (single file)](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
-- [Changelog](https://github.com/symbiotejs/symbiote.js/blob/main/CHANGELOG.md)
 
 ## Related articles
 
