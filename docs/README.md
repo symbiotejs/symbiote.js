@@ -29,7 +29,7 @@
 
 ## Features
 
-- [**WebMCP Experimental**](./webmcp.md) — Expose live UI state and handlers as browser-native tools
+- [**WebMCP**](./webmcp.md) — Expose live UI state and handlers as browser-native tools
 - [**Routing**](./routing.md) — SPA routing with path patterns, guards, lazy loading
 - [**SSR**](./ssr.md) — Server-side rendering, streaming, hydration
 - [**SSR and Your Server Setup**](./ssr-server.md) — Static build, streaming, Express or Fastify
