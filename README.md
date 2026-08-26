@@ -7,29 +7,36 @@
 
 <img src="https://rnd-pro.com/svg/symbiote/index.svg" width="200" alt="Symbiote.js">
 
-A lightweight, standards-first UI library built on Web Components. No virtual DOM, no compiler, no black boxes, no excess repaints. No build step required - works directly in the browser. A bundler is recommended for production performance, but entirely optional.
+Symbiote.js is a lightweight, standards-first UI library built on Web Components. It extends Custom Elements with reactive data bindings, portable HTML templates, app-wide state, routing, and SSR. It works directly with browser APIs and updates bound DOM properties without virtual DOM reconciliation or excess repainting. The library has zero runtime dependencies and needs neither a compiler nor a build step. A bundler remains optional, though it is recommended for production performance.
 
-Here are the three most important differences between Symbiote.js and other frameworks:
-1. **Natural DOM Extension Philosophy** - designed to extend platform APIs, not to replace them
-2. **Runtime-Agnostic HTML Templates** - outstanding flexibility for rendering strategies and further customization
-3. **Powerful App-wide State Management** - combine data contexts without bloated boilerplate or external tools
+## Why Symbiote.js?
+
+**Runtime Agnostic Templates (RAT)** are the main reason. A Symbiote.js template is an HTML string that describes markup and named bindings. It is independent of a component instance, render function, runtime, and templating tool. You can define, customize, compose, render, and reuse it at any point in the application lifecycle, on the client or the server.
+
+RAT keeps UI structure, data bindings, and actions declarative across client rendering, SSR, SSG, and hybrid rendering. Because the template remains a plain HTML string, a component can work beside other UI frameworks without converting its template to framework-specific syntax.
+
+Three design choices define the library:
+
+1. Runtime Agnostic Templates keep representation separate from component logic and make templates portable across runtimes and rendering strategies.
+2. Direct DOM extension keeps components as real Custom Elements that standard browser APIs can inspect and control.
+3. App-wide state connects components without prop drilling. Named contexts provide the data sources, while namespace bindings such as `APP/user` give templates and components explicit access to them.
 
 ## What's new in v3.x?
 
-- **WebMCP support** - expose live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
-- **Server-Side Rendering** - render components to HTML with `SSR.processHtml()` or stream chunks with `SSR.renderToStream()`. Client-side hydration via `ssrMode` attaches bindings to existing DOM without re-rendering.
-- **Isomorphic components** - `isoMode` flag makes components work in both SSR and client-only scenarios automatically. If server-rendered content exists, it hydrates; otherwise it renders the template from scratch. One component, zero conditional logic.
-- **Computed properties refined** - reactive derived state with microtask batching.
-- **Path-based router** - optional `AppRouter` module with `:param` extraction, route guards, and lazy loading.
-- **Exit animations** - `animateOut(el)` for CSS-driven exit transitions, integrated into itemize API.
-- **Dev mode** - `Symbiote.devMode` enables verbose warnings; import `devMessages.js` for full human-readable messages.
-- **DSD hydration** - `ssrMode` supports both light DOM and Declarative Shadow DOM.
-- **Class property fallback** - binding keys not in `init$` fall back to own class properties/methods.
-- **Lazy mode** - `lazyMode` flag defers component initialization and rendering based on viewport visibility. Can also be enabled via the `lazy` attribute on `itemize` containers to efficiently handle massive data sets.
+- WebMCP support exposes live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
+- Server-side rendering uses `SSR.processHtml()` for complete HTML or `SSR.renderToStream()` for streamed chunks. On the client, `ssrMode` attaches bindings to existing DOM without rendering it again.
+- The `isoMode` flag lets one component work in SSR and client-only scenarios without environment-specific component logic. It hydrates server-rendered content when present and otherwise renders the template from scratch.
+- Computed properties provide reactive derived state with microtask batching.
+- The optional `AppRouter` module supports path parameters, route guards, and lazy loading.
+- The `animateOut(el)` helper provides CSS-driven exit transitions and integrates with the Itemize API.
+- `Symbiote.devMode` enables verbose warnings. Import `devMessages.js` for full, human-readable messages.
+- `ssrMode` hydrates both Light DOM and Declarative Shadow DOM.
+- Binding keys absent from `init$` fall back to the component's own class properties and methods.
+- The `lazyMode` flag defers component initialization and rendering until it enters the viewport. The `lazy` attribute provides the same behavior for `itemize` containers with large data sets.
 
 ## Quick start
 
-No install needed - run this directly in a browser:
+Run this example directly in a browser without installing the package:
 
 ```html
 <script type="module">
@@ -53,7 +60,7 @@ No install needed - run this directly in a browser:
 <my-counter></my-counter>
 ```
 
-Or install via npm:
+For npm-based projects:
 
 ```bash
 npm i @symbiotejs/symbiote
@@ -64,6 +71,25 @@ import Symbiote, { html, css } from '@symbiotejs/symbiote';
 ```
 
 ## Core concepts
+
+### Runtime Agnostic Templates (RAT)
+
+A template is a plain HTML string that describes markup and named bindings. It does not run inside a component instance or close over `this`; Symbiote.js resolves the component and data context when the template is rendered or hydrated. Templates can be tested, moved between files, and reused across browser and server environments.
+
+```js
+// Separate file: my-component.template.js
+import { html } from '@symbiotejs/symbiote';
+
+export default html`
+  <h1>{{title}}</h1>
+  <button ${{onclick: 'doSomething'}}>Go</button>
+`;
+```
+
+The `html` function supports two interpolation modes:
+
+- An object creates a reactive binding: `${{onclick: 'handler'}}`
+- A string or number uses native concatenation: `${pageTitle}`
 
 ### Reactive state
 
@@ -81,31 +107,13 @@ TodoItem.template = html`
 `;
 ```
 
-State changes update the DOM synchronously. No virtual DOM, no scheduling, no surprises. And since components are real DOM elements, state is accessible from the outside via standard APIs:
+State changes update bound DOM properties synchronously, without a virtual DOM or scheduler. Because components are real DOM elements, their state is also accessible through standard APIs:
 
 ```js
 document.querySelector('my-counter').$.count = 42;
 ```
 
-This makes it easy to control Symbiote-based widgets and microfrontends from any host application - no framework adapters, just DOM.
-
-### Templates
-
-Templates are plain HTML strings - runtime-agnostic, easy to test, easy to move between files:
-
-```js
-// Separate file: my-component.template.js
-import { html } from '@symbiotejs/symbiote';
-
-export default html`
-  <h1>{{title}}</h1>
-  <button ${{onclick: 'doSomething'}}>Go</button>
-`;
-```
-
-The `html` function supports two interpolation modes:
-- **Object** → reactive binding: `${{onclick: 'handler'}}`
-- **String/number** → native concatenation: `${pageTitle}`
+Any host application can control a Symbiote.js widget or microfrontend through the DOM API. It does not need a framework adapter.
 
 ### Itemize (dynamic reactive lists)
 
@@ -129,7 +137,7 @@ TaskList.template = html`
 
 ### Pop-up binding (`^`)
 
-The `^` prefix works in any nested component template - it walks up the DOM tree to find the nearest ancestor that has the property registered in its data context (`init$` or `add$()`):
+In a nested component template, the `^` prefix walks up the DOM tree and finds the nearest ancestor with the requested property in its data context (`init$` or `add$()`):
 
 ```html
 <!-- Text binding to parent property: -->
@@ -139,9 +147,10 @@ The `^` prefix works in any nested component template - it walks up the DOM tree
 <button ${{onclick: '^parentHandler'}}>Click</button>
 ```
 
-### Named data contexts
+### Namespace bindings and named contexts
 
-Share state across components without prop drilling:
+A named context is an app-wide data source. A namespace binding such as `APP/user` gives components and templates explicit access to that source without prop drilling:
+
 ```js
 import { PubSub, html } from '@symbiotejs/symbiote';
 
@@ -159,7 +168,7 @@ let template = html`<h2>{{APP/user}}</h2>`;
 
 ### Shared context (`*`)
 
-Inspired by native HTML `name` attributes - like how `<input name="group">` groups radio buttons - the `ctx` attribute groups components into a shared data context. Components with the same `ctx` value share `*`-prefixed properties:
+Shared contexts follow the same idea as the native HTML `name` attribute used to group radio buttons. The `ctx` attribute assigns components to a shared data context, and components with the same value can use the same `*`-prefixed properties:
 
 ```html
 <upload-btn ctx="gallery"></upload-btn>
@@ -185,7 +194,7 @@ class StatusBar extends Symbiote {
 }
 ```
 
-All three components access the same `*files` state - no parent component, no prop drilling, no global store boilerplate. Just set `ctx="gallery"` in HTML and use `*`-prefixed properties. This makes it trivial to build complex component relationships purely in markup, with ready-made components that don't need to know about each other.
+All three components access the same `*files` state. Setting `ctx="gallery"` in HTML and using `*`-prefixed properties removes the need for a parent coordinator, prop drilling, or global store boilerplate. This allows markup to describe complex relationships between reusable components that do not need direct knowledge of one another.
 
 ### Application routing
 
@@ -200,11 +209,11 @@ AppRouter.initRoutingCtx('R', {
 });
 ```
 
-### CSS Styling
+### CSS styling
 
-Shadow DOM is **optional** in Symbiote - use it when you need isolation, skip it when you don't. This gives full flexibility:
+Shadow DOM is optional in Symbiote.js. Use it when a component needs isolation; otherwise, let the component participate in the page's regular styling.
 
-**Light DOM** - style components with regular CSS, no barriers:
+Light DOM components use regular CSS:
 
 ```js
 MyComponent.rootStyles = css`
@@ -217,9 +226,9 @@ MyComponent.rootStyles = css`
 `;
 ```
 
-This style will be applied to nearest upper shadow root, if exists and to common document if not.
+Symbiote.js applies this style to the nearest containing shadow root, when one exists, or to the document.
 
-**Shadow DOM** - opt-in isolation when needed:
+Use Shadow DOM for opt-in isolation:
 
 ```js
 class Isolated extends Symbiote {}
@@ -230,9 +239,9 @@ Isolated.shadowStyles = css`
 `;
 ```
 
-All native CSS features work as expected: CSS variables flow through shadow boundaries, `::part()` exposes internals, modern nesting, `@layer`, `@container` - no framework abstractions in the way. Mix light DOM and shadow DOM components freely in the same app.
+Native CSS features remain available. CSS variables cross shadow boundaries, `::part()` exposes selected internals, and modern nesting, `@layer`, and `@container` work without framework abstractions. Light DOM and Shadow DOM components can coexist in the same application.
 
-### CSS Data
+### CSS data
 
 Components can read CSS custom property values to initiate reactive state:
 
@@ -252,21 +261,21 @@ MyWidget.template = html`
 
 ## Best for
 
-- **Complex widgets** embedded in any host application
-- **Low-code HTML-based solutions** - simple declarative everything
-- **Micro frontends** - standard custom elements, no framework coupling
-- **Reusable component libraries** - works in React, Vue, Angular, or plain HTML
-- **SSR-powered apps** - lightweight server rendering without framework lock-in
-- **Framework-agnostic solutions** - one codebase, any context
-- **Modern AI-first web** - expose the application state to WebMCP tools automatically
+- Complex widgets embedded in any host application
+- Low-code, HTML-based interfaces with declarative bindings for UI, data, and actions
+- Microfrontends built from standard Custom Elements without framework coupling
+- Reusable component libraries for React, Vue, Angular, or plain HTML
+- SSR applications that need lightweight server rendering without framework lock-in
+- Framework-agnostic solutions that reuse one codebase across contexts
+- Agent-facing web applications that expose state and actions through WebMCP
 
-## Docs & Examples
+## Docs and examples
 
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
-- [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
-- [JSDA-Kit](https://github.com/rnd-pro/jsda-kit) - All-in-one companion tool: server, SSG, bundling, import maps, and native Symbiote.js SSR integration
-- [AI / llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
-- [Full docs (single file)](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
+- [Live examples](https://rnd-pro.com/symbiote/3x/examples/): interactive code playground
+- [JSDA-Kit](https://github.com/rnd-pro/jsda-kit): companion tooling for the server, SSG, bundling, import maps, and native Symbiote.js SSR integration
+- [AI / llms.txt](https://rnd-pro.com/symbiote/llms.txt): index for AI tools
+- [Full docs (single file)](https://rnd-pro.com/symbiote/llms-full.txt): complete merged reference for AI context
 
 ## Related articles
 
@@ -275,8 +284,8 @@ MyWidget.template = html`
 - [Symbiote.js vs Lit](https://dev.to/foxeyes/lit-vs-symbiotejs-22gj)
 - [JSDA Stack - A Revolutionary Simple Approach to Build Modern Web](https://dev.to/foxeyes/jsda-kit-a-revolutionary-simple-approach-to-build-modern-web-1dip)
 
-**Questions or proposals? Welcome to [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions)!** ❤️
+Questions and proposals are welcome in [Symbiote Discussions](https://github.com/symbiotejs/symbiote.js/discussions).
 
 ---
 
-© [rnd-pro.com](https://rnd-pro.com) - MIT License
+© [rnd-pro.com](https://rnd-pro.com), MIT License
