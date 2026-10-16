@@ -23,7 +23,7 @@ Three design choices define the library:
 
 ## What's new in v3.x?
 
-- WebMCP support exposes live Symbiote UI actions as browser-native tools for agents. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/webmcp/docs/webmcp.md).
+- WebMCP support exposes live Symbiote UI actions as browser-native tools for agents, with public discovery and invocation APIs for application adapters. See the [WebMCP docs](https://github.com/symbiotejs/symbiote.js/blob/main/docs/webmcp.md).
 - Server-side rendering uses `SSR.processHtml()` for complete HTML or `SSR.renderToStream()` for streamed chunks. On the client, `ssrMode` attaches bindings to existing DOM without rendering it again.
 - The `isoMode` flag lets one component work in SSR and client-only scenarios without environment-specific component logic. It hydrates server-rendered content when present and otherwise renders the template from scratch.
 - Computed properties provide reactive derived state with microtask batching.

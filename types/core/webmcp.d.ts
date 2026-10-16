@@ -6,6 +6,7 @@ export function registerWebMCPTool(owner: any, key: string, descriptor: ToolDesc
 export function syncWebMCPTools(owner: any): void;
 export function unregisterWebMCPTools(owner: any): void;
 export function getActiveWebMCPTools(): WebMCPRegistryEntry[];
+export function executeWebMCPTool(name: string, input?: any): any | Promise<any>;
 export function installWebMCP(SymbioteClass?: typeof Symbiote): void;
 export class ToolDescriptor {
     constructor(options?: ToolDescriptorOptions);
@@ -28,6 +29,7 @@ declare namespace _default {
     export { unregisterWebMCPTools };
     export { syncWebMCPTools };
     export { getActiveWebMCPTools };
+    export { executeWebMCPTool };
 }
 export default _default;
 export type WebMCPToolResultText = {

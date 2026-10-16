@@ -137,6 +137,25 @@ class UserCard extends Symbiote {
 
 The returned text is appended to each component-owned tool description.
 
+## Direct Invocation
+
+Applications can discover and invoke tools through public APIs without native browser WebMCP support:
+
+```js
+import { getActiveWebMCPTools, executeWebMCPTool } from '@symbiotejs/symbiote/webmcp';
+
+let tools = getActiveWebMCPTools();
+let result = await executeWebMCPTool('submit_order_in_webmcp-panel', { note: 'Ready' });
+```
+
+Use a currently registered name from discovery. `executeWebMCPTool(name, input = {})` invokes the same executor used by native WebMCP, preserving its owner and automatic event-binding context. Synchronous handlers return their result directly; asynchronous handlers return a promise. Automatic handler responses include the state snapshot after the handler finishes.
+
+Thrown errors, rejected promises, and unavailable tools return `{ isError: true, content: [{ type: 'text', text: '...' }] }`. Hidden or removed tools cannot be invoked. Calls already running are not cancelled when a tool is removed. Rediscover tools after interface changes; names identify current registrations, not permanent instances.
+
+Discovery returns metadata only. `nativeActive` indicates native browser registration; a value of `false` does not prevent direct invocation. Native registration failure also leaves direct invocation available.
+
+Direct invocation is an application API and does not provide browser-mediated consent or enforce native `exposedTo` restrictions. An external transport adapter is responsible for authentication, authorization, target selection, input-schema validation, and result serialization. Symbiote supplies no MCP server or transport. Native browser registration options remain unchanged.
+
 ## Notes
 
 - This is an experimental release. Names, metadata shape, and browser APIs may change.

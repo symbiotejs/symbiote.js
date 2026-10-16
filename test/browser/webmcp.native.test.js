@@ -114,6 +114,58 @@ describe('native WebMCP integration', () => {
     await new Promise((resolveClose) => server?.close(resolveClose));
   });
 
+  for (let nativeAvailable of [true, false]) {
+    it(`invokes public tools with native WebMCP ${nativeAvailable ? 'enabled' : 'unavailable'}`, async (t) => {
+      let page = await browser.newPage();
+      t.after(() => page.close());
+      if (!nativeAvailable) {
+        await page.evaluateOnNewDocument(() => {
+          for (let target of [document, navigator]) {
+            Object.defineProperty(target, 'modelContext', { configurable: true, value: undefined });
+          }
+        });
+      }
+      await page.goto(`${baseURL}/test/browser/fixtures/webmcp.html`);
+      await page.waitForFunction(async () => {
+        let { getActiveWebMCPTools } = await import('/core/webmcp.js');
+        return getActiveWebMCPTools().some((tool) => tool.name === 'async_tool_in_webmcp-descriptor');
+      });
+      let result = await page.evaluate(async () => {
+        let { getActiveWebMCPTools, executeWebMCPTool } = await import('/core/webmcp.js');
+        let tools = getActiveWebMCPTools();
+        return {
+          nativeActive: tools.find((tool) => tool.name === 'incrementCount_in_webmcp-counter').nativeActive,
+          increment: await executeWebMCPTool('incrementCount_in_webmcp-counter'),
+          asyncResult: await executeWebMCPTool('async_tool_in_webmcp-descriptor', { amount: 4 }),
+          named: await executeWebMCPTool('named_descriptor', { value: 'direct' }),
+          shared: await executeWebMCPTool('sharedDescriptor', { value: 'direct' }),
+          hidden: await executeWebMCPTool('run_tool_in_webmcp-descriptor'),
+          selected: await executeWebMCPTool('selectItem_in_list-item-obj_alpha'),
+          removed: await executeWebMCPTool('onListItemRemove_in_webmcp-counter_list-item-obj_alpha'),
+          staleItem: await executeWebMCPTool('selectItem_in_list-item-obj_alpha'),
+        };
+      });
+      assert.equal(result.nativeActive, nativeAvailable);
+      assert.match(JSON.stringify(result.increment), /Response status - ok/);
+      assert.deepEqual(result.asyncResult, { runs: 4 });
+      assert.equal(result.named, 'named:direct');
+      assert.equal(result.shared, 'shared:direct');
+      assert.equal(result.hidden.isError, true);
+      assert.match(JSON.stringify(result.selected), /Alpha/);
+      assert.match(JSON.stringify(result.removed), /Response status - ok/);
+      assert.equal(result.staleItem.isError, true);
+      assert.equal(await page.$eval('webmcp-counter h2', (el) => el.textContent), '1');
+      await page.evaluate(async () => {
+        let { executeWebMCPTool } = await import('/core/webmcp.js');
+        await executeWebMCPTool('delete_in_webmcp-counter');
+      });
+      await page.waitForFunction(async () => {
+        let { getActiveWebMCPTools } = await import('/core/webmcp.js');
+        return !getActiveWebMCPTools().some((tool) => tool.name === 'incrementCount_in_webmcp-counter');
+      });
+    });
+  }
+
   it('registers meaningful component, context, and item tools without overview tools', async () => {
     let page = await openFixture();
     await waitForTool(page, 'selectItem_in_list-item-obj_alpha');

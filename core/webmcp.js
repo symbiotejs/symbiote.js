@@ -45,6 +45,9 @@ import { parseProp } from './parseProp.js';
 const REGISTRY_UID = Symbol.for('symbiote.webmcp.registry');
 let ownerIdCount = 0;
 
+/** @type {WeakMap<object, (input: Object) => any>} */
+let toolExecutors = new WeakMap();
+
 /** @type {WeakMap<object, Array<{remove: Function}>>} */
 let ownerDeps = new WeakMap();
 /** @type {WeakSet<typeof Symbiote>} */
@@ -80,6 +83,29 @@ function errorResponse(error) {
     }],
     isError: true,
   };
+}
+
+function unavailableTool(name) {
+  return errorResponse(new Error(`WebMCP tool "${name}" is not available.`));
+}
+
+function executeEntry(entry, input, name = entry?.name) {
+  let executor = entry && toolExecutors.get(entry);
+  if (!entry?.active || !executor) {
+    return unavailableTool(name);
+  }
+  try {
+    let result = executor(input || {});
+    return result?.then ? Promise.resolve(result).catch(errorResponse) : result;
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+function deactivateEntry(entry) {
+  entry.active = false;
+  toolExecutors.delete(entry);
+  entry.controller?.abort();
 }
 
 function textResponse(text) {
@@ -348,7 +374,7 @@ function unregisterToolName(publicName) {
     return;
   }
   let entry = tools.read(publicName);
-  entry?.controller?.abort();
+  deactivateEntry(entry);
   tools.delete(publicName);
 }
 
@@ -356,7 +382,7 @@ function updateOwnerEntry(ownerIdVal, entry) {
   webMCPRegistry.store.owners.add(ownerIdVal, entry, true);
 }
 
-function registerNativeTool(publicName, toolEntry, descriptor, owner, executor) {
+function registerNativeTool(publicName, toolEntry, descriptor) {
   let modelContext = getModelContext();
   setDiagnostic('apiAvailable', !!modelContext);
   if (!modelContext) {
@@ -371,15 +397,7 @@ function registerNativeTool(publicName, toolEntry, descriptor, owner, executor) 
     description: toolEntry.description,
     inputSchema: toolEntry.inputSchema,
     execute(input = {}) {
-      try {
-        let result = executor(input || {});
-        if (result?.then) {
-          return result.catch(errorResponse);
-        }
-        return result;
-      } catch (e) {
-        return errorResponse(e);
-      }
+      return executeEntry(toolEntry, input);
     },
   };
   if (descriptor.annotations) {
@@ -421,7 +439,13 @@ function makeEntryWithComponentDescription(publicName, key, descriptor, owner, e
     nativeActive: false,
     controller: null,
   };
-  let native = registerNativeTool(publicName, entry, descriptor, owner, executor);
+  toolExecutors.set(entry, (input) => {
+    if ((isElementOwner(owner) && !owner.isConnected) || !shouldRegister(descriptor, owner)) {
+      return unavailableTool(publicName);
+    }
+    return executor(input);
+  });
+  let native = registerNativeTool(publicName, entry, descriptor);
   entry.controller = native.controller;
   entry.nativeActive = native.nativeActive;
   return entry;
@@ -471,10 +495,13 @@ function createAutoDesired(owner, key, eventBinding = null) {
         throw new Error(`Handler "${key}" is not available on <${tagName}>.`);
       }
       let result = handler.call(owner, syntheticEvent(eventBinding?.el));
-      let suffix = result ? `: ${result}` : '';
-      return textResponse(
-        `Response status - ok${suffix}\nDetails: ${JSON.stringify(stateSnapshot(owner))}`
-      );
+      let respond = (value) => {
+        let suffix = value ? `: ${value}` : '';
+        return textResponse(
+          `Response status - ok${suffix}\nDetails: ${JSON.stringify(stateSnapshot(owner))}`
+        );
+      };
+      return result?.then ? Promise.resolve(result).then(respond) : respond(result);
     },
   });
   return {
@@ -667,6 +694,8 @@ export function registerWebMCPTool(owner, key, descriptor) {
     return entry.then((resolvedEntry) => {
       if (isCurrentOwnerVersion(owner, version)) {
         webMCPRegistry.store.tools.add(publicName, resolvedEntry, true);
+      } else {
+        deactivateEntry(resolvedEntry);
       }
       return resolvedEntry;
     }).catch((e) => {
@@ -782,6 +811,18 @@ export function getActiveWebMCPTools() {
   return Object.keys(tools).map((name) => serializeEntry(tools[name]));
 }
 
+/**
+ * Invoke a currently registered tool without requiring native browser WebMCP.
+ * Input validation and transport authorization belong to the caller.
+ * @param {string} name
+ * @param {Object} [input]
+ * @returns {any | Promise<any>}
+ */
+export function executeWebMCPTool(name, input = {}) {
+  let tools = webMCPRegistry.store.tools;
+  return executeEntry(tools.has(name) ? tools.read(name) : undefined, input, name);
+}
+
 /** @param {typeof Symbiote} [SymbioteClass] */
 export function installWebMCP(SymbioteClass = Symbiote) {
   if (installedClasses.has(SymbioteClass)) {
@@ -825,4 +866,5 @@ export default {
   unregisterWebMCPTools,
   syncWebMCPTools,
   getActiveWebMCPTools,
+  executeWebMCPTool,
 };
