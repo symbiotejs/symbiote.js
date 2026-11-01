@@ -41,6 +41,169 @@ test.describe('Symbiote class', () => {
     expect(await page.textContent('#batch-b')).toBe('Y');
   });
 
+  // ── $ setter ──
+
+  test('$ assignment should update bindings and preserve the state proxy', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('sym-batch');
+      let state = el.$;
+      el.$ = { a: 'X', b: 'Y' };
+      let values = { a: state.a, b: state.b };
+      el.$ = { a: 'Z' };
+      let merged = { a: state.a, b: state.b };
+      state.b = 'W';
+      return { values, merged, sameProxy: state === el.$, a: el.$.a, b: el.$.b };
+    });
+    expect(result).toEqual({
+      values: { a: 'X', b: 'Y' }, merged: { a: 'Z', b: 'Y' }, sameProxy: true, a: 'Z', b: 'W',
+    });
+    expect(await page.textContent('#batch-a')).toBe('Z');
+    expect(await page.textContent('#batch-b')).toBe('W');
+  });
+
+  test('$ assignment should notify subscribers even for unchanged primitive values', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('sym-basic');
+      el.add$({ count: 1, enabled: true });
+      let changes = { label: [], count: [], enabled: [] };
+      for (let prop of Object.keys(changes)) {
+        el.sub(prop, (value) => changes[prop].push(value), false);
+      }
+      el.$ = { label: 'initial', count: 1, enabled: true };
+      el.$ = { label: '', count: 0, enabled: false };
+      el.$ = { label: '', count: 0, enabled: false };
+      return changes;
+    });
+    expect(result).toEqual({ label: ['initial', '', ''], count: [1, 0, 0], enabled: [true, false, false] });
+    expect(await page.textContent('#basic-label')).toBe('');
+  });
+
+  test('$ assignment should republish objects, arrays, functions, null and undefined', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('sym-basic');
+      let values = { object: { count: 0 }, array: [], fn: () => 42, nil: null, unset: undefined };
+      el.add$(values);
+      let changes = {};
+      let sameValues = true;
+      for (let prop of Object.keys(values)) {
+        changes[prop] = 0;
+        el.sub(prop, (value) => {
+          changes[prop]++;
+          sameValues = sameValues && value === values[prop];
+        }, false);
+      }
+      values.object.count = 1;
+      values.array.push('item');
+      el.$ = values;
+      el.$ = values;
+      return { changes, sameValues, count: el.$.object.count, array: el.$.array, fnResult: el.$.fn() };
+    });
+    expect(result).toEqual({
+      changes: { object: 2, array: 2, fn: 2, nil: 2, unset: 2 },
+      sameValues: true, count: 1, array: ['item'], fnResult: 42,
+    });
+  });
+
+  test('$ assignment with an empty object should preserve state without notifications', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('sym-batch');
+      let notifications = 0;
+      el.sub('a', () => { notifications++; }, false);
+      el.sub('b', () => { notifications++; }, false);
+      el.$ = {};
+      return { a: el.$.a, b: el.$.b, notifications };
+    });
+    expect(result).toEqual({ a: 'A', b: 'B', notifications: 0 });
+  });
+
+  test('$ assignment should merge new properties into existing reactive state', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.querySelector('sym-batch');
+      let state = el.$;
+      el.$ = { a: 'updated', count: 1 };
+      let changes = [];
+      el.sub('count', (value) => changes.push(value), false);
+      el.$ = { count: 2, extra: 'added' };
+      return {
+        a: state.a, b: state.b, count: state.count, extra: state.extra,
+        hasCount: el.has('count'), hasExtra: el.has('extra'), changes,
+      };
+    });
+    expect(result).toEqual({
+      a: 'updated', b: 'B', count: 2, extra: 'added', hasCount: true, hasExtra: true, changes: [2],
+    });
+    expect(await page.textContent('#batch-a')).toBe('updated');
+    expect(await page.textContent('#batch-b')).toBe('B');
+  });
+
+  test('$ assignment should route shared, named and parent properties to their contexts', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let shared = document.querySelector('#shared-a');
+      shared.$ = { '*sharedCount': 42, '*added': 'shared' };
+      let named = document.querySelector('sym-ctx');
+      named.$ = { 'TESTCTX/appName': 'merged', 'TESTCTX/added': 'named' };
+      document.querySelector('sym-child').$ = { '^parentVal': 'merged parent' };
+      return {
+        shared: document.querySelector('#shared-b').$['*added'],
+        named: named.$['TESTCTX/added'], parent: document.querySelector('#parent-el').$.parentVal,
+      };
+    });
+    expect(result).toEqual({ shared: 'shared', named: 'named', parent: 'merged parent' });
+    expect(await page.textContent('#shared-count-a')).toBe('42');
+    expect(await page.textContent('#shared-count-b')).toBe('42');
+    expect(await page.textContent('#ctx-val')).toBe('merged');
+    expect(await page.textContent('#bubble-text')).toBe('merged parent');
+  });
+
+  test('$ assignment should register state before the first state read and connection', async ({ page }) => {
+    let result = await page.evaluate(() => {
+      let el = document.createElement('sym-batch');
+      el.$ = { a: 'before connection', extra: 42 };
+      let before = { a: el.$.a, extra: el.$.extra };
+      document.querySelector('#mount').append(el);
+      return { before, text: el.querySelector('#batch-a').textContent, b: el.$.b, extra: el.$.extra };
+    });
+    expect(result).toEqual({
+      before: { a: 'before connection', extra: 42 }, text: 'before connection', b: 'B', extra: 42,
+    });
+  });
+
+  test('$ template binding should merge parent objects into child state', async ({ page }) => {
+    await page.evaluate(async () => {
+      let { default: Symbiote, html } = await import('/core/Symbiote.js');
+      class ProfileCard extends Symbiote {
+        init$ = { name: '', role: 'Reader' };
+      }
+      ProfileCard.template = html`
+        <strong ${{textContent: 'name'}}></strong>
+        <span ${{textContent: 'role'}}></span>
+      `;
+      ProfileCard.reg('profile-card');
+      class ProfilePanel extends Symbiote {
+        init$ = { profile: { name: 'Alex' } };
+      }
+      ProfilePanel.template = html`<profile-card ${{$: 'profile'}}></profile-card>`;
+      ProfilePanel.reg('profile-panel');
+      document.querySelector('#mount').append(document.createElement('profile-panel'));
+    });
+    let card = page.locator('profile-card');
+    await expect(card.locator('strong')).toHaveText('Alex');
+    await expect(card.locator('span')).toHaveText('Reader');
+
+    let result = await page.evaluate(() => {
+      let parent = document.querySelector('profile-panel');
+      let child = document.querySelector('profile-card');
+      let state = child.$;
+      parent.$.profile = { role: 'Editor', extra: 42 };
+      return {
+        sameProxy: state === child.$, name: state.name, role: state.role, extra: state.extra,
+      };
+    });
+    expect(result).toEqual({ sameProxy: true, name: 'Alex', role: 'Editor', extra: 42 });
+    await expect(card.locator('strong')).toHaveText('Alex');
+    await expect(card.locator('span')).toHaveText('Editor');
+  });
+
   // ── initCallback / renderCallback ──
 
   test('initCallback and renderCallback should fire', async ({ page }) => {

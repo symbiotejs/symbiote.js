@@ -40,9 +40,36 @@ class MyComponent extends Symbiote {
 }
 ```
 
+## Merging state
+
+Assign an object to `$` to add or replace several state properties:
+
+```js
+const card = document.createElement('profile-card');
+card.$ = { name: 'Alex', role: 'Reader' };
+const state = card.$;
+
+card.$ = { role: 'Editor', online: true };
+// state === card.$; name remains 'Alex', role is 'Editor', online is added.
+```
+
+The component class must be registered before creating the element. Local state can be assigned before connection; missing `init$` defaults are added when it connects. Assignments preserve the proxy and omitted keys. The merge is shallow: a supplied object or array replaces that property's value by reference. Every supplied key notifies subscribers, even if a primitive value is unchanged. Keys are applied sequentially, so subscribers can observe intermediate values.
+
+The setter uses `add$(stateObj, true)` and resolves shared (`*`), parent (`^`), and named (`CTX/key`) context keys. Named contexts must already exist. Select allowed keys from external data before assigning it; arbitrary keys can address other contexts or replace handler properties.
+
+This also enables [binding an object to a child component's state](./templates.md#binding-an-object-to-child-state):
+
+```js
+ProfilePanel.template = html`
+  <profile-card ${{$: 'profile'}}></profile-card>
+`;
+```
+
+Publishing `profile` merges its fields into the child. This is a one-way binding. Mutating a nested field alone does not publish; reassign the parent property or call `notify('profile')` after changing it.
+
 ## Bulk updates
 
-To change multiple property values at once, use the `set$` method:
+To update existing local properties while skipping unchanged string, number, and boolean values, use the `set$` method:
 ```js
 class MyComponent extends Symbiote {
 

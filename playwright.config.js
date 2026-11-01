@@ -6,15 +6,17 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:8787',
     headless: true,
   },
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
   ],
   webServer: {
-    command: 'npx -y http-server . -p 8787 --cors -c-1',
-    port: 8787,
-    reuseExistingServer: true,
+    command: 'node test/server.js',
+    wait: {
+      // Named capture supplies the baseURL fixture after the server starts.
+      stdout: /Symbiote test server ready at (?<playwright_test_base_url>http:\/\/127\.0\.0\.1:\d+)/,
+    },
+    reuseExistingServer: false,
   },
 });

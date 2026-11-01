@@ -11,7 +11,7 @@
 ## Core Concepts
 
 - [**Templates**](./templates.md) — HTML string templates, binding syntax, slots, element references
-- [**Properties**](./properties.md) — State initialization, `$` proxy, subscriptions, computed properties
+- [**Properties**](./properties.md) — State initialization, `$` proxy and merging, subscriptions, computed properties
 - [**Context**](./context.md) — Local, named, pop-up, and shared data contexts
 - [**List Rendering**](./list-rendering.md) — Itemize API for dynamic lists
 - [**Lifecycle**](./lifecycle.md) — Component lifecycle callbacks and destruction
@@ -39,15 +39,14 @@
 
 - [**Dev Mode**](./dev-mode.md) — Verbose warnings for debugging
 - [**TypeScript**](./typescript.md) — JSDoc types, TypeScript usage, and hybrid template checks
-- [**Security**](./security.md) — Trusted Types and CSP compliance
+- [**Security**](./security.md) — Template trust, CSP, and agent-facing boundaries
 
 ## Additional Resources
 
 - [Live Examples](https://rnd-pro.com/symbiote/3x/examples/) - Interactive Code Playground
 - [Common Mistakes](./common-mistakes.md) — Patterns that frequently cause bugs
 - [Examples](./examples.md) — 26 complete working examples
-- [llms.txt](https://rnd-pro.com/symbiote/llms.txt) — index for AI tools
-- [llms-full.txt](https://rnd-pro.com/symbiote/llms-full.txt) — complete merged reference for AI context
+- [Agent skill](../skills/symbiote/SKILL.md) — Implementation guidance for coding agents; [installation](../README.md#use-with-coding-agents)
 - [npm](https://www.npmjs.com/package/@symbiotejs/symbiote)
 - [GitHub Discussions](https://github.com/symbiotejs/symbiote.js/discussions)
 

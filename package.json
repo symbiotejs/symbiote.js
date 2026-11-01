@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.8.3",
+  "version": "3.9.0",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -9,12 +9,12 @@
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
     "prepublishOnly": "npm test",
-    "build:llms": "node scripts/build-llms.js",
-    "pub": "npm test && npm run types && npm run build:llms && npm publish",
+    "pub": "npm test && npm run types && npm publish",
+    "test:setup": "playwright install chromium && puppeteer browsers install chrome",
     "test:unit": "node --test test/node/*.test.js",
-    "test:browser": "npx playwright test",
+    "test:browser": "playwright test",
     "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
-    "test": "node --test test/node/*.test.js && npx playwright test && npm run test:webmcp:native"
+    "test": "node --test test/node/*.test.js && playwright test && npm run test:webmcp:native"
   },
   "files": [
     "core/*",
@@ -25,8 +25,7 @@
     "docs/*",
     "README.md",
     "LICENSE",
-    "llms.txt",
-    "llms-full.txt"
+    "skills/"
   ],
   "module": "./core/index.js",
   "types": "./types/core/index.d.ts",

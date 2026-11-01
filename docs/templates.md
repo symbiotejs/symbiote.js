@@ -144,6 +144,35 @@ MyComponent.template = html`
 `;
 ```
 
+## Binding an object to child state
+
+Bind to `$` to merge an object from the parent context into a child component's reactive state:
+
+```js
+import Symbiote, { html } from '@symbiotejs/symbiote';
+
+class ProfileCard extends Symbiote {
+  init$ = { name: '', role: 'Reader' };
+}
+ProfileCard.template = html`
+  <strong ${{textContent: 'name'}}></strong>
+  <span ${{textContent: 'role'}}></span>
+`;
+ProfileCard.reg('profile-card');
+
+class ProfilePanel extends Symbiote {
+  init$ = { profile: { name: 'Alex' } };
+}
+ProfilePanel.template = html`
+  <profile-card ${{$: 'profile'}}></profile-card>
+`;
+ProfilePanel.reg('profile-panel');
+```
+
+The equivalent plain HTML binding is `<profile-card bind="$: profile"></profile-card>`. Register the child class before mounting the parent. Symbiote defers the initial assignment until the child initializes, so it displays `Alex` with its default role `Reader`.
+
+After mounting, `panel.$.profile = { role: 'Editor' }` updates the child's role and preserves its name. New keys are registered, and the child's `$` proxy remains the same object. Child changes do not publish back to the parent. Object mutations alone do not notify; publish the parent property again or call `panel.notify('profile')`. See [state merging](./properties.md#merging-state) for notification and context rules.
+
 ## Binding to HTML attributes
 
 To bind a property to an element's attribute, use the `@` prefix:

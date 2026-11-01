@@ -56,8 +56,9 @@ export class Symbiote<S> extends HTMLElement {
     has(prop: string): any;
     add<T extends keyof S>(prop: string, val: S[T], rewrite?: boolean): void;
     add$(obj: Partial<S>, rewrite?: boolean): void;
-    get $(): S;
     set$(kvObj: Partial<S>, forcePrimitives?: boolean): void;
+    set $(stateObj: Partial<S>);
+    get $(): S;
     initAttributeObserver(): void;
     attributeMutationObserver: MutationObserver;
     initChildren: ChildNode[];

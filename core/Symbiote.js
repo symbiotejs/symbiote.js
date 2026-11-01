@@ -341,6 +341,23 @@ export class Symbiote extends HTMLElement {
     }
   }
 
+  /**
+   * @param {Partial<S>} kvObj
+   * @param {Boolean} [forcePrimitives] Force update callbacks for primitive types
+   */
+  set$(kvObj, forcePrimitives = false) {
+    for (let key in kvObj) {
+      let val = kvObj[key];
+      /** @type {unknown[]} */
+      let primArr = [String, Number, Boolean];
+      if (forcePrimitives || !primArr.includes(val?.constructor)) {
+        this.localCtx.pub(key, val);
+      } else {
+        this.localCtx.read(key) !== val && this.localCtx.pub(key, val);
+      }
+    }
+  }
+
   /** @returns {S} */
   get $() {
     if (!this.#stateProxy) {
@@ -373,20 +390,10 @@ export class Symbiote extends HTMLElement {
   }
 
   /**
-   * @param {Partial<S>} kvObj
-   * @param {Boolean} [forcePrimitives] Force update callbacks for primitive types
+   * @param {Partial<S>} stateObj
    */
-  set$(kvObj, forcePrimitives = false) {
-    for (let key in kvObj) {
-      let val = kvObj[key];
-      /** @type {unknown[]} */
-      let primArr = [String, Number, Boolean];
-      if (forcePrimitives || !primArr.includes(val?.constructor)) {
-        this.localCtx.pub(key, val);
-      } else {
-        this.localCtx.read(key) !== val && this.localCtx.pub(key, val);
-      }
-    }
+  set $(stateObj) {
+    this.add$(stateObj, true);
   }
 
   initAttributeObserver() {

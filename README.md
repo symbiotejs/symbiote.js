@@ -70,6 +70,16 @@ npm i @symbiotejs/symbiote
 import Symbiote, { html, css } from '@symbiotejs/symbiote';
 ```
 
+## Use with coding agents
+
+Install the [Symbiote.js skill](./skills/symbiote/SKILL.md) from your project directory:
+
+```bash
+npx skills add symbiotejs/symbiote.js --skill symbiote
+```
+
+The [skills CLI](https://skills.sh/docs/cli) lets you choose your coding agent. Add `--global` to install across projects. The skill covers templates, state bindings, contexts, SSR, WebMCP, and security boundaries, with links to the detailed documentation.
+
 ## Core concepts
 
 ### Runtime Agnostic Templates (RAT)
@@ -114,6 +124,35 @@ document.querySelector('my-counter').$.count = 42;
 ```
 
 Any host application can control a Symbiote.js widget or microfrontend through the DOM API. It does not need a framework adapter.
+
+### Bind an object to child state
+
+Bind a parent state object to a child's `$` property to pass several values together:
+
+```js
+class ProfileCard extends Symbiote {
+  init$ = { name: '', role: 'Reader' };
+}
+ProfileCard.template = html`
+  <strong ${{textContent: 'name'}}></strong>
+  <span ${{textContent: 'role'}}></span>
+`;
+ProfileCard.reg('profile-card');
+
+class ProfilePanel extends Symbiote {
+  init$ = { profile: { name: 'Alex' } };
+}
+ProfilePanel.template = html`
+  <profile-card ${{$: 'profile'}}></profile-card>
+`;
+ProfilePanel.reg('profile-panel');
+
+const panel = document.createElement('profile-panel');
+document.body.append(panel); // Child displays Alex / Reader.
+panel.$.profile = { role: 'Editor' }; // Child now displays Alex / Editor.
+```
+
+The `$` setter merges supplied keys, registers new ones, and keeps omitted values and the existing state proxy. You can also assign `card.$ = { name: 'Sam' }` directly. This is a shallow merge with notifications for every supplied key, including unchanged primitives. Child edits do not publish back to the parent. See [state merging](./docs/properties.md#merging-state) for details.
 
 ### Itemize (dynamic reactive lists)
 
@@ -274,8 +313,7 @@ MyWidget.template = html`
 - [Documentation](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md)
 - [Live examples](https://rnd-pro.com/symbiote/3x/examples/): interactive code playground
 - [JSDA-Kit](https://github.com/rnd-pro/jsda-kit): companion tooling for the server, SSG, bundling, import maps, and native Symbiote.js SSR integration
-- [AI / llms.txt](https://rnd-pro.com/symbiote/llms.txt): index for AI tools
-- [Full docs (single file)](https://rnd-pro.com/symbiote/llms-full.txt): complete merged reference for AI context
+- [Agent skill](./skills/symbiote/SKILL.md): focused implementation guidance for coding agents
 
 ## Related articles
 

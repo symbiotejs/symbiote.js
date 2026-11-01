@@ -175,7 +175,8 @@ function domBindProcessor(fr, fnCtx) {
               el.setAttribute(prop, val);
             }
           } else {
-            if (!setNestedProp(el, prop, val)) {
+            // A direct $ assignment on an unupgraded child would shadow its state accessor.
+            if ((prop === '$' && !('$' in el)) || !setNestedProp(el, prop, val)) {
               // Custom element instances are not constructed properly at this moment, so:
               if (!el[DICT.SET_LATER_KEY]) {
                 el[DICT.SET_LATER_KEY] = Object.create(null);
