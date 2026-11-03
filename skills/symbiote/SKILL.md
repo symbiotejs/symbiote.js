@@ -18,31 +18,37 @@ Runtime Agnostic Templates (RAT) are plain HTML strings. They describe markup an
 import Symbiote, { html } from '@symbiotejs/symbiote';
 
 class ClickCounter extends Symbiote {
-  init$ = { count: 0 };
+  init$ = {
+    count: 0,
+  };
 
-  increment() {
+  // count = 0; - optional fallback property setting
+  increment() { // - also fallback property setting
     this.$.count++;
   }
 }
 
 ClickCounter.template = html`
-  <output ${{textContent: 'count'}}></output>
+  <output>{{count}}</output>
   <button ${{onclick: 'increment'}}>Increment</button>
 `;
 ClickCounter.reg('click-counter');
 ```
+
+When a template references a key missing from state, fallback registers the matching class field or method in `$`, binding functions to the component instance. This lets `count = 0` replace `init$.count` and exposes `increment()` as a handler without an `init$` entry. Existing state values take precedence; publish later changes through `$`.
 
 Binding maps have DOM property names on the left and state keys on the right. `html` turns `${{onclick: 'increment'}}` into `bind="onclick:increment;"`. A plain HTML template can use that `bind` attribute directly. String and number interpolations concatenate into HTML without escaping; use state bindings for dynamic text.
 
 | Need | Binding |
 | --- | --- |
 | Reactive text | `${{textContent: 'label'}}` |
-| Client-only text token | `{{label}}` |
+| Client-only reactive text token | `{{label}}` |
 | Event handler | `${{onclick: 'onSave'}}` |
 | DOM property | `${{value: 'query'}}` |
-| Boolean HTML attribute | `${{'@disabled': 'busy'}}` |
+| Boolean HTML attribute | `${{'@disabled': 'isBusy'}}` |
+| Text HTML attribute | `${{'@data-text': 'attrVal'}}` |
 | Nested DOM property | `${{'style.color': 'color'}}` |
-| One child state property | `${{'$.label': 'label'}}` |
+| Child state property | `${{'$.label': 'label'}}` |
 | Merge an object into child state | `${{$: 'profile'}}` |
 
 Input bindings update the DOM from state. Add an input/change handler to publish user edits back into state; there is no implicit two-way binding. Use `textContent` bindings for SSR/ISO hydration: `{{prop}}` text tokens do not leave hydration markers.
@@ -65,16 +71,23 @@ Assigning `$` on an already constructed, disconnected component registers local 
 import Symbiote, { html } from '@symbiotejs/symbiote';
 
 class ProfileCard extends Symbiote {
-  init$ = { name: '', role: 'Reader' };
+  init$ = {
+    name: '',
+    role: 'Reader',
+  };
 }
 ProfileCard.template = html`
-  <strong ${{textContent: 'name'}}></strong>
-  <span ${{textContent: 'role'}}></span>
+  <strong>{{name}}</strong>
+  <span>{{role}}</span>
 `;
 ProfileCard.reg('profile-card');
 
 class ProfilePanel extends Symbiote {
-  init$ = { profile: { name: 'Alex' } };
+  init$ = {
+    profile: {
+      name: 'Alex',
+    },
+  };
 }
 ProfilePanel.template = html`
   <profile-card ${{$: 'profile'}}></profile-card>
@@ -138,11 +151,17 @@ In the Symbiote source repository, `npm run test:unit` runs Node tests and `npm 
 
 Read only the documentation needed for the task. Prefer matching local files under the project's Symbiote source or `node_modules/@symbiotejs/symbiote/docs/`; otherwise these maintained references are available:
 
+- [Get started](https://github.com/symbiotejs/symbiote.js/blob/main/docs/get-started.md) and [ecosystem](https://github.com/symbiotejs/symbiote.js/blob/main/docs/ecosystem.md): installation, first components, IDE setup, and build tools.
 - [Templates](https://github.com/symbiotejs/symbiote.js/blob/main/docs/templates.md) and [properties](https://github.com/symbiotejs/symbiote.js/blob/main/docs/properties.md): binding syntax, bulk state, and computed values.
 - [Context](https://github.com/symbiotejs/symbiote.js/blob/main/docs/context.md) and [PubSub](https://github.com/symbiotejs/symbiote.js/blob/main/docs/pubsub.md): shared or named state ownership.
 - [Lists](https://github.com/symbiotejs/symbiote.js/blob/main/docs/list-rendering.md): Itemize and identity-preserving updates.
+- [Lifecycle](https://github.com/symbiotejs/symbiote.js/blob/main/docs/lifecycle.md), [flags](https://github.com/symbiotejs/symbiote.js/blob/main/docs/flags.md), and [attributes](https://github.com/symbiotejs/symbiote.js/blob/main/docs/attributes.md): callbacks, destruction, component configuration, and attribute observation.
+- [Styling](https://github.com/symbiotejs/symbiote.js/blob/main/docs/styling.md) and [CSS data](https://github.com/symbiotejs/symbiote.js/blob/main/docs/css-data.md): Light DOM and Shadow DOM styles, CSS processing, and CSS custom properties as state.
+- [Routing](https://github.com/symbiotejs/symbiote.js/blob/main/docs/routing.md) and [animations](https://github.com/symbiotejs/symbiote.js/blob/main/docs/animations.md): SPA paths, guards, lazy loading, and exit transitions.
 - [SSR](https://github.com/symbiotejs/symbiote.js/blob/main/docs/ssr.md) and [WebMCP](https://github.com/symbiotejs/symbiote.js/blob/main/docs/webmcp.md): optional integrations and their limits.
+- [SSR and your server setup](https://github.com/symbiotejs/symbiote.js/blob/main/docs/ssr-server.md): static builds, streaming, and Express or Fastify integration.
+- [Dev mode](https://github.com/symbiotejs/symbiote.js/blob/main/docs/dev-mode.md) and [TypeScript](https://github.com/symbiotejs/symbiote.js/blob/main/docs/typescript.md): diagnostic warnings, JSDoc types, and template checks.
 - [Security](https://github.com/symbiotejs/symbiote.js/blob/main/docs/security.md): template trust, CSP, and agent-facing boundaries.
 - [Common mistakes](https://github.com/symbiotejs/symbiote.js/blob/main/docs/common-mistakes.md): diagnosing binding and lifecycle failures.
 - [Examples](https://github.com/symbiotejs/symbiote.js/blob/main/docs/examples.md): complete code examples for components, contexts, lists, hydration, styling, and routing; read the relevant example when implementing a feature.
-- [Documentation index](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md): routing, flags, attributes, styling, TypeScript, and further examples.
+- [Documentation index](https://github.com/symbiotejs/symbiote.js/blob/main/docs/README.md): full documentation overview and additional resources.
