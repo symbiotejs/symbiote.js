@@ -194,11 +194,10 @@ function domBindProcessor(fr, fnCtx) {
 }
 
 function getTextNodesWithTokens(el) {
-  let isCustomEl = el instanceof HTMLElement && el.localName?.includes('-');
   let node;
   let result = [];
   let acceptNode = (txt) => {
-    if (isCustomEl && !isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
+    if (!isOwnNode(txt, el)) return NodeFilter.FILTER_REJECT;
     return !txt.parentElement?.hasAttribute(DICT.TEXT_NODE_SKIP_ATTR)
       && txt.textContent.includes(DICT.TEXT_NODE_OPEN_TOKEN)
       && txt.textContent.includes(DICT.TEXT_NODE_CLOSE_TOKEN)

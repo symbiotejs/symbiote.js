@@ -1,5 +1,4 @@
 export class SymContext extends BaseClass {
-    add$(values: Record<string, unknown>, rewrite?: boolean): void;
     watchData(key: string): void;
     publishData(key: string, value: unknown): void;
     #private;

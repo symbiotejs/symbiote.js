@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HTML-app actions</title>
+  <script type="module" src="/html-app/index.js"></script>
+</head>
+<body>
+  <template id="nested-actions">
+    <sym-context>
+      <script type="application/json">{"flag":false,"label":"Inner"}</script>
+      <button type="button" bind="onclick: [toggle]flag"><span>Inner toggle</span></button>
+      <output>{{flag}}</output>
+    </sym-context>
+  </template>
+  <sym-context ctx="APP">
+    <script type="application/json">
+      {
+        "flag":false, "text":"", "number":0, "choice":"a", "multi":[],
+        "note":"", "delayed":"", "formValue":"", "formChoice":"",
+        "copied":{"name":"old"}, "payload":{"name":"typed"},
+        "mappedName":"", "mappedCount":0,
+        "rows":[{"id":"a","label":"Alpha"}]
+      }
+    </script>
+    <h1>Actions</h1>
+    <button type="button" bind="onclick: [toggle]APP/flag"><span>Toggle flag</span></button>
+    <button type="button" value="true" bind="onclick: [set]APP/flag">Set true</button>
+    <button type="button" value="false" bind="onclick: [set]APP/flag">Set false</button>
+    <button type="button" action-data="APP/payload" bind="onclick: [set]APP/copied">Copy typed data</button>
+    <button type="button" bind="onclick: [toggle]APP/number">Invalid toggle</button>
+    <label>Text<input name="text" bind="value: APP/text; oninput: [pub-to]APP/text"></label>
+    <label>Number<input name="number" type="number" bind="value: APP/number; oninput: [pub-to]APP/number"></label>
+    <label><input name="flag" type="checkbox" bind="checked: APP/flag; onchange: [pub-to]APP/flag">Flag</label>
+    <fieldset><legend>Choice</legend>
+      <label><input type="radio" name="choice" value="a" bind="onchange: [pub-to]APP/choice">A</label>
+      <label><input type="radio" name="choice" value="b" bind="onchange: [pub-to]APP/choice">B</label>
+    </fieldset>
+    <label>Multiple<select name="multi" multiple bind="onchange: [pub-to]APP/multi">
+      <option value="a">A</option><option value="b">B</option><option value="c">C</option>
+    </select></label>
+    <label>Delayed<input name="delayed" bind="value: APP/delayed; oninput: [pub-to-10000]APP/delayed"></label>
+    <form action-data="APP/note" bind="onsubmit: [set]APP/formValue">
+      <label>Note<input name="note" required bind="value: APP/note; oninput: [pub-to-10000]APP/note"></label>
+      <button type="submit">Submit note</button>
+    </form>
+    <form bind="onsubmit: [set]APP/formChoice">
+      <button type="submit" value="draft">Save draft</button>
+      <button type="submit" value="publish">Publish</button>
+    </form>
+    <fieldset disabled><legend>Disabled</legend>
+      <button type="button" bind="onclick: [toggle]APP/flag">Disabled toggle</button>
+    </fieldset>
+    <input aria-label="Read-only text" readonly bind="oninput: [pub-to]APP/text">
+    <sym-component use-template="#nested-actions"></sym-component>
+    <sym-component pub-map="APP/mappedName: name; APP/mappedCount: count">
+      <script type="application/json">{"name":"Initial","count":1}</script>
+      <p>{{name}}</p>
+    </sym-component>
+    <sym-component bind="$.items: APP/rows">
+      <script type="application/json">{"items":[]}</script>
+      <div itemize="items"><template>
+        <label>Row note<input bind="value: label; oninput: [pub-to-10000]APP/delayed"></label>
+        <button type="button" bind="onclick: [set]APP/text" value="row">Row action</button>
+      </template></div>
+    </sym-component>
+  </sym-context>
+</body>
+</html>

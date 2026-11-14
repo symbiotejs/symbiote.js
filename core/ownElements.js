@@ -9,9 +9,6 @@
  */
 export function ownElements(fr, selector) {
   let all = [...fr.querySelectorAll(selector)];
-  if (!(fr instanceof HTMLElement) || !fr.localName?.includes('-')) {
-    return all;
-  }
   return all.filter((el) => {
     let parent = el.parentElement;
     while (parent && parent !== fr) {
@@ -25,7 +22,7 @@ export function ownElements(fr, selector) {
 /**
  * Check if a node belongs to `root` and not to a nested custom element.
  * @param {Node} node
- * @param {Element} root
+ * @param {Element | DocumentFragment} root
  * @returns {boolean}
  */
 export function isOwnNode(node, root) {

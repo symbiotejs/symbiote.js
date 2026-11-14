@@ -114,6 +114,47 @@ describe('native WebMCP integration', () => {
     await new Promise((resolveClose) => server?.close(resolveClose));
   });
 
+  it('registers and invokes declarative HTML-app actions through native WebMCP', async (t) => {
+    let page = await openFixture();
+    t.after(() => page.close());
+    await page.evaluate(async () => {
+      let {
+        Symbiote,
+      } = await import('/core/index.js');
+      Symbiote.mcpToolMode = true;
+      await import('/html-app/index.js');
+      let owner = document.createElement('sym-context');
+      owner.setAttribute('ctx', 'HTML_ACTIONS');
+      owner.innerHTML = '<script type="application/json">{"flag":false}</script>'
+        + '<button type="button" bind="onclick: [toggle]flag">Toggle flag</button>';
+      document.body.append(owner);
+    });
+    await page.waitForFunction(async () => {
+      let {
+        getActiveWebMCPTools,
+      } = await import('/core/webmcp.js');
+      return getActiveWebMCPTools().some((tool) => tool.ownerName === 'sym-context' && tool.nativeActive);
+    });
+    let name = await page.evaluate(async () => {
+      let {
+        getActiveWebMCPTools,
+      } = await import('/core/webmcp.js');
+      let {
+        DICT,
+      } = await import('/core/dictionary.js');
+      let owner = document.querySelector('sym-context[ctx="HTML_ACTIONS"]');
+      let tool = getActiveWebMCPTools().find((item) => item.ownerId === owner[DICT.MCP_OWNER_ID_KEY]
+        && item.key.startsWith('auto:'));
+      return tool?.name;
+    });
+    assert.ok(name);
+    await waitForTool(page, name);
+    await executeTool(page, name);
+    assert.equal(await page.$eval('sym-context[ctx="HTML_ACTIONS"]', (owner) => owner.$.flag), true);
+    await page.$eval('sym-context[ctx="HTML_ACTIONS"]', (owner) => owner.remove());
+    await waitForNoTool(page, name);
+  });
+
   for (let nativeAvailable of [true, false]) {
     it(`invokes public tools with native WebMCP ${nativeAvailable ? 'enabled' : 'unavailable'}`, async (t) => {
       let page = await browser.newPage();
