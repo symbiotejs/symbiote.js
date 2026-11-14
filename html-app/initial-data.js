@@ -1,5 +1,23 @@
 import { DICT } from '../core/dictionary.js';
 
+/** @type {WeakMap<import('../core/PubSub.js').PubSub, Record<string, unknown>>} */
+export let initialDefaults = new WeakMap();
+
+/**
+ * Remember authored defaults separately from mutable application state.
+ * @param {import('../core/PubSub.js').PubSub} context
+ * @param {Record<string, unknown>} data
+ */
+export function rememberDefaults(context, data) {
+  let defaults = initialDefaults.get(context) || {};
+  for (let key of Object.keys(data)) {
+    if (!Object.hasOwn(defaults, key)) {
+      defaults[key] = structuredClone(data[key]);
+    }
+  }
+  initialDefaults.set(context, defaults);
+}
+
 /** @param {string} key */
 export function isDataKey(key) {
   return !!key && !key.startsWith('__htmlApp') && key !== 'prototype' && !Object.hasOwn(Object.prototype, key) && !/^[@*^+]/.test(key) && !key.startsWith('--') && !key.includes('/');
@@ -39,10 +57,12 @@ export function readInitialData(root) {
  * @param {import('./BaseClass.js').BaseClass} owner
  */
 export function initialDataProcessor(root, owner) {
+  let data = readInitialData(root);
+  rememberDefaults(owner.localCtx, data);
   for (let [
     key,
     value,
-  ] of Object.entries(readInitialData(root))) {
+  ] of Object.entries(data)) {
     owner.localCtx.add(key, value);
   }
 }

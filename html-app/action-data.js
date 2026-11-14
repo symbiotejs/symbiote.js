@@ -40,9 +40,16 @@ export function resolveData(owner, reference, computed = false) {
 }
 /** @param {string} source */
 export function parseAction(source) {
-  let match = /^\[(toggle|set|pub-to)(?:-(\d+))?\](.+)$/.exec(source);
-  if (!match || (match[2] !== undefined && match[1] !== 'pub-to')
-    || !isDataReference(match[3])) {
+  let match = /^\[(toggle|set|pub-to|append|patch-matching|remove-matching|item-pub|item-toggle|item-remove)(?:-(\d+))?\](.*)$/.exec(source);
+  let operation = match?.[1];
+  let reference = match?.[3] || '';
+  let validReference = operation === 'item-remove' ? !reference
+    : operation?.startsWith('item-') ? isDataKey(reference) && !/[\s:;,\[\]]/.test(reference)
+    : isDataReference(reference);
+  if (!match || (match[2] !== undefined && ![
+    'pub-to',
+    'item-pub',
+  ].includes(operation)) || !validReference) {
     throw new TypeError('Invalid HTML-app action: ' + source);
   }
   let delay = match[2] === undefined ? 0 : Number(match[2]);

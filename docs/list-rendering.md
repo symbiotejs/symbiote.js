@@ -219,7 +219,7 @@ More details in the [Animations](./animations.md) section.
 
 ## Keyed itemize processor
 
-For performance-critical lists, use the optional keyed itemize processor with reference-equality fast paths and key-based reconciliation:
+Use the optional keyed Itemize processor when record identity must survive updates and reordering:
 ```js
 import { itemizeProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor-keyed.js';
 import { itemizeProcessor as defaultProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor.js';
@@ -233,7 +233,7 @@ class BigList extends Symbiote {
 }
 ```
 
-Up to **3× faster** for appends, **2×** for in-place updates, **32×** for no-ops.
+Array records use a unique `id`, or `_KEY_` when no `id` is present. Object collections use their property keys. Every keyed record retains its element through reordering; duplicate or missing keys fail explicitly. Unkeyed arrays retain positional updates, and publishing the same array reference skips reconciliation. Leaving elements are inert and excluded from later reconciliation, so an exit animation cannot remove a newly added record.
 
 ## Lazy initialization (Massive lists)
 

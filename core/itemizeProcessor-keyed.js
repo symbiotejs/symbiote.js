@@ -1,217 +1,112 @@
 import { animateOut } from './animateOut.js';
 import { warnMsg } from './warn.js';
-import { setupItemize } from './itemizeSetup.js';
+import { setupItemize, setItemWebMCPMetadata } from './itemizeSetup.js';
 
 /**
- * Optimized itemize template processor.
- *
- * Drop-in replacement for the default itemizeProcessor with:
- * - Reference-equality fast paths for append, truncate, and no-op
- * - Key-based reconciliation (using `_KEY_` or `id` properties) for efficient reordering
- * - Skip-if-same optimization for index-based patching
- *
- * Usage:
- * ```js
- * import { itemizeProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor-keyed.js';
- * import { itemizeProcessor as defaultProcessor } from '@symbiotejs/symbiote/core/itemizeProcessor.js';
- *
- * class MyList extends Symbiote {
- *   constructor() {
- *     super();
- *     // Swap default for keyed version
- *     this.templateProcessors.delete(defaultProcessor);
- *     this.templateProcessors = new Set([itemizeProcessor, ...this.templateProcessors]);
- *   }
- * }
- * ```
- *
+ * Optional Itemize processor with stable keyed identity.
+ * Keyed records always keep their element, including complete reversals.
  * @template {import('./Symbiote.js').Symbiote} T
  * @param {DocumentFragment} fr
  * @param {T} fnCtx
  */
 export function itemizeProcessor(fr, fnCtx) {
-  setupItemize(fr, fnCtx, ({ el, itemClass, repeatDataKey, clientSSR, isLazy }) => {
-    /** @type {*[]} */
-    let prevData = [];
+  setupItemize(fr, fnCtx, ({
+    el,
+    itemClass,
+    repeatDataKey,
+    clientSSR,
+    isLazy,
+  }) => {
+    /** @type {any[]} */
+    let previous = [];
+    /** @type {any[]} */
+    let active = [
+      ...el.children,
+    ];
 
     fnCtx.sub(repeatDataKey, (data) => {
-      if (!data) {
-        while (el.firstChild) {
-          el.firstChild.remove();
-        }
-        prevData = [];
-        return;
-      }
-
-      /** @type {*[]} */
-      let items;
-      if (data.constructor === Array) {
-        items = data;
-      } else if (data.constructor === Object) {
-        items = [];
-        for (let itemKey in data) {
-          let init = data[itemKey];
-          Object.defineProperty(init, '_KEY_', {
-            value: itemKey,
-            enumerable: true,
-          });
-          items.push(init);
-        }
-      } else {
-        warnMsg(16, fnCtx.localName, typeof data, data);
-        return;
-      }
-
-      let children = el.children;
-      let prevLen = children.length;
-      let newLen = items.length;
-
-      // ── Fast path: no-op (same array reference) ──
-      if (data === prevData || items === prevData) {
-        return;
-      }
-
-      // ── Fast path: simple truncate (tail removal) ──
-      if (newLen < prevLen && newLen > 0) {
-        if (items[0] === prevData[0] && items[newLen - 1] === prevData[newLen - 1]) {
-          for (let i = prevLen - 1; i >= newLen; i--) {
-            animateOut(children[i]);
-          }
-          prevData = items;
+      /** @type {any[]} */
+      let items = [];
+      if (data) {
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (data.constructor === Object) {
+          items = Object.entries(data).map(([
+            key,
+            value,
+          ]) => ({
+            ...value,
+            _KEY_: key,
+          }));
+        } else {
+          warnMsg(16, fnCtx.localName, typeof data, data);
           return;
         }
       }
-
-      // ── Fast path: simple append ──
-      if (newLen > prevLen && prevLen > 0) {
-        if (items[0] === prevData[0] && items[prevLen - 1] === prevData[prevLen - 1]) {
-          let fragment = document.createDocumentFragment();
-          for (let i = prevLen; i < newLen; i++) {
-            let repeatItem = new itemClass();
-            if (isLazy) {
-              repeatItem.lazyMode = true;
-            }
-            Object.assign((repeatItem?.init$ || repeatItem), items[i]);
-            fragment.appendChild(repeatItem);
-          }
-          el.appendChild(fragment);
-          prevData = items;
-          return;
-        }
+      if (items === previous) {
+        return;
       }
-
-      // ── Full reconciliation ──
-      let keyProp = items[0]?._KEY_ !== undefined ? '_KEY_' : (items[0]?.id !== undefined ? 'id' : null);
-
-      if (keyProp && prevLen > 0) {
-        /** @type {Map<*, number>} */
-        let prevKeyToIdx = new Map();
-        for (let i = 0; i < prevLen; i++) {
-          let key = prevData[i]?.[keyProp];
-          if (key !== undefined) {
-            prevKeyToIdx.set(key, i);
-          }
-        }
-
-        // Count out-of-order moves to decide strategy
-        let movesNeeded = 0;
-        let lastReusedIdx = -1;
-
-        for (let i = 0; i < newLen; i++) {
-          let prevIdx = prevKeyToIdx.get(items[i][keyProp]);
-          if (prevIdx !== undefined) {
-            if (prevIdx < lastReusedIdx) {
-              movesNeeded++;
-            }
-            lastReusedIdx = prevIdx;
-          }
-        }
-
-        // DOM reorder only when few moves needed; otherwise patch in-place
-        if (movesNeeded < newLen * 0.3) {
-          let newChildren = [];
-          let toRemove = new Set(prevKeyToIdx.keys());
-
-          for (let i = 0; i < newLen; i++) {
-            let item = items[i];
-            let key = item[keyProp];
-            let prevIdx = prevKeyToIdx.get(key);
-
-            if (prevIdx !== undefined) {
-              let existing = children[prevIdx];
-              if (item !== prevData[prevIdx]) {
-                // @ts-expect-error
-                if (existing.set$) {
-                  // @ts-expect-error
-                  existing.set$(item);
-                } else {
-                  for (let k in item) {
-                    existing[k] = item[k];
-                  }
-                }
-              }
-              toRemove.delete(key);
-              newChildren.push(existing);
-            } else {
-              let repeatItem = new itemClass();
-              if (isLazy) {
-                repeatItem.lazyMode = true;
-              }
-              Object.assign((repeatItem?.init$ || repeatItem), item);
-              newChildren.push(repeatItem);
-            }
-          }
-
-          let removeEls = [...toRemove].map((key) => children[prevKeyToIdx.get(key)]);
-          for (let el of removeEls) {
-            animateOut(el);
-          }
-
-          for (let i = 0; i < newChildren.length; i++) {
-            if (children[i] !== newChildren[i]) {
-              el.insertBefore(newChildren[i], children[i] || null);
-            }
-          }
-
-          prevData = items;
-          return;
-        }
+      let keyProp = items[0]?.id !== undefined && Array.isArray(data) ? 'id'
+        : items[0]?._KEY_ !== undefined ? '_KEY_' : null;
+      let keys = keyProp ? items.map((item) => item[keyProp]) : [];
+      if (keyProp && (keys.some((key) => key === undefined) || new Set(keys).size !== keys.length)) {
+        throw new TypeError('Keyed Itemize requires unique keys on every record.');
       }
-
-      // ── Index-based patching (fallback, same as default + skip-if-same) ──
-      let fragment;
-      for (let i = 0; i < newLen; i++) {
-        if (i < prevLen) {
-          if (items[i] !== prevData[i]) {
-            let child = children[i];
-            // @ts-expect-error
+      let byKey = new Map();
+      if (keyProp) {
+        previous.forEach((item, index) => byKey.set(item[keyProp], index));
+      }
+      let retained = new Set();
+      let next = items.map((item, index) => {
+        let previousIndex = keyProp ? byKey.get(item[keyProp]) : index;
+        let child = previousIndex === undefined ? null : active[previousIndex];
+        if (child) {
+          retained.add(child);
+          if (item !== previous[previousIndex]) {
             if (child.set$) {
-              // @ts-expect-error
-              child.set$(items[i]);
+              child.set$(item);
             } else {
-              for (let k in items[i]) {
-                child[k] = items[i][k];
-              }
+              Object.assign(child, item);
             }
           }
         } else {
-          if (!fragment) {
-            fragment = document.createDocumentFragment();
-          }
-          let repeatItem = new itemClass();
+          child = new itemClass();
           if (isLazy) {
-            repeatItem.lazyMode = true;
+            child.lazyMode = true;
           }
-          Object.assign((repeatItem?.init$ || repeatItem), items[i]);
-          fragment.appendChild(repeatItem);
+          Object.assign(child.init$ || child, item);
+        }
+        setItemWebMCPMetadata(child, item, index, keyProp ? item[keyProp] : undefined);
+        return child;
+      });
+      // Leaving elements are excluded from future reconciliation immediately.
+      for (let child of active) {
+        if (!retained.has(child)) {
+          child.setAttribute('inert', '');
+          animateOut(child);
         }
       }
-      fragment && el.appendChild(fragment);
-      for (let i = prevLen - 1; i >= newLen; i--) {
-        animateOut(children[i]);
+      let focused = el.ownerDocument.activeElement;
+      for (let index = 0; index < next.length; index++) {
+        let child = next[index];
+        let before = el.children[index] || null;
+        if (before !== child) {
+          let moveBefore = Reflect.get(el, 'moveBefore');
+          if (typeof moveBefore === 'function' && child.parentElement === el && el.isConnected) {
+            moveBefore.call(el, child, before);
+          } else {
+            el.insertBefore(child, before);
+          }
+        }
       }
-
-      prevData = items;
+      if (focused instanceof HTMLElement && focused.isConnected
+        && el.contains(focused) && el.ownerDocument.activeElement !== focused) {
+        focused.focus({
+          preventScroll: true,
+        });
+      }
+      previous = items;
+      active = next;
     }, !clientSSR);
   });
 }

@@ -1,6 +1,6 @@
 # Symbiote HTML-app foundation
 
-Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component` and `sym-context` and leaves the core entry independent.
+Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context` and `sym-collection` and leaves the core entry independent.
 
 ## Load the foundation
 
@@ -86,3 +86,35 @@ Use action descriptors on native event bindings. Ordinary named handlers and Too
 ```
 
 Declare the destination fields in their owning context first. `pub-map` publishes local data, including initialization and computed sources, through native context resolution. It coalesces synchronous source changes into one microtask, skips unchanged values, and releases subscriptions when remapped or disconnected. Its writes remain sequential; it is not a transaction across contexts.
+
+## Collections and immutable record actions
+
+[Open the HTML-only Todo example](./todo-ref.html) through your HTTP server. Its external module script loads the foundation; application behavior is entirely in HTML attributes and JSON.
+
+`sym-collection data="APP/tasks"` owns a derived view of an existing array. Records must be JSON objects with unique nonempty string `id` values. IDs remain stable; Itemize metadata stays outside application records and DOM attributes.
+
+```html
+<sym-collection data="APP/tasks" filter="APP/filter"
+  search="APP/query" search-fields="title,notes" sort="APP/sort"
+  pub-map="APP/shown: count; APP/total: totalCount">
+  <ul itemize="items">
+    <template>
+      <li>
+        <label><input type="checkbox" bind="checked: done; onchange: [item-pub]done">Done</label>
+        <label>Title<input required bind="value: title; oninput: [item-pub]title"></label>
+        <button type="button" bind="onclick: [item-remove]">Delete</button>
+      </li>
+    </template>
+  </ul>
+  <p bind="hidden: !empty">No matching records.</p>
+</sym-collection>
+```
+
+- Declare the referenced properties in an owning context. `data` is a writable array reference, not a URL. The derived view properties are `items`, `count`, `totalCount` and `empty`.
+- Optional `filter` references a record of scalar field/value pairs, matched with typed AND equality. Optional `search` references a string and requires comma-separated `search-fields`. Optional `sort` references `{"field":"title","direction":"asc"}` or `desc`. Filtering, search and sorting never replace the source array.
+- Render `items` with native Itemize and an authored template or registered foundation item component. Keyed reconciliation preserves each record's element and focus. No item controls, wrappers or styles are imposed.
+- `[append]REF` clones the record referenced by `action-data` and appends it, generating a missing ID. A form applies native validation and flushes pending field publications first. Optional `action-reset="APP/draft"` restores that property's authored JSON default only after success; invalid or failed operations retain the draft.
+- `[item-pub]FIELD` publishes the control's typed value to an existing field of the current source record. `[item-toggle]FIELD` toggles a boolean. `[item-remove]` removes the record. Fields are local record keys; IDs cannot be edited. Invalid native controls keep their draft without publishing or announcing errors on every keystroke.
+- `[item-pub-200]FIELD` supports the same debounce and composition handling as `[pub-to-200]`. Source changes, retargeting, disposal and item reuse cancel stale work.
+- `[patch-matching]REF` requires explicit `action-match` and `action-data` record references. An empty match patches every record. `[remove-matching]REF` requires a nonempty `action-match`; an empty match cannot clear the array. Matching uses typed AND equality, without expressions.
+- Updates validate before publishing one fresh array and preserve untouched records and fields. JSON-only values, immutable IDs and compatible field types are enforced. The collection releases source subscriptions on removal and rebinds when its reference attributes change.

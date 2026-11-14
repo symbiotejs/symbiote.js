@@ -1,6 +1,7 @@
 import { DICT } from '../core/dictionary.js';
 import { ownElements } from '../core/ownElements.js';
 import { controlValue, parseAction, resolveData, unavailable, validateValue } from './action-data.js';
+import { prepareCollectionAction } from './collection-actions.js';
 /**
  * @typedef {Object} ActionEvent
  * @property {boolean} [defaultPrevented]
@@ -40,7 +41,10 @@ export class ActionBindings {
   }
   connect() {
     this.connected = true;
-    if (this.bindings.some((binding) => binding.action.operation === 'pub-to')) {
+    if (this.bindings.some((binding) => [
+      'pub-to',
+      'item-pub',
+    ].includes(binding.action.operation))) {
       this.owner.ownerDocument.addEventListener('submit', this.onSubmit, true);
     }
   }
@@ -110,7 +114,10 @@ export class ActionBindings {
         if (element instanceof HTMLFormElement && property === 'onsubmit') {
           configuredForms.add(element);
         }
-        if (property === 'oninput' && action.operation === 'pub-to') {
+        if (property === 'oninput' && [
+          'pub-to',
+          'item-pub',
+        ].includes(action.operation)) {
           let start = () => {
             this.cancel(binding);
             binding.composing = true;
@@ -239,10 +246,29 @@ export class ActionBindings {
         changed: false,
       };
     }
-    let target = resolveData(this.owner, binding.action.reference);
+    let operation = binding.action.operation;
+    if (operation === 'item-pub' && Reflect.get(element, 'validity')?.valid === false) {
+      return {
+        changed: false,
+      };
+    }
+    let isCollection = ![
+      'toggle',
+      'set',
+      'pub-to',
+    ].includes(operation);
+    let prepared = isCollection ? prepareCollectionAction(this.owner, binding.action, element, operand) : undefined;
+    if (isCollection && !prepared) {
+      return {
+        changed: false,
+      };
+    }
+    let target = prepared?.target || resolveData(this.owner, binding.action.reference);
     let before = target.ctx.read(target.name);
     let value;
-    if (binding.action.operation === 'toggle') {
+    if (prepared) {
+      value = prepared.value;
+    } else if (binding.action.operation === 'toggle') {
       if (typeof before !== 'boolean') {
         throw new TypeError('toggle requires a boolean target.');
       }
@@ -274,7 +300,7 @@ export class ActionBindings {
       }
       let latest;
       try {
-        latest = resolveData(this.owner, binding.action.reference);
+        latest = prepared ? prepared.resolve() : resolveData(this.owner, binding.action.reference);
       }
       catch {
         return false;
@@ -286,6 +312,7 @@ export class ActionBindings {
         return false;
       }
       latest.ctx.pub(latest.name, value);
+      prepared?.after?.();
       return true;
     };
     if (binding.action.delay) {
