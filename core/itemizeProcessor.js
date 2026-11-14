@@ -1,17 +1,6 @@
 import { animateOut } from './animateOut.js';
 import { warnMsg } from './warn.js';
-import { setupItemize } from './itemizeSetup.js';
-import { DICT } from './dictionary.js';
-
-function setItemWebMCPMetadata(itemEl, item, idx) {
-  if (!itemEl) return;
-  itemEl[DICT.MCP_ITEM_INDEX_KEY] = idx;
-  if (item && Object.prototype.hasOwnProperty.call(item, '_KEY_')) {
-    itemEl[DICT.MCP_ITEM_KEY_KEY] = item._KEY_;
-  } else {
-    delete itemEl[DICT.MCP_ITEM_KEY_KEY];
-  }
-}
+import { setupItemize, setItemWebMCPMetadata } from './itemizeSetup.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T

@@ -1,6 +1,6 @@
 import { PubSub } from '../core/PubSub.js';
 import BaseClass from './BaseClass.js';
-import { isDataKey } from './initial-data.js';
+import { initialDefaults, isDataKey } from './initial-data.js';
 
 export class SymContext extends BaseClass {
   /** @type {PubSub | undefined} */
@@ -30,6 +30,7 @@ export class SymContext extends BaseClass {
       };
       this.#name = name;
       this.#provided = PubSub.registerCtx(initial, name);
+      initialDefaults.set(this.#provided, initialDefaults.get(super.localCtx) || {});
     }
   }
 

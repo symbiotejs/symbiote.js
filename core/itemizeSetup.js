@@ -3,6 +3,22 @@ import { ownElements } from './ownElements.js';
 import { initPropFallback } from './initPropFallback.js';
 
 /**
+ * @param {any} itemEl
+ * @param {any} item
+ * @param {number} idx
+ * @param {unknown} [key]
+ */
+export function setItemWebMCPMetadata(itemEl, item, idx, key = item && Object.hasOwn(item, '_KEY_') ? item._KEY_ : undefined) {
+  if (!itemEl) { return; }
+  itemEl[DICT.MCP_ITEM_INDEX_KEY] = idx;
+  if (key !== undefined) {
+    itemEl[DICT.MCP_ITEM_KEY_KEY] = key;
+  } else {
+    delete itemEl[DICT.MCP_ITEM_KEY_KEY];
+  }
+}
+
+/**
  * @typedef {Object} ItemizeDescriptor
  * @property {Element} el
  * @property {*} itemClass

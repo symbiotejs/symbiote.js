@@ -2,7 +2,7 @@ import Symbiote, { css } from '../core/Symbiote.js';
 import { DICT } from '../core/dictionary.js';
 import { ActionBindings, actionProcessor } from './actions.js';
 import { PubMap } from './pub-map.js';
-import { initialDataProcessor, isDataKey, readInitialData } from './initial-data.js';
+import { initialDataProcessor, isDataKey, readInitialData, rememberDefaults } from './initial-data.js';
 
 export class BaseClass extends Symbiote {
   static observedAttributes = [
@@ -68,8 +68,10 @@ export class BaseClass extends Symbiote {
     if (this.#seeded) { return; }
     if (this.#markup === undefined) { this.#markup = this.innerHTML; }
     let root = this.#rebuild ? this.authoredContent() : this;
+    let defaults = readInitialData(root);
+    rememberDefaults(this.localCtx, defaults);
     this.init$ = {
-      ...readInitialData(root),
+      ...defaults,
       ...this.init$,
       ...this.#snapshot,
     };
@@ -165,11 +167,13 @@ export default BaseClass;
 
 BaseClass.rootStyles = css`
   sym-component,
-  sym-context {
+  sym-context,
+  sym-collection {
     display: contents;
   }
   sym-component[hidden],
-  sym-context[hidden] {
+  sym-context[hidden],
+  sym-collection[hidden] {
     display: none;
   }
 `;

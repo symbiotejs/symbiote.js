@@ -1,3 +1,4 @@
+export function setItemWebMCPMetadata(itemEl: any, item: any, idx: number, key?: unknown): void;
 export function setupItemize<T extends import("./Symbiote.js").Symbiote<any>>(fr: DocumentFragment, fnCtx: T, handler: (desc: ItemizeDescriptor) => void): void;
 export type ItemizeDescriptor = {
     el: Element;
