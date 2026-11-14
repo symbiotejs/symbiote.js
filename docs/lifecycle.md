@@ -31,6 +31,8 @@ class MyComponent extends Symbiote {
 
 By default, components are destroyed when disconnected from DOM (after a 100ms delay). This delay allows synchronous DOM moves (e.g. list reordering) without triggering destruction.
 
+After removing a component, call `component.destroy()` to finish its pending cleanup immediately. It reuses the normal teardown, ignores connected or uninitialized components, and is idempotent until reconnection. This is useful when a disposed view must release a named context before another view mounts. Ordinary disconnection retains its default delay.
+
 If you do **NOT** plan to permanently remove your component from DOM or keep it just in memory, disable destruction:
 ```js
 class MyComponent extends Symbiote {

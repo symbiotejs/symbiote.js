@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HTML-app composition</title>
+  <script type="module" src="/html-app/index.js"></script>
+</head>
+<body>
+  <template id="feature-template">
+    <script type="application/json">{"title":"Default","notes":[]}</script>
+    <p>{{title}}</p>
+    <button type="button" value="true" bind="onclick: [set]STATE/used">Use feature</button>
+  </template>
+  <template id="alternate-template">
+    <script type="application/json">{"title":"Alternate","notes":[]}</script>
+    <p>{{title}}</p>
+  </template>
+  <sym-context ctx="STATE">
+    <script type="application/json">
+      {"open":false,"other":true,"text":"","used":false,"result":""}
+    </script>
+    <declared-feature></declared-feature>
+    <sym-component reg="declared-feature" use-template="#feature-template"></sym-component>
+    <declared-feature></declared-feature>
+    <declared-feature use-template="#alternate-template"></declared-feature>
+    <declared-feature><script type="application/json">{"title":"Instance"}</script></declared-feature>
+    <sym-component reg="direct-feature">
+      <template>
+        <script type="application/json">{"title":"Direct"}</script>
+        <h2>{{title}}</h2>
+      </template>
+    </sym-component>
+    <direct-feature></direct-feature>
+    <button type="button" bind="onclick: [toggle]STATE/open">Toggle content</button>
+    <sym-conditional when="STATE/open">
+      <script type="application/json">{"note":"Initial"}</script>
+      <label>Kept draft<input bind="value: note"></label>
+      <button type="button" value="changed" bind="onclick: [set]STATE/text">Hidden action</button>
+    </sym-conditional>
+    <sym-conditional when="STATE/open" behavior="hide"><p>Inverse visibility</p></sym-conditional>
+    <sym-conditional when="STATE/open" behavior="dom-add">
+      <sym-context ctx="DETAIL">
+        <script type="application/json">{"note":"Fresh"}</script>
+        <label>Mounted draft<input bind="value: note; oninput: [pub-to-1000]STATE/result"></label>
+      </sym-context>
+    </sym-conditional>
+    <sym-conditional when="STATE/open" behavior="dom-remove"><p>Inverse DOM</p></sym-conditional>
+  </sym-context>
+</body>
+</html>

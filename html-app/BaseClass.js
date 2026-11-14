@@ -2,7 +2,8 @@ import Symbiote, { css } from '../core/Symbiote.js';
 import { DICT } from '../core/dictionary.js';
 import { ActionBindings, actionProcessor } from './actions.js';
 import { PubMap } from './pub-map.js';
-import { initialDataProcessor, isDataKey, readInitialData, rememberDefaults } from './initial-data.js';
+import { declarationProcessor } from './declarations.js';
+import { initialDataProcessor, isDataKey, readInitialData, readTemplateData, rememberDefaults } from './initial-data.js';
 
 export class BaseClass extends Symbiote {
   static observedAttributes = [
@@ -54,6 +55,8 @@ export class BaseClass extends Symbiote {
         }
         parent = parent.parentNode || (parent instanceof ShadowRoot ? parent.host : null);
       }
+      // An ancestor may remove this child while deciding conditional content.
+      if (!this.isConnected) { return; }
       if (this.#rebuild) { this.connectedOnce = false; }
       if (!this.connectedOnce) { this.prepare(); }
       super.connectedCallback();
@@ -68,7 +71,10 @@ export class BaseClass extends Symbiote {
     if (this.#seeded) { return; }
     if (this.#markup === undefined) { this.#markup = this.innerHTML; }
     let root = this.#rebuild ? this.authoredContent() : this;
-    let defaults = readInitialData(root);
+    let defaults = {
+      ...readTemplateData(this),
+      ...readInitialData(root),
+    };
     rememberDefaults(this.localCtx, defaults);
     this.init$ = {
       ...defaults,
@@ -86,6 +92,7 @@ export class BaseClass extends Symbiote {
 
   prepare() {
     this.seedDefaults();
+    this.templateProcessors.add(declarationProcessor);
     this.templateProcessors.add(initialDataProcessor);
     this.templateProcessors.add(actionProcessor);
     let parsing = this.getAttribute('process-inner-html');
@@ -111,14 +118,18 @@ export class BaseClass extends Symbiote {
    * @param {boolean} [shadow]
    */
   render(template, shadow) {
+    this.restoreContent();
+    super.render(template, shadow);
+    this.actionBindings.connect();
+    this.outgoingBindings.connect();
+  }
+
+  restoreContent() {
     if (this.#rebuild) {
       this.#rebuild = false;
       this.ref = Object.create(null);
       this.replaceChildren(this.authoredContent());
     }
-    super.render(template, shadow);
-    this.actionBindings.connect();
-    this.outgoingBindings.connect();
   }
 
   /**
@@ -154,9 +165,9 @@ export class BaseClass extends Symbiote {
     this.outgoingBindings.disconnect();
     // Native teardown removes subscriptions. Reconnect reprocesses authored RAT,
     // retaining state rather than trying to reuse nodes with removed bindings.
-    this.#snapshot = {
-      ...this.localCtx.store,
-    };
+    this.#snapshot = Object.fromEntries(Object.entries(this.localCtx.store).filter(([
+      key,
+    ]) => !key.startsWith('__htmlApp')));
     this.#rebuild = true;
     this.#seeded = false;
     super.destroyCallback();
@@ -168,12 +179,15 @@ export default BaseClass;
 BaseClass.rootStyles = css`
   sym-component,
   sym-context,
-  sym-collection {
+  sym-collection,
+  sym-conditional {
     display: contents;
   }
   sym-component[hidden],
   sym-context[hidden],
-  sym-collection[hidden] {
+  sym-collection[hidden],
+  sym-conditional[hidden],
+  sym-component[reg] {
     display: none;
   }
 `;

@@ -1,6 +1,6 @@
 # Symbiote HTML-app foundation
 
-Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context` and `sym-collection` and leaves the core entry independent.
+Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection` and `sym-conditional` and leaves the core entry independent.
 
 ## Load the foundation
 
@@ -118,3 +118,47 @@ Declare the destination fields in their owning context first. `pub-map` publishe
 - `[item-pub-200]FIELD` supports the same debounce and composition handling as `[pub-to-200]`. Source changes, retargeting, disposal and item reuse cancel stale work.
 - `[patch-matching]REF` requires explicit `action-match` and `action-data` record references. An empty match patches every record. `[remove-matching]REF` requires a nonempty `action-match`; an empty match cannot clear the array. Matching uses typed AND equality, without expressions.
 - Updates validate before publishing one fresh array and preserve untouched records and fields. JSON-only values, immutable IDs and compatible field types are enforced. The collection releases source subscriptions on removal and rebinds when its reference attributes change.
+
+## Reusable component declarations
+
+Register an autonomous custom element from a direct template or a native `use-template` reference:
+
+```html
+<sym-component reg="status-note">
+  <template>
+    <script type="application/json">{"message":"Ready"}</script>
+    <p>{{message}}</p>
+  </template>
+</sym-component>
+
+<status-note></status-note>
+
+<template id="task-item">
+  <label><input type="checkbox" bind="checked: done; onchange: [item-pub]done">Done</label>
+  <label>Title<input required bind="value: title; oninput: [item-pub]title"></label>
+  <button type="button" bind="onclick: [item-remove]">Delete</button>
+</template>
+<sym-component reg="task-item" use-template="#task-item"></sym-component>
+```
+
+- A declaration stays hidden and does not render an instance or process its template actions. Registration upgrades existing instances too. Declarations in a rendered template are registered before Itemize consumes that template.
+- Each instance has its own native context and JSON defaults. Instance JSON, incoming data and native `use-template` overrides retain precedence over declaration defaults.
+- Template lookup checks the containing root before the document. A declaration's `use-template` takes precedence over a direct template. Names are validated by the Custom Elements registry. Identical declarations are idempotent; conflicting declarations or unrelated registered tags fail explicitly. Definitions are static for the page lifetime.
+- Use `item-tag="task-item"` on an Itemize container to use the registered item. Generated items can instead reuse an extracted template directly: `<ul itemize="items" use-template="#task-item"></ul>`. A registered `item-tag` supplies its own template.
+
+## Conditional content
+
+```html
+<sym-conditional when="APP/showDetails" is="true">
+  <label>Notes<textarea bind="value: APP/notes; oninput: [pub-to]APP/notes"></textarea></label>
+</sym-conditional>
+<sym-conditional when="APP/section" is="settings" behavior="dom-add">
+  <settings-panel></settings-panel>
+</sym-conditional>
+```
+
+- `when` references a declared native data property, including computed sources. Without `is`, matching uses truthiness. With `is`, matching is strict: `true` and `false` become booleans; other literals remain strings. Use `is-type="string"` to match the literal strings `true` or `false`.
+- `behavior="show"` (the default) shows content when matched. `hide` hides it when matched. Both keep the same mounted content and unpublished control drafts.
+- `dom-add` mounts when matched; `dom-remove` removes when matched. Both dispose inactive content immediately, including its actions, pending edits, subscriptions and owned contexts. A later mount creates fresh content from the authored template.
+- Inactive content is hidden and inert. Local bindings retain the conditional owner's context. Nested components keep their own contexts. Attribute changes rebind the condition without retaining old subscriptions.
+- Native `use-template` and `process-inner-html="false"` remain available. No expression evaluation, additional styling or action-chain syntax is introduced.

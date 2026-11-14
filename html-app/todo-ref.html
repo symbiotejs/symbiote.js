@@ -59,7 +59,7 @@
           </li>
         </template>
       </ul>
-      <p bind="hidden: !empty">No matching tasks.</p>
+      <sym-conditional when="^empty" is="true"><p>No matching tasks.</p></sym-conditional>
     </sym-collection>
 
     <p role="status">{{APP/visibleCount}} shown / {{APP/totalCount}} total</p>

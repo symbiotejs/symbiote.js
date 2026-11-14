@@ -7,6 +7,7 @@ import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
 import { parseProp } from './parseProp.js';
 
 import PROCESSORS from './tpl-processors.js';
+import { resolveTemplate } from './resolveTemplate.js';
 import { parseCssPropertyValue } from '../utils/parseCssPropertyValue.js';
 
 export { html } from './html.js';
@@ -33,6 +34,7 @@ export class Symbiote extends HTMLElement {
   /** @type {Boolean} */
   #dataCtxInitialized;
   #destroyTimeout;
+  #destroyed = false;
   #cssDataCache;
   #computedStyle;
   #boundCssProps;
@@ -97,10 +99,7 @@ export class Symbiote extends HTMLElement {
     if (this.allowCustomTemplate) {
       let customTplSelector = this.getAttribute(DICT.USE_TPL_ATTR);
       if (customTplSelector) {
-        let root = this.getRootNode();
-        /** @type {HTMLTemplateElement} */
-        // @ts-expect-error
-        let customTpl = root?.querySelector(customTplSelector) || document.querySelector(customTplSelector);
+        let customTpl = resolveTemplate(this, customTplSelector);
         if (customTpl) {
           // @ts-expect-error
           template = customTpl.content.cloneNode(true);
@@ -478,6 +477,7 @@ export class Symbiote extends HTMLElement {
     if (this.#destroyTimeout) {
       window.clearTimeout(this.#destroyTimeout);
     }
+    this.#destroyed = false;
     if (!this.connectedOnce) {
       let ctxNameAttrVal = this.getAttribute(DICT.CTX_NAME_ATTR)?.trim();
       if (ctxNameAttrVal) {
@@ -596,20 +596,27 @@ export class Symbiote extends HTMLElement {
     if (this.#destroyTimeout) {
       window.clearTimeout(this.#destroyTimeout);
     }
-    this.#destroyTimeout = window.setTimeout(() => {
-      this.destroyCallback();
-      if (this.attributeMutationObserver) {
-        this.attributeMutationObserver.disconnect();
-      }
-      for (let sub of this.allSubs) {
-        sub.remove();
-        this.allSubs.delete(sub);
-      }
-      this.#localCtx = null;
-      for (let proc of this.templateProcessors) {
-        this.templateProcessors.delete(proc);
-      }
-    }, this.destructionDelay);
+    this.#destroyTimeout = window.setTimeout(() => this.destroy(), this.destructionDelay);
+  }
+
+  /**
+   * Finish disconnection cleanup immediately. Connected or uninitialized owners
+   * are unaffected; repeated calls before reconnection are harmless.
+   */
+  destroy() {
+    if (this.isConnected || !this.connectedOnce || this.#destroyed) {
+      return;
+    }
+    this.#destroyed = true;
+    window.clearTimeout(this.#destroyTimeout);
+    this.destroyCallback();
+    this.attributeMutationObserver?.disconnect();
+    for (let sub of this.allSubs) {
+      sub.remove();
+    }
+    this.allSubs.clear();
+    this.#localCtx = null;
+    this.templateProcessors.clear();
   }
 
   /**

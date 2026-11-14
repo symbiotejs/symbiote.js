@@ -56,6 +56,14 @@ MyComponent.template = html`
 
 > You can also use the `${{itemize: 'prop'}}` binding syntax if preferred — it produces the same result.
 
+An anonymous item template can also be extracted into a `<template id="user-item">` in the containing root or document:
+
+```html
+<ul itemize="userList" use-template="#user-item"></ul>
+```
+
+The referenced template takes precedence over inline item markup. A registered `item-tag` continues to supply its own component template.
+
 ## List items
 
 > **CRITICAL**: Items inside `itemize` are full Symbiote components with their own state scope.
