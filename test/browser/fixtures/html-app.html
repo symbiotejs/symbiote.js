@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HTML-app foundation</title>
+  <script type="module" src="/html-app/index.js"></script>
+</head>
+<body>
+  <template id="profile-template">
+    <h2>{{name}}</h2>
+    <p>{{role}}</p>
+  </template>
+  <sym-context ctx="APP">
+    <script type="application/json">
+      {
+        "title": "Application",
+        "contact": {"name": "Alex", "role": "Editor"},
+        "items": [{"name": "First"}, {"name": "Second"}]
+      }
+    </script>
+    <h1>{{title}}</h1>
+    <sym-context bind="$: APP/contact" pub-to="APP/contact" use-template="#profile-template"></sym-context>
+    <sym-component>
+      <script type="application/json">{"name":"Independent","role":"Reader","items":[]}</script>
+      <strong>{{name}}</strong>
+    </sym-component>
+    <sym-component bind="$.items: APP/items">
+      <script type="application/json">{"items":[]}</script>
+      <ul itemize="items">
+        <template><script type="application/json">{"name":"Fallback","notes":[]}</script><li>{{name}}</li></template>
+      </ul>
+    </sym-component>
+  </sym-context>
+</body>
+</html>

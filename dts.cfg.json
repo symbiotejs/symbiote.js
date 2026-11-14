@@ -3,7 +3,8 @@
   "files": [
     "core/index.js",
     "core/full.js",
-    "core/webmcp.js"
+    "core/webmcp.js",
+    "html-app/index.js"
   ],
   "compilerOptions": {
     "declaration": true,

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.9.0",
+  "version": "3.10.1",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -25,7 +25,8 @@
     "docs/*",
     "README.md",
     "LICENSE",
-    "skills/"
+    "skills/",
+    "html-app/"
   ],
   "module": "./core/index.js",
   "types": "./types/core/index.d.ts",
@@ -47,6 +48,10 @@
     },
     "./node": {
       "default": "./node/index.js"
+    },
+    "./html-app": {
+      "types": "./types/html-app/index.d.ts",
+      "default": "./html-app/index.js"
     },
     "./core/AppRouter.js": {
       "types": "./types/core/AppRouter.d.ts",
