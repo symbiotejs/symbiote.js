@@ -1,7 +1,15 @@
 import Symbiote, { css } from '../core/Symbiote.js';
+import { DICT } from '../core/dictionary.js';
+import { ActionBindings, actionProcessor } from './actions.js';
+import { PubMap } from './pub-map.js';
 import { initialDataProcessor, isDataKey, readInitialData } from './initial-data.js';
 
 export class BaseClass extends Symbiote {
+  static observedAttributes = [
+    'pub-map',
+  ];
+  actionBindings = new ActionBindings(this);
+  outgoingBindings = new PubMap(this);
   processInnerHtml = true;
   allowCustomTemplate = true;
   #scheduled = false;
@@ -16,6 +24,11 @@ export class BaseClass extends Symbiote {
   // Native Itemize uses this class for its generated item owners.
   get Symbiote() {
     return BaseClass;
+  }
+
+  /** @param {string | null} _value */
+  set 'pub-map'(_value) {
+    this.outgoingBindings.refresh();
   }
 
   connectedCallback() {
@@ -44,6 +57,8 @@ export class BaseClass extends Symbiote {
       if (this.#rebuild) { this.connectedOnce = false; }
       if (!this.connectedOnce) { this.prepare(); }
       super.connectedCallback();
+      this.actionBindings.connect();
+      this.outgoingBindings.connect();
     } finally {
       this.#connecting = false;
     }
@@ -70,6 +85,7 @@ export class BaseClass extends Symbiote {
   prepare() {
     this.seedDefaults();
     this.templateProcessors.add(initialDataProcessor);
+    this.templateProcessors.add(actionProcessor);
     let parsing = this.getAttribute('process-inner-html');
     if (parsing !== null) {
       if (![
@@ -99,9 +115,41 @@ export class BaseClass extends Symbiote {
       this.replaceChildren(this.authoredContent());
     }
     super.render(template, shadow);
+    this.actionBindings.connect();
+    this.outgoingBindings.connect();
+  }
+
+  /**
+   * @param {Record<string, unknown>} values
+   * @param {boolean} [force]
+   */
+  set$(values, force = false) {
+    if (Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey)) {
+      this.actionBindings.invalidate();
+    }
+    super.set$(values, force);
+  }
+
+  /**
+   * @param {Record<string, unknown>} values
+   * @param {boolean} [rewrite]
+   */
+  add$(values, rewrite = false) {
+    if (Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey)) {
+      this.actionBindings.invalidate();
+    }
+    super.add$(values, rewrite);
+  }
+
+  disconnectedCallback() {
+    this.actionBindings.disconnect();
+    this.outgoingBindings.disconnect();
+    super.disconnectedCallback();
   }
 
   destroyCallback() {
+    this.actionBindings.destroy();
+    this.outgoingBindings.disconnect();
     // Native teardown removes subscriptions. Reconnect reprocesses authored RAT,
     // retaining state rather than trying to reuse nodes with removed bindings.
     this.#snapshot = {

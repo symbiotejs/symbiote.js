@@ -2,7 +2,7 @@ import { DICT } from '../core/dictionary.js';
 
 /** @param {string} key */
 export function isDataKey(key) {
-  return !!key && key !== 'prototype' && !Object.hasOwn(Object.prototype, key) && !/^[@*^+]/.test(key) && !key.startsWith('--') && !key.includes('/');
+  return !!key && !key.startsWith('__htmlApp') && key !== 'prototype' && !Object.hasOwn(Object.prototype, key) && !/^[@*^+]/.test(key) && !key.startsWith('--') && !key.includes('/');
 }
 
 /** @param {string} text */
