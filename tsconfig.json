@@ -26,7 +26,8 @@
   "include": [
     "core",
     "utils",
-    "node" 
+    "node",
+    "html-app"
   ],
   "exclude": [
     "node_modules",

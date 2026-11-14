@@ -40,6 +40,10 @@ async function run() {
     './node': {
       default: './node/index.js',
     },
+    './html-app': {
+      types: './types/html-app/index.d.ts',
+      default: './html-app/index.js',
+    },
   };
 
   for (let dir of DIRS) {
