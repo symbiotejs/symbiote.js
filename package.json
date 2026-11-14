@@ -113,6 +113,10 @@
       "types": "./types/core/parseProp.d.ts",
       "default": "./core/parseProp.js"
     },
+    "./core/resolveTemplate.js": {
+      "types": "./types/core/resolveTemplate.d.ts",
+      "default": "./core/resolveTemplate.js"
+    },
     "./core/slotProcessor.js": {
       "types": "./types/core/slotProcessor.d.ts",
       "default": "./core/slotProcessor.js"

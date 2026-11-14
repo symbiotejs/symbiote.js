@@ -9,6 +9,7 @@ export class BaseClass extends Symbiote<any> {
     seedDefaults(): void;
     prepare(): void;
     authoredContent(): DocumentFragment;
+    restoreContent(): void;
     set$(values: Record<string, unknown>, force?: boolean): void;
     add$(values: Record<string, unknown>, rewrite?: boolean): void;
     #private;

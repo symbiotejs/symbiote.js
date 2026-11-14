@@ -67,6 +67,7 @@ export class Symbiote<S> extends HTMLElement {
     destroyCallback(): void;
     destructionDelay: number;
     disconnectedCallback(): void;
+    destroy(): void;
     attributeChangedCallback(name: any, oldVal: any, newVal: any): void;
     getCssData(propName: string, silentCheck?: boolean): any;
     updateCssData: () => void;

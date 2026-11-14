@@ -1,6 +1,8 @@
 import { DICT } from './dictionary.js';
 import { ownElements } from './ownElements.js';
 import { initPropFallback } from './initPropFallback.js';
+import { resolveTemplate } from './resolveTemplate.js';
+import { warnMsg } from './warn.js';
 
 /**
  * @param {any} itemEl
@@ -45,6 +47,11 @@ export function setupItemize(fr, fnCtx, handler) {
   }).forEach((el) => {
     let itemTag = el.getAttribute(DICT.LIST_ITEM_TAG_ATTR);
     let repeatDataKey = el.getAttribute(DICT.LIST_ATTR);
+    let selector = el.getAttribute(DICT.USE_TPL_ATTR);
+    let selected = selector ? resolveTemplate(el, selector) : null;
+    if (selector && !selected) {
+      warnMsg(5, fnCtx.localName, selector);
+    }
     let itemClass;
     if (itemTag) {
       itemClass = window.customElements.get(itemTag);
@@ -69,8 +76,8 @@ export function setupItemize(fr, fnCtx, handler) {
           let staticEl = tpl.content.querySelector(
             `[${DICT.LIST_ATTR}="${repeatDataKey}"]`
           );
-          itemClass.template = staticEl?.querySelector('template')?.innerHTML
-            || el.children[0].innerHTML;
+          itemClass.template = selected?.innerHTML ?? (staticEl?.querySelector('template')?.innerHTML
+            || el.children[0].innerHTML);
           itemClass.reg(ssrTag);
         }
       } else {
@@ -82,7 +89,7 @@ export function setupItemize(fr, fnCtx, handler) {
             }
           }
         };
-        itemClass.template = el.querySelector('template')?.innerHTML || el.innerHTML;
+        itemClass.template = selected?.innerHTML ?? (el.querySelector('template')?.innerHTML || el.innerHTML);
         itemClass.reg(itemTag);
       }
     }
