@@ -19,7 +19,7 @@ export class ActionBindings {
         runtime: ActionBindings;
         version: number;
     };
-    activate(binding: Binding, event?: ActionEvent): {
+    activate(binding: Binding, event?: ActionEvent): Promise<void> | {
         ok: boolean;
         error: {
             operation: string;
@@ -78,6 +78,11 @@ export class ActionBindings {
 export type ActionEvent = {
     defaultPrevented?: boolean;
     isComposing?: boolean;
+    button?: number;
+    ctrlKey?: boolean;
+    metaKey?: boolean;
+    shiftKey?: boolean;
+    altKey?: boolean;
     submitter?: Element | null;
     preventDefault?: () => void;
 };

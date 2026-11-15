@@ -181,7 +181,8 @@ BaseClass.rootStyles = css`
   sym-context,
   sym-collection,
   sym-conditional,
-  sym-import {
+  sym-import,
+  sym-router {
     display: contents;
   }
   sym-component[hidden],
@@ -189,6 +190,7 @@ BaseClass.rootStyles = css`
   sym-collection[hidden],
   sym-conditional[hidden],
   sym-import[hidden],
+  sym-router[hidden],
   sym-component[reg] {
     display: none;
   }
