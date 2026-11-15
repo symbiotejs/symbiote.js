@@ -1,6 +1,7 @@
 export class SymContext extends BaseClass {
     contextData: ContextData;
     requests: ContextRequests;
+    storage: ContextStorage;
     attributeChangedCallback(name: string, previous: string | null, value: string | null): void;
     watchData(key: string): void;
     publishData(key: string, value: unknown): void;
@@ -11,4 +12,5 @@ export default SymContext;
 import BaseClass from './BaseClass.js';
 import { ContextData } from './context-data.js';
 import { ContextRequests } from './context-requests.js';
+import { ContextStorage } from './context-storage.js';
 //# sourceMappingURL=sym-context.d.ts.map

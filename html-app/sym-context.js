@@ -3,6 +3,7 @@ import BaseClass from './BaseClass.js';
 import { initialDefaults, isDataKey } from './initial-data.js';
 import { ContextData } from './context-data.js';
 import { ContextRequests } from './context-requests.js';
+import { ContextStorage } from './context-storage.js';
 
 export class SymContext extends BaseClass {
   static observedAttributes = [
@@ -13,9 +14,12 @@ export class SymContext extends BaseClass {
     'sync-keys',
     'request-timeout',
     'max-bytes',
+    'storage-key',
+    'storage-keys',
   ];
   contextData = new ContextData(this);
   requests = new ContextRequests(this);
+  storage = new ContextStorage(this);
 
   /**
    * @param {string} name
@@ -26,13 +30,18 @@ export class SymContext extends BaseClass {
     if (name === 'pub-map') {
       super.attributeChangedCallback(name, previous, value);
     } else if (previous !== value) {
-      this.requests.configure(name);
+      if (name === 'storage-key' || name === 'storage-keys') {
+        this.storage.schedule();
+      } else {
+        this.requests.configure(name);
+      }
     }
   }
 
   connectFoundation() {
     super.connectFoundation();
     if (this.isConnected && this.connectedOnce && !this.requests.connected) {
+      this.storage.connect();
       this.requests.connect();
     }
   }
@@ -145,6 +154,7 @@ export class SymContext extends BaseClass {
   }
 
   disconnectedCallback() {
+    this.storage.disconnect();
     this.requests.disconnect();
     super.disconnectedCallback();
   }

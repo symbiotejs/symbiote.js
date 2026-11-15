@@ -251,6 +251,12 @@ export class ActionBindings {
     if (operation === 'load' || operation === 'sync') {
       return contextRequests(binding.action.reference)[operation]();
     }
+    if (operation === 'persist' || operation === 'restore') {
+      let storage = contextRequests(binding.action.reference).owner.storage;
+      return operation === 'persist'
+        ? storage.persist(operand.hasAttribute('action-overwrite') || element.hasAttribute('action-overwrite'))
+        : storage.restore();
+    }
     if (operation === 'item-pub' && Reflect.get(element, 'validity')?.valid === false) {
       return {
         changed: false,

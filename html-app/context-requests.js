@@ -1,7 +1,7 @@
 import { PubSub } from '../core/PubSub.js';
 import { fetchSource, parseResponseJSON, requestLimits, sourceURL, SourceError } from './fetch-source.js';
-import { isDataKey } from './initial-data.js';
-import { validateValue } from './action-data.js';
+import { fragmentSource } from './fragment-source.js';
+import { storageSignals } from './context-storage.js';
 import { recordData, validateJSON } from './collection-data.js';
 
 let requestKeys = Object.freeze([
@@ -15,6 +15,7 @@ let requestKeys = Object.freeze([
   'syncError',
   'loadErrorMessage',
   'syncErrorMessage',
+  ...storageSignals,
 ]);
 
 /** @type {WeakMap<PubSub, ContextRequests>} */
@@ -98,6 +99,7 @@ export class ContextRequests {
     }
     this.owner.localCtx.pub('__htmlAppRequest', {
       ...this.state,
+      ...this.owner.storage.status(),
       busy: this.state.loading || this.state.saving,
       dirty: this.owner.contextData.dirty(),
       revision: this.owner.contextData.revision,
@@ -183,7 +185,7 @@ export class ContextRequests {
 
   /** @param {'src' | 'sync'} name */
   url(name) {
-    return sourceURL(this.owner.getAttribute(name) ?? '', this.owner.baseURI);
+    return sourceURL(this.owner.getAttribute(name) ?? '', fragmentSource(this.owner).url);
   }
 
   /**
@@ -233,6 +235,7 @@ export class ContextRequests {
           cancelled: true,
         };
       }
+      this.owner.contextData.validate(data);
       /** @type {Record<string, unknown>} */
       let accepted = {};
       let retained = [];
@@ -240,16 +243,8 @@ export class ContextRequests {
         key,
         value,
       ] of Object.entries(data)) {
-        if (!isDataKey(key)) {
-          throw new SourceError('INVALID_DATA', 'Source keys must be public data fields.');
-        }
-        if (this.owner.localCtx.has(key)) {
-          let current = this.owner.localCtx.read(key);
-          validateJSON(current);
-          validateValue(current, value);
-        }
         if (this.owner.contextData.bound.has(key) || this.owner.contextData.edited.has(key)
-          || this.owner.contextData.pending.has(key) || (this.owner.contextData.versions.get(key) ?? 0) !== (versions.get(key) ?? 0)) {
+          || this.owner.contextData.pending.has(key) || this.owner.storage.restored.has(key) || (this.owner.contextData.versions.get(key) ?? 0) !== (versions.get(key) ?? 0)) {
           retained.push(key);
         } else {
           accepted[key] = value;
