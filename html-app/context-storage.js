@@ -1,6 +1,7 @@
 import { cloneData, recordData } from './collection-data.js';
 import { isDataKey } from './initial-data.js';
 import { requestLimits, SourceError } from './fetch-source.js';
+import { commitStorageRevision } from './storage-revisions.js';
 
 export let storageSignals = Object.freeze([
   'storageFound',
@@ -292,32 +293,44 @@ export class ContextStorage {
           throw new SourceError('PENDING_DRAFT', 'Submit the editing form or finish pending edits before persisting.');
         }
         let snapshot = this.owner.contextData.snapshot(this.fields);
+        let revision = crypto.randomUUID();
         let raw = JSON.stringify({
           version: 1,
-          revision: crypto.randomUUID(),
+          revision,
           keys: this.fields,
           data: snapshot.data,
         });
         if (new TextEncoder().encode(raw).byteLength > requestLimits(this.owner).maxBytes) {
           throw new SourceError('TOO_LARGE', 'The storage envelope exceeds max-bytes.');
         }
-        storage.setItem(this.key, raw);
-        this.baseline = raw;
-        this.savedVersions = snapshot.versions;
-        for (let key of this.fields) {
-          this.restored.add(key);
-        }
-        this.conflict = false;
-        this.owner.requests.publish();
-        let result = {
-          ok: true,
-          operation: 'persist',
-          revision: snapshot.revision,
-        };
-        this.owner.dispatchEvent(new CustomEvent('persist', {
-          detail: result,
-        }));
-        return result;
+        return commitStorageRevision(this.owner.ownerDocument.defaultView, {
+          key: this.key,
+          expected: typeof this.baseline === 'string' ? JSON.parse(this.baseline).revision : null,
+          next: revision,
+          overwrite,
+          signal: controller.signal,
+        }, () => {
+          if (this.controller !== controller || !this.owner.isConnected) {
+            throw new DOMException('The browser save was cancelled.', 'AbortError');
+          }
+          storage.setItem(this.key, raw);
+          this.baseline = raw;
+          this.savedVersions = snapshot.versions;
+          for (let key of this.fields) {
+            this.restored.add(key);
+          }
+          this.conflict = false;
+          this.owner.requests.publish();
+          let result = {
+            ok: true,
+            operation: 'persist',
+            revision: snapshot.revision,
+          };
+          this.owner.dispatchEvent(new CustomEvent('persist', {
+            detail: result,
+          }));
+          return result;
+        });
       });
     } catch (failure) {
       if (this.controller !== controller || controller.signal.aborted) {
@@ -325,6 +338,9 @@ export class ContextStorage {
           ok: false,
           cancelled: true,
         };
+      }
+      if (failure instanceof SourceError && failure.code === 'STORAGE_CONFLICT') {
+        this.conflict = true;
       }
       return this.fail('persist', failure);
     } finally {

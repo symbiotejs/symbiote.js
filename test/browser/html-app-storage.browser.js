@@ -228,6 +228,8 @@ test('simultaneous participating saves serialize; disconnect cancels a queued wr
   let second = await page.context().newPage();
   await second.goto('/test/browser/fixtures/html-app-sources.html');
   await mount(second);
+  await page.evaluate(() => { document.querySelector('sym-context').$.name = 'First draft'; });
+  await second.evaluate(() => { document.querySelector('sym-context').$.name = 'Second draft'; });
   await page.evaluate(() => {
     window.lockHeld = false;
     void navigator.locks.request('symbiote:html-app:storage:draft', () => {
@@ -247,6 +249,16 @@ test('simultaneous participating saves serialize; disconnect cancels a queued wr
   ]);
   expect(writes.filter((result) => result.ok)).toHaveLength(1);
   expect(writes.find((result) => !result.ok).error.code).toBe('STORAGE_CONFLICT');
+  let winningName = writes[0].ok ? 'First draft' : 'Second draft';
+  for (let tab of [
+    page,
+    second,
+  ]) {
+    await expect.poll(() => tab.evaluate(() => JSON.parse(localStorage.getItem('draft')).data.name)).toBe(winningName);
+  }
+  await expect(page.getByRole('textbox')).toHaveValue('First draft');
+  await expect(second.getByRole('textbox')).toHaveValue('Second draft');
+
   await page.evaluate(() => {
     window.lockHeld = false;
     void navigator.locks.request('symbiote:html-app:storage:draft', () => {
@@ -355,4 +367,72 @@ test('explicit restore cancels a queued save; missing Web Locks reports failure 
   }).click();
   await expect.poll(async () => (await status(page, 'storageError'))?.code).toBe('LOCK_UNAVAILABLE');
   expect(JSON.parse(await page.evaluate(() => localStorage.getItem('draft'))).data.name).toBe('Stored data');
+});
+
+test('a stale localStorage snapshot cannot overwrite another tab after its save succeeds', async ({
+  page,
+}) => {
+  await mount(page);
+  let second = await page.context().newPage();
+  await second.goto('/test/browser/fixtures/html-app-sources.html');
+  await mount(second);
+  await page.getByRole('textbox').fill('Committed first draft');
+  await second.evaluate(() => {
+    document.querySelector('sym-context').$.name = 'Retained second draft';
+    let getItem = Storage.prototype.getItem;
+    // Model the stale cached read observed in WebKit after acquiring the lock.
+    Storage.prototype.getItem = function (key) {
+      return key === 'draft' ? null : getItem.call(this, key);
+    };
+  });
+  await page.getByRole('button', {
+    name: 'Save locally',
+  }).click();
+  await expect.poll(() => status(page, 'storageDirty')).toBe(false);
+  let result = await second.evaluate(() => document.querySelector('sym-context').storage.persist());
+  expect(result.ok).toBe(false);
+  expect(result.error.code).toBe('STORAGE_CONFLICT');
+  await expect(second.getByRole('textbox')).toHaveValue('Retained second draft');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('draft')).data.name)).toBe('Committed first draft');
+  await second.close();
+});
+
+test('failed localStorage writes release the revision reservation so a normal retry can save', async ({
+  page,
+}) => {
+  await mount(page);
+  await page.evaluate(() => {
+    let owner = document.querySelector('sym-context');
+    owner.$.name = 'Retained draft';
+    let setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      Storage.prototype.setItem = setItem;
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    };
+  });
+  let first = await page.evaluate(() => document.querySelector('sym-context').storage.persist());
+  expect(first.error.code).toBe('STORAGE_QUOTA');
+  expect(await page.evaluate(() => localStorage.getItem('draft'))).toBeNull();
+  await expect(page.getByRole('textbox')).toHaveValue('Retained draft');
+  let second = await page.evaluate(() => document.querySelector('sym-context').storage.persist());
+  expect(second.ok).toBe(true);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('draft')).data.name)).toBe('Retained draft');
+});
+
+test('unavailable revision coordination fails without writing or discarding the draft', async ({
+  page,
+}) => {
+  await mount(page);
+  await page.evaluate(() => {
+    document.querySelector('sym-context').$.name = 'Unsaved draft';
+    Object.defineProperty(window, 'indexedDB', {
+      value: undefined,
+      configurable: true,
+    });
+  });
+  let result = await page.evaluate(() => document.querySelector('sym-context').storage.persist());
+  expect(result.error.code).toBe('STORAGE_UNAVAILABLE');
+  expect(await page.evaluate(() => localStorage.getItem('draft'))).toBeNull();
+  await expect(page.getByRole('textbox')).toHaveValue('Unsaved draft');
+  expect(await status(page, 'storageDirty')).toBe(true);
 });
