@@ -19,11 +19,8 @@ jobs:
 
       - run: npm install
 
-      - name: Unit tests
-        run: npm run test:unit
+      - name: Install test browsers
+        run: npm run test:setup
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Browser tests
-        run: npm run test:browser
+      - name: Complete test suite
+        run: npm test

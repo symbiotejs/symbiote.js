@@ -80,6 +80,18 @@ npx skills add symbiotejs/symbiote.js --skill symbiote
 
 The [skills CLI](https://skills.sh/docs/cli) lets you choose your coding agent. Add `--global` to install across projects. The skill covers templates, state bindings, contexts, SSR, WebMCP, and security boundaries, with links to the detailed documentation.
 
+## HTML-only applications
+
+**Build a working app in HTML, without writing application JavaScript.** The [HTML-app foundation](./html-app/README.md) lets a form create records, checkboxes update them, and filtered lists react immediately. Navigation, reusable views and browser saving can live in the markup too. You can also [define your own custom elements entirely in HTML](./html-app/README.md#reusable-component-declarations), including their data, templates and declarative actions.
+
+Compose applications from [portable HTML chunks](./html-app/README.md#html-fragments), combining imported sections, reusable templates and custom elements in the layout you need. Bind the same chunk to different data contexts and reuse it across views.
+
+Mix those chunks with Markdown in a host that preserves embedded HTML, keeping explanations and interactive controls in one document. Reusing declarative actions instead of generating event handlers and state-management boilerplate can reduce AI output token consumption.
+
+Load one module, declare your data as JSON, and connect your controls with Symbiote bindings. You can build an interactive tool on a static server, then connect JSON endpoints when it needs shared data. HTML-app is an optional entry that works alongside ordinary Symbiote components; the library core stays independent.
+
+Start with the [compact Todo](./html-app/examples/todo-ref.html), explore the [feature guide](./html-app/examples/full-app.html), or see [how HTML-app compares with htmx](./docs/html-app-vs-htmx.md).
+
 ## Core concepts
 
 ### Runtime Agnostic Templates (RAT)

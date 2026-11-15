@@ -34,7 +34,10 @@ let configuredForms = new WeakSet();
  * @param {import('./BaseClass.js').BaseClass} owner
  */
 export function actionProcessor(root, owner) {
-  owner.actionBindings.process(root);
+  // Preserve authored descriptors for browser hydration; SSR never invokes UI actions.
+  if (!globalThis.__SYMBIOTE_SSR) {
+    owner.actionBindings.process(root);
+  }
 }
 export class ActionBindings {
   /** @type {Binding[]} */

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>HTML-app CSP fixture</title></head>
+<body>
+  <sym-context ctx="APP" src="/csp-data.json">
+    <script type="application/json">{"title":"Default","draft":"","enabled":false}</script>
+    <form action-data="APP/draft" bind="onsubmit: [set]APP/title">
+      <label>Task title<input required bind="value: draft; oninput: [pub-to-200]draft"></label>
+      <button>Apply title</button>
+    </form>
+    <label><input type="checkbox" bind="checked: enabled; onchange: [pub-to]enabled">Enabled</label>
+    <h1 bind="textContent: title"></h1>
+    <sym-import src="/csp-panel.html"></sym-import>
+  </sym-context>
+  <plain-counter></plain-counter>
+  <script type="module" src="/test/browser/helpers/html-app-csp.js" webmcp-mode="true"></script>
+</body>
+</html>

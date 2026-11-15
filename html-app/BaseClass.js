@@ -34,6 +34,10 @@ export class BaseClass extends Symbiote {
 
   connectedCallback() {
     this.seedDefaults();
+    if (globalThis.__SYMBIOTE_SSR) {
+      this.connectFoundation();
+      return;
+    }
     if (this.#scheduled) { return; }
     this.#scheduled = true;
     queueMicrotask(() => {
@@ -53,7 +57,7 @@ export class BaseClass extends Symbiote {
           parent.connectFoundation();
           break;
         }
-        parent = parent.parentNode || (parent instanceof ShadowRoot ? parent.host : null);
+        parent = parent.parentNode || (typeof ShadowRoot !== 'undefined' && parent instanceof ShadowRoot ? parent.host : null);
       }
       // An ancestor may remove this child while deciding conditional content.
       if (!this.isConnected) { return; }
