@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "id": "outline",
+      "title": "Outline the next release",
+      "note": "Keep the scope small and the acceptance checks concrete.",
+      "done": false,
+      "pinned": true
+    },
+    {
+      "id": "review",
+      "title": "Review the new workspace",
+      "note": "Try filters, notes, preferences and browser saving.",
+      "done": false,
+      "pinned": false
+    },
+    {
+      "id": "source",
+      "title": "Connect the JSON source",
+      "note": "Initial tasks load from this JSON file; Save tasks keeps edits in your browser.",
+      "done": true,
+      "pinned": false
+    }
+  ]
+}

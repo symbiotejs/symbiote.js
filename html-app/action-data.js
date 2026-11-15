@@ -53,7 +53,7 @@ export function dataReference(owner, reference, computed = false) {
 
 /** @param {string} source */
 export function parseAction(source) {
-  let match = /^\[(toggle|set|pub-to|append|patch-matching|remove-matching|item-pub|item-toggle|item-remove|load|sync|persist|restore|navigate)(?:-(\d+))?\](.*)$/.exec(source);
+  let match = /^\[(toggle|set|pub-to|append|prepend|patch-matching|remove-matching|item-pub|item-toggle|item-remove|load|sync|persist|restore|navigate)(?:-(\d+))?\](.*)$/.exec(source);
   let operation = match?.[1];
   let reference = match?.[3] || '';
   let validReference = [

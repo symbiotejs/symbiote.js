@@ -1,0 +1,11 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>sym-import</code> fetches trusted authored HTML, initializes its components and bindings, and resolves relative URLs against the fragment. Every feature section in this app uses it. The nested fragment below edits the surrounding preferences context.</p>
+  <div class="panel grid gap-4">
+    <h2 class="font-semibold">Imported fragment with outgoing binding</h2>
+    <sym-import src="./guide.html">
+      <p bind="hidden: !+loading">Loading fragment...</p>
+      <p class="text-rose-500" bind="textContent: +loadErrorMessage"></p>
+    </sym-import>
+  </div>
+  <sym-conditional when="PREFERENCES/showCounts" is="true"><p class="rounded-lg bg-accent/10 p-4 text-sm text-accent">Task counts are enabled in the Collections section.</p></sym-conditional>
+</section>

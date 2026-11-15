@@ -99,19 +99,39 @@ export function matchData(value) {
 /**
  * @param {unknown} source
  * @param {unknown} draft
+ * @param {boolean} atStart
  */
-export function appendRecord(source, draft) {
+function insertRecord(source, draft, atStart) {
   let items = collectionData(source);
   let item = cloneData(recordData(draft));
   if (!Object.hasOwn(item, 'id')) {
     item.id = crypto.randomUUID();
   }
-  let next = [
+  let next = atStart ? [
+    item,
+    ...items,
+  ] : [
     ...items,
     item,
   ];
   collectionData(next);
   return next;
+}
+
+/**
+ * @param {unknown} source
+ * @param {unknown} draft
+ */
+export function appendRecord(source, draft) {
+  return insertRecord(source, draft, false);
+}
+
+/**
+ * @param {unknown} source
+ * @param {unknown} draft
+ */
+export function prependRecord(source, draft) {
+  return insertRecord(source, draft, true);
 }
 
 /**

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML-app features</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script type="module" src="../index.js" webmcp-mode="true"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-paper: #f5f5f5;
+      --color-surface: #ffffff;
+      --color-ink: #171717;
+      --color-muted: #666666;
+      --color-line: #e5e5e5;
+      --color-accent: #2563eb;
+      --color-on-accent: #ffffff;
+    }
+    @layer base {
+      [data-dark] {
+        --color-paper: #171717;
+        --color-surface: #262626;
+        --color-ink: #f5f5f5;
+        --color-muted: #a3a3a3;
+        --color-line: #404040;
+        --color-accent: #60a5fa;
+        --color-on-accent: #171717;
+        color-scheme: dark;
+      }
+      button, a, summary {
+        @apply cursor-pointer;
+      }
+      button {
+        @apply inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-line bg-surface px-3 text-sm font-medium transition hover:border-accent;
+      }
+      input:not([type="checkbox"]), select, textarea {
+        @apply w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-sm outline-none focus:border-accent;
+      }
+      input:not([type="checkbox"]), select {
+        @apply h-10;
+      }
+      textarea {
+        @apply py-3;
+      }
+      input[type="checkbox"] {
+        @apply size-4 shrink-0 accent-accent;
+      }
+      label {
+        @apply grid gap-2 text-sm;
+      }
+      button:disabled {
+        @apply cursor-wait opacity-40;
+      }
+    }
+    @layer components {
+      .panel {
+        @apply rounded-2xl border border-line bg-surface p-5;
+      }
+      .primary {
+        @apply border-transparent bg-accent text-on-accent hover:opacity-90;
+      }
+      .nav-link {
+        @apply flex h-11 items-center justify-between rounded-lg px-3 text-sm font-medium hover:bg-accent/10;
+      }
+      .tab-link {
+        @apply relative inline-flex h-10 shrink-0 items-center justify-center rounded-none border-0 bg-transparent px-4 text-sm font-medium text-muted hover:text-ink;
+      }
+      .tab-link:has(> sym-conditional:not([hidden])) {
+        @apply text-accent;
+      }
+      .field-row {
+        @apply flex min-w-0 items-center gap-3;
+      }
+      task-card {
+        @apply block rounded-xl border border-line bg-surface p-4;
+      }
+      task-card:has(input[type="checkbox"]:checked) input[name="title"] {
+        @apply text-muted line-through;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Shared data stays mounted while feature sections load and unload. -->
+  <sym-context ctx="ENDPOINTS">
+    <script type="application/json">
+      {"source": "./assets/tasks.json", "destination": "/api/tasks", "method": "PUT"}
+    </script>
+    <sym-context ctx="APP" sync-keys="tasks" storage-key="html-app-workspace" storage-keys="tasks,settings,sort"
+      bind="@src: ENDPOINTS/source; @sync: ENDPOINTS/destination; @sync-method: ENDPOINTS/method">
+      <script type="application/json">
+        {
+          "tasks": [],
+          "draft": {"title": "", "note": "", "done": false, "pinned": false},
+          "settings": {"title": "Project board", "dark": false, "showCounts": true},
+          "filter": {},
+          "allFilter": {},
+          "activeFilter": {"done": false},
+          "completedFilter": {"done": true},
+          "completePatch": {"done": true},
+          "sort": {"field": "title", "direction": "asc"},
+          "query": "",
+          "shown": 0,
+          "total": 0
+        }
+      </script>
+      <sym-context ctx="PREFERENCES" bind="$: APP/settings" pub-to="APP/settings">
+        <div class="grid min-h-dvh bg-paper text-ink md:h-dvh md:grid-cols-[14rem_minmax(0,1fr)]" bind="@data-dark: dark">
+          <aside class="flex flex-col gap-6 border-b border-line bg-surface p-5 md:overflow-y-auto md:border-r md:border-b-0">
+            <p class="text-lg font-semibold tracking-tight">HTML-app<span class="text-accent">.</span></p>
+            <nav class="grid gap-1" itemize="ROUTER/routes">
+              <template>
+                <a class="nav-link" bind="@href: href; @hidden: !!error; onclick: [navigate]ROUTER">{{title}}
+                  <sym-conditional when="ROUTER/route" bind="@is: _KEY_">
+                    <span class="size-1.5 rounded-full bg-accent"></span>
+                  </sym-conditional>
+                </a>
+              </template>
+            </nav>
+            <div class="mt-auto border-t border-line pt-5">
+              <label class="field-row"><input type="checkbox" bind="checked: dark; onchange: [pub-to]dark">Dark mode</label>
+            </div>
+          </aside>
+          <main class="min-w-0 md:overflow-y-auto">
+            <sym-router ctx="ROUTER" src="./assets/routes.json" use-template="#app-shell"></sym-router>
+          </main>
+        </div>
+      </sym-context>
+    </sym-context>
+  </sym-context>
+
+  <template id="app-shell">
+    <header class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-surface/95 px-6 py-4 backdrop-blur">
+      <h1 class="text-xl font-semibold tracking-tight">{{title}}</h1>
+      <a class="text-sm text-accent underline underline-offset-4" href="./todo-ref.html">Basic Todo</a>
+    </header>
+    <div class="mx-auto grid max-w-5xl gap-5 p-5 lg:p-8">
+      <p class="text-sm text-muted" bind="hidden: !+loading">Loading routes...</p>
+      <p class="panel text-sm text-rose-500" bind="hidden: !+loadError; textContent: +loadErrorMessage"></p>
+      <sym-import bind="@src: ROUTER/+src">
+        <p class="text-sm text-muted" bind="hidden: !+loading">Loading content...</p>
+        <p class="panel text-sm text-rose-500" bind="hidden: !+loadError; textContent: +loadErrorMessage"></p>
+      </sym-import>
+    </div>
+  </template>
+</body>
+</html>

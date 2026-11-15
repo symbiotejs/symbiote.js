@@ -114,21 +114,10 @@ describe('native WebMCP integration', () => {
     await new Promise((resolveClose) => server?.close(resolveClose));
   });
 
-  it('registers and invokes declarative HTML-app actions through native WebMCP', async (t) => {
-    let page = await openFixture();
+  it('registers and invokes HTML-app actions through the script attribute opt-in', async (t) => {
+    let page = await browser.newPage();
     t.after(() => page.close());
-    await page.evaluate(async () => {
-      let {
-        Symbiote,
-      } = await import('/core/index.js');
-      Symbiote.mcpToolMode = true;
-      await import('/html-app/index.js');
-      let owner = document.createElement('sym-context');
-      owner.setAttribute('ctx', 'HTML_ACTIONS');
-      owner.innerHTML = '<script type="application/json">{"flag":false}</script>'
-        + '<button type="button" bind="onclick: [toggle]flag">Toggle flag</button>';
-      document.body.append(owner);
-    });
+    await page.goto(`${baseURL}/test/browser/fixtures/html-app-webmcp.html`);
     await page.waitForFunction(async () => {
       let {
         getActiveWebMCPTools,

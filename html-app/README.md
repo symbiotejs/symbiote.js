@@ -29,6 +29,25 @@ Serve the package's ES modules over HTTP and load its optional entry:
 
 For a bundler or an existing module, import `@symbiotejs/symbiote/html-app`. No application build step is required for directly served modules.
 
+### WebMCP
+
+Enable automatic UI tools on the external entry script:
+
+```html
+<script type="module" src="/vendor/symbiote/html-app/index.js" webmcp-mode="true"></script>
+```
+
+The literal `"true"` loads WebMCP and enables automatic tools for foundation components before they initialize, including generated items and imported fragments. At startup, the entry reads `document.currentScript` when available, otherwise the first external module script marked `webmcp-mode="true"`. This also supports CDN module wrappers whose URL differs from the imported implementation. The flag is read before asynchronous loading; an available current script takes precedence, including an absent or `"false"` flag. Without an opted-in loader, existing WebMCP settings stay unchanged. The full example opts in; the compact Todo keeps the default. Programmatic imports can use the native [WebMCP activation API](../docs/webmcp.md#activation).
+
+## Examples
+
+- [todo-ref.html](./examples/todo-ref.html): a compact, unstyled Todo with creation, editing, completion and removal.
+- [full-app.html](./examples/full-app.html): a styled feature guide. Its navigation loads external sections, each with a short explanation and a working demonstration of state, actions, collections, templates, conditions, imports, requests, storage or routing. Styling uses the [Tailwind Play CDN](https://tailwindcss.com/docs/installation/play-cdn); application behavior remains HTML and JSON.
+
+Serve the examples with a static HTTP server. The guide loads initial tasks from `examples/assets/tasks.json`; Collections saves edits and preferences in local storage and restores them on reload. Saved browser data takes precedence over the JSON defaults. Feature sections, the nested import fragment and sample JSON live in `examples/assets/`.
+
+From a checkout, `node test/server.js` prints the example links and additionally supplies an optional GET and PUT/POST/PATCH API at `/api/tasks`, keeping records in memory until restart. Use Send tasks in JSON requests to demonstrate HTTP synchronization, or configure another endpoint there. Collections saving does not need that API.
+
 ## State and templates
 
 - Put one strict JSON object in a direct `<script type="application/json">` child of an owner. Each instance parses its own defaults before its children bind. Referenced templates and Itemize templates can also provide defaults; incoming item data takes precedence. Nested owners read their own data scripts.
@@ -70,7 +89,7 @@ Use action descriptors on native event bindings. Ordinary named handlers and Too
 - References use native local, named, shared and pop-up contexts. Targets must exist and be writable data properties. Non-null target types must match the supplied data. Invalid descriptors and incompatible values fail explicitly; there is no expression evaluation or action-chain syntax.
 - Native disabled fieldsets, read-only controls and inert content block actions. A binding uses its own control, including when an inner icon receives the click.
 - A configured form action validates the form and flushes pending field publications before reading data. A submit button can supply `action-data` or its native value. Only configured form actions prevent navigation; ordinary form submission and named handlers retain their behavior.
-- Framework-generated handler keys are reserved implementation details. Optional WebMCP uses the native event discovery path; loading the foundation does not enable WebMCP globally.
+- Framework-generated handler keys are reserved implementation details. Optional WebMCP uses the native event discovery path; enable automatic discovery with the [entry script opt-in](#webmcp) or native JavaScript API.
 
 ## Publish several properties
 
@@ -89,7 +108,7 @@ Declare the destination fields in their owning context first. `pub-map` publishe
 
 ## Collections and immutable record actions
 
-[Open the HTML-only Todo example](./todo-ref.html) through your HTTP server. Its external module script loads the foundation; application behavior is entirely in HTML attributes and JSON.
+[Open the basic Todo](./examples/todo-ref.html) through your HTTP server. Its external module script loads the foundation; application behavior is entirely in HTML attributes and JSON.
 
 `sym-collection data="APP/tasks"` owns a derived view of an existing array. Records must be JSON objects with unique nonempty string `id` values. IDs remain stable; Itemize metadata stays outside application records and DOM attributes.
 
@@ -113,7 +132,18 @@ Declare the destination fields in their owning context first. `pub-map` publishe
 - Declare the referenced properties in an owning context. `data` is a writable array reference, not a URL. The derived view properties are `items`, `count`, `totalCount` and `empty`.
 - Optional `filter` references a record of scalar field/value pairs, matched with typed AND equality. Optional `search` references a string and requires comma-separated `search-fields`. Optional `sort` references `{"field":"title","direction":"asc"}` or `desc`. Filtering, search and sorting never replace the source array.
 - Render `items` with native Itemize and an authored template or registered foundation item component. Keyed reconciliation preserves each record's element and focus. No item controls, wrappers or styles are imposed.
-- `[append]REF` clones the record referenced by `action-data` and appends it, generating a missing ID. A form applies native validation and flushes pending field publications first. Optional `action-reset="APP/draft"` restores that property's authored JSON default only after success; invalid or failed operations retain the draft.
+- `[append]REF` and `[prepend]REF` clone the record referenced by `action-data` and insert it at the end or beginning of the source array, generating a missing ID. A form applies native validation and flushes pending field publications first. Optional `action-reset="APP/draft"` restores that property's authored JSON default only after success; invalid or failed operations retain the draft. Filtering and sorting still determine the displayed order.
+
+```html
+<sym-context bind="$: APP/draft" pub-to="APP/draft">
+  <form action-data="APP/draft" action-reset="APP/draft"
+    bind="onsubmit: [prepend]APP/tasks">
+    <input required bind="value: title; oninput: [pub-to-200]title">
+    <button type="submit">Add first</button>
+  </form>
+</sym-context>
+```
+
 - `[item-pub]FIELD` publishes the control's typed value to an existing field of the current source record. `[item-toggle]FIELD` toggles a boolean. `[item-remove]` removes the record. Fields are local record keys; IDs cannot be edited. Invalid native controls keep their draft without publishing or announcing errors on every keystroke.
 - `[item-pub-200]FIELD` supports the same debounce and composition handling as `[pub-to-200]`. Source changes, retargeting, disposal and item reuse cancel stale work.
 - `[patch-matching]REF` requires explicit `action-match` and `action-data` record references. An empty match patches every record. `[remove-matching]REF` requires a nonempty `action-match`; an empty match cannot clear the array. Matching uses typed AND equality, without expressions.
@@ -165,7 +195,7 @@ Register an autonomous custom element from a direct template or a native `use-te
 
 ## Declarative routing
 
-`sym-router` configures the existing [AppRouter](../docs/routing.md) from HTML. [The routed Todo](./todo-routed.html) combines reusable templates, imported task controls, settings and browser storage without application JavaScript.
+`sym-router` configures the existing [AppRouter](../docs/routing.md) from HTML. [The full app](./examples/full-app.html) loads feature sections through reusable templates and imports, while keeping shared contexts mounted without application JavaScript.
 
 ```html
 <sym-router ctx="ROUTER">
@@ -174,13 +204,16 @@ Register an autonomous custom element from a direct template or a native `use-te
       "routes": {
         "tasks": {
           "title": "Tasks",
+          "src": "./views/tasks.html",
           "default": true
         },
         "settings": {
-          "title": "Settings"
+          "title": "Settings",
+          "src": "./views/settings.html"
         },
         "notFound": {
           "title": "Page not found",
+          "src": "./views/not-found.html",
           "error": true
         }
       }
@@ -191,20 +224,13 @@ Register an autonomous custom element from a direct template or a native `use-te
     <a href="?tasks" bind="onclick: [navigate]ROUTER">Tasks</a>
     <a href="?settings" bind="onclick: [navigate]ROUTER">Settings</a>
   </nav>
-  <sym-conditional when="ROUTER/route" is="tasks" behavior="dom-add">
-    <p>Task overview</p>
-  </sym-conditional>
-  <sym-conditional when="ROUTER/route" is="settings" behavior="dom-add"
-    use-template="#settings-page"></sym-conditional>
+  <sym-import bind="@src: ROUTER/+src"></sym-import>
 </sym-router>
-
-<template id="settings-page">
-  <p>Settings view</p>
-</template>
 ```
 
-- Supply a nonempty `routes` object through inline JSON, native `use-template` defaults or incoming `$` bindings. Use the native `title`, `default`, `error` and optional `pattern` fields. Titles are strings, flags are booleans, and each route may include JSON metadata. Executable `load` functions and module URLs are not part of this HTML API; compose `sym-import` explicitly instead.
-- The required `ctx` name exposes native `route`, `options` and `title` state, including to components outside the router. Local bindings address those same fields. Reuse `sym-conditional`, extracted templates and imports for views; the router provides no separate outlet or rendering system. Reassign `routes` to replace configuration; nested object mutation does not notify.
+- Supply a nonempty `routes` object through inline JSON, native `use-template` defaults, incoming `$` bindings, or `src="./routes.json"` returning `{"routes": {...}}`. With `src` alone, routing waits for validated data and preserves the requested URL; inherited `+loading`, `+loadError` and `[load]ROUTER` provide status and retry. Use the native `title`, `default`, `error` and optional `pattern` fields. Titles and optional fragment `src` values are strings, flags are booleans, and each route may include JSON metadata. Executable `load` functions and module URLs are not part of this HTML API; compose `sym-import` explicitly instead.
+- The required `ctx` name exposes native `route`, `options` and `title` state, including to components outside the router. Computed `+src` reads the selected route's declared `src` from the validated active map, independently of URL options. Bind it to one import's `@src` to replace views; supply a source for the error route too. Without a declared source, `+src` is an empty string and the importer retains its current content. Existing conditionals and extracted templates also work; the router adds no renderer. Reassign `routes` to replace configuration; nested object mutation does not notify.
+- Computed `+params` provides scalar option fields with public data keys for safe native `$` object binding, such as `<sym-context bind="$: ROUTER/+params">`. It excludes context paths, binding prefixes, runtime keys and non-scalar metadata. Declare local defaults for optional parameters; consume values through text bindings or conditions. Native `options` remains available for inspection, while fragment URLs come from `+src`.
 - Without patterns, AppRouter uses URLs such as `?settings`. For path routing, give every route an absolute pattern such as `/tasks/:id`; native matching populates `options`. Path mode requires your server to serve the app entry for those URLs. Use at most one default and one distinct error route.
 - `[navigate]ROUTER` on a native button or select uses its string `value` as the route name. Optional `action-data="APP/parameters"` supplies a record of scalar URL options, including path parameters. A native form can validate and flush pending controls before navigating. Option objects are not mutated.
 - Explicitly bound anchors retain useful `href` values. Plain internal clicks delegate URL matching and navigation to AppRouter; modifier clicks, new targets, downloads, external destinations, unknown routes and fragment links retain browser behavior. Query links to another document also keep normal navigation. Back/Forward uses the native popstate listener. Navigation actions await native guards/loaders, including through optional WebMCP.
@@ -213,7 +239,7 @@ Register an autonomous custom element from a direct template or a native `use-te
 
 ## JSON sources and explicit synchronization
 
-[The networked Todo](./todo-sync.html) uses the same HTML-only controls with a server API. Serve it beside an endpoint implementing GET and PUT at `/api/tasks`, returning an object such as `{"tasks":[]}`. The package does not supply a database or application server.
+[The full app](./examples/full-app.html) demonstrates explicit JSON synchronization. Its endpoint accepts a tasks document such as `{"tasks":[]}`. The development server described above implements that contract; production authorization and persistence belong to the host.
 
 ```html
 <sym-context ctx="APP" src="/api/document" sync="/api/document" sync-keys="title">
@@ -242,11 +268,11 @@ Register an autonomous custom element from a direct template or a native `use-te
 
 ## HTML fragments
 
-[The modular Todo](./todo-import.html) imports reusable [task controls](./fragments/todo.html) and [settings](./fragments/settings.html). It runs with an HTTP static server and saves selected data explicitly in the current browser.
+[The full app](./examples/full-app.html) imports every feature section on navigation. Its HTML imports section also loads a [nested fragment](./examples/assets/guide.html), whose control publishes back to the surrounding preferences context. It also restores selected browser data independently of the API.
 
 ```html
-<sym-import src="./fragments/settings.html">
-  <p>Loading settings...</p>
+<sym-import src="./examples/assets/guide.html">
+  <p>Loading guide...</p>
 </sym-import>
 ```
 

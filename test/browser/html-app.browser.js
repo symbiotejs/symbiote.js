@@ -173,3 +173,125 @@ test('core entry stays independent and the optional entry exports only implement
     webmcp: false,
   });
 });
+
+test('the compact Todo creates, edits, completes and removes records with HTML only', async ({
+  page,
+}) => {
+  await page.goto('/html-app/examples/todo-ref.html');
+  await page.getByPlaceholder('New task').fill('First task');
+  await page.getByRole('button', {
+    name: 'Add task',
+  }).click();
+  await expect(page.locator('li')).toHaveCount(1);
+  await expect(page.getByPlaceholder('New task')).toHaveValue('');
+  await page.locator('li input:not([type="checkbox"])').fill('Edited task');
+  await page.locator('li input[type="checkbox"]').check();
+  expect(await page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$.tasks.map((item) => ({
+    title: item.title,
+    done: item.done,
+  })))).toEqual([
+    {
+      title: 'Edited task',
+      done: true,
+    },
+  ]);
+  await page.getByRole('button', {
+    name: 'Delete',
+  }).click();
+  await expect(page.locator('li')).toHaveCount(0);
+  await expect(page.getByText('No tasks yet.', {
+    exact: true,
+  })).toBeVisible();
+});
+
+test('the full guide loads every authored feature section and keeps context cleanup and reuse working', async ({
+  page,
+}) => {
+  let errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.route('**/assets/tasks.json', (route) => route.fulfill({
+    json: {
+      tasks: [],
+    },
+  }));
+  await page.goto('/html-app/examples/full-app.html');
+  let links = await page.locator('aside nav a:visible').evaluateAll((links) => links.map((link) => ({
+    href: link.getAttribute('href'),
+    route: new URL(link.href).search.slice(1),
+    title: link.textContent.trim(),
+  })));
+  for (let link of links) {
+    await page.locator('aside nav a[href="' + link.href + '"]').click();
+    await expect(page.locator('h1')).toHaveText(link.title);
+    await expect(page.locator('main sym-import').first()).toHaveAttribute('src', './assets/' + link.route + '.html');
+    await expect.poll(() => page.evaluate(() => {
+      let host = document.querySelector('main sym-import');
+      return host?.connectedOnce && !host.$['+loading'] && host.querySelector('section') !== null;
+    })).toBe(true);
+    expect(await page.evaluate(() => document.querySelector('main sym-import').$['+loadError'])).toBeNull();
+  }
+  await page.getByRole('link', {
+    name: 'Components',
+    exact: true,
+  }).click();
+  await expect(page.locator('feature-note')).toHaveCount(2);
+  await page.locator('feature-note').first().getByRole('button').click();
+  await expect(page.locator('feature-note').first().locator('p')).toBeVisible();
+  await expect(page.locator('feature-note').last().locator('p')).toBeHidden();
+  await page.getByRole('link', {
+    name: 'State & bindings',
+    exact: true,
+  }).click();
+  await page.getByRole('textbox', {
+    name: 'Name',
+    exact: true,
+  }).fill('Updated profile');
+  expect(await page.evaluate(async () => {
+    let {
+      PubSub,
+    } = await import('/core/PubSub.js');
+    return {
+      routeContextRemoved: PubSub.getCtx('ROUTE_DEMO', false) === null,
+      name: PubSub.getCtx('PROFILE').read('person').name,
+      published: PubSub.getCtx('PROFILE').read('namePreview'),
+    };
+  })).toEqual({
+    routeContextRemoved: true,
+    name: 'Updated profile',
+    published: 'Updated profile',
+  });
+  expect(errors).toEqual([]);
+});
+
+test('feature routing keeps URL input separate from shared configuration', async ({
+  page,
+}) => {
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.route('**/assets/tasks.json', (route) => route.fulfill({
+    json: {
+      tasks: [],
+    },
+  }));
+  await page.goto('/html-app/examples/full-app.html?routing&ENDPOINTS%2Fsource=changed&APP%2Fquery=changed&%40src=changed&__htmlAppNavigate=changed');
+  await expect(page.locator('main section')).toBeVisible();
+  expect(await page.evaluate(async () => {
+    let {
+      PubSub,
+    } = await import('/core/PubSub.js');
+    return {
+      source: PubSub.getCtx('ENDPOINTS').read('source'),
+      query: PubSub.getCtx('APP').read('query'),
+      unsafeParams: [
+        'ENDPOINTS/source',
+        'APP/query',
+        '@src',
+        '__htmlAppNavigate',
+      ].some((key) => Object.hasOwn(document.querySelector('sym-router').$['+params'], key)),
+    };
+  })).toEqual({
+    source: './assets/tasks.json',
+    query: '',
+    unsafeParams: false,
+  });
+});

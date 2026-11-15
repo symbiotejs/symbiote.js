@@ -6,6 +6,16 @@ import { SymConditional } from './sym-conditional.js';
 import { SymImport } from './sym-import.js';
 import { SymRouter } from './sym-router.js';
 
+if (typeof document !== 'undefined' && !globalThis.__SYMBIOTE_SSR) {
+  // Capture the loader before awaiting; module/CDN wrappers use the marked script.
+  let script = document.currentScript ??
+    document.querySelector('script[type="module"][src][webmcp-mode="true"]');
+  if (script?.getAttribute('webmcp-mode') === 'true') {
+    await import('../core/webmcp.js');
+    BaseClass.mcpToolMode = true;
+  }
+}
+
 SymComponent.reg('sym-component');
 SymContext.reg('sym-context');
 SymCollection.reg('sym-collection');

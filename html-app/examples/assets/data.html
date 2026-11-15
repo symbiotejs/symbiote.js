@@ -1,0 +1,31 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted">The shared context loads initial tasks from a JSON file through <code>src</code>. Change the source URL to load another JSON object containing <code>tasks</code>; local edits and restored browser data remain protected. Collections saves to local storage. Here, <code>[sync]</code> optionally sends only <code>sync-keys</code> to an HTTP endpoint.</p>
+  <div class="grid gap-5 lg:grid-cols-2">
+    <div class="panel grid content-start gap-4">
+      <h2 class="font-semibold">Request configuration</h2>
+      <label>JSON source<input bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
+      <label>Write endpoint<input bind="value: ENDPOINTS/destination; onchange: [pub-to]ENDPOINTS/destination"></label>
+      <label>Request method<select bind="value: ENDPOINTS/method; onchange: [pub-to]ENDPOINTS/method">
+        <option>PUT</option><option>POST</option><option>PATCH</option>
+      </select></label>
+      <div class="field-row">
+        <button type="button" bind="onclick: [load]APP; disabled: APP/+busy">Reload</button>
+        <button type="button" class="primary" bind="onclick: [sync]APP; disabled: APP/+busy">Send tasks</button>
+      </div>
+      <p class="text-sm text-muted">Sending requires a server that accepts the selected method. The checkout's development server provides an optional in-memory API at <code>/api/tasks</code>. Static hosting needs only the JSON source and browser storage.</p>
+    </div>
+    <div class="panel grid content-start gap-4">
+      <h2 class="font-semibold">Data and request state</h2>
+      <sym-collection data="APP/tasks">
+        <p class="text-sm text-muted">{{count}} shared task records</p>
+        <ul class="grid gap-2 text-sm" itemize="items"><template><li>{{title}}</li></template></ul>
+      </sym-collection>
+      <sym-conditional when="APP/+loading"><p class="text-sm text-accent">Loading...</p></sym-conditional>
+      <sym-conditional when="APP/+saving"><p class="text-sm text-accent">Saving...</p></sym-conditional>
+      <sym-conditional when="APP/+dirty"><p class="text-sm text-amber-500">Task changes have not been sent.</p></sym-conditional>
+      <p class="text-sm text-muted">Revision {{APP/+revision}} / acknowledged {{APP/+savedRevision}}</p>
+      <sym-conditional when="APP/+loadError"><p class="text-sm text-rose-500" bind="textContent: APP/+loadErrorMessage"></p></sym-conditional>
+      <sym-conditional when="APP/+syncError"><p class="text-sm text-rose-500" bind="textContent: APP/+syncErrorMessage"></p></sym-conditional>
+    </div>
+  </div>
+</section>

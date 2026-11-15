@@ -3,7 +3,7 @@ import { cloneData, recordData } from './collection-data.js';
 /**
  * JSON configuration uses native descriptors, without executable loaders.
  * @param {unknown} value
- * @returns {typeof import('../core/AppRouter.js').AppRouter.appMap}
+ * @returns {typeof import('../core/AppRouter.js').AppRouter.appMap & Record<string, { src?: string }>}
  */
 export function routingMap(value) {
   let routes = cloneData(recordData(value));
@@ -19,6 +19,9 @@ export function routingMap(value) {
     }
     if (Object.hasOwn(route, 'title') && typeof route.title !== 'string') {
       throw new TypeError('HTML route titles must be strings.');
+    }
+    if (Object.hasOwn(route, 'src') && typeof route.src !== 'string') {
+      throw new TypeError('HTML route sources must be strings.');
     }
     for (let flag of [
       'default',

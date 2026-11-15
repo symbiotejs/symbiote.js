@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tasks</title>
-  <script type="module" src="./index.js"></script>
+  <title>Tasks with backend synchronization</title>
+  <script type="module" src="/html-app/index.js"></script>
 </head>
 <body>
-  <sym-context ctx="APP">
+  <sym-context ctx="APP" sync="/api/tasks" sync-keys="tasks">
     <script type="application/json">
       {
         "tasks": [],
@@ -24,10 +24,14 @@
       }
     </script>
     <h1>Tasks</h1>
+    <sym-conditional when="APP/+loading"><p role="status">Loading tasks...</p></sym-conditional>
+    <sym-conditional when="APP/+loadError"><p role="alert" bind="textContent: APP/+loadErrorMessage"></p></sym-conditional>
+    <sym-conditional when="APP/+syncError"><p role="alert" bind="textContent: APP/+syncErrorMessage"></p></sym-conditional>
+    <button type="button" bind="onclick: [load]APP; disabled: APP/+busy">Reload</button>
 
     <sym-context bind="$: APP/draft" pub-to="APP/draft">
       <form aria-label="New task" action-data="APP/draft" action-reset="APP/draft"
-        bind="onsubmit: [append]APP/tasks">
+        bind="onsubmit: [append]APP/tasks; inert: APP/+loading">
         <label>New task
           <input name="title" required pattern=".*\S.*" autocomplete="off"
             bind="value: ^title; oninput: [pub-to-200]^title">
@@ -46,6 +50,7 @@
         bind="value: APP/query; oninput: [pub-to-200]APP/query"></label>
     </search>
 
+    <form aria-label="Save tasks" bind="onsubmit: [sync]APP">
     <sym-collection data="APP/tasks" filter="APP/filter" search="APP/query" search-fields="title" sort="APP/sort"
       pub-map="APP/visibleCount: count; APP/totalCount: totalCount">
       <ul itemize="items">
@@ -61,6 +66,11 @@
       </ul>
       <sym-conditional when="^empty" is="true"><p>No matching tasks.</p></sym-conditional>
     </sym-collection>
+    <button type="submit" bind="disabled: APP/+busy">Save tasks</button>
+    </form>
+    <sym-conditional when="APP/+saving"><p role="status">Saving...</p></sym-conditional>
+    <sym-conditional when="APP/+dirty"><p>Unsaved changes</p></sym-conditional>
+    <p>Last acknowledged revision: <span bind="textContent: APP/+savedRevision"></span></p>
 
     <p role="status">{{APP/visibleCount}} shown / {{APP/totalCount}} total</p>
     <button type="button" action-data="APP/completePatch" action-match="APP/allFilter"

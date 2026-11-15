@@ -3,13 +3,16 @@ import { test, expect } from '@playwright/test';
 let routes = {
   tasks: {
     title: 'Tasks',
+    src: '/tasks-panel.html',
     default: true,
   },
   settings: {
     title: 'Settings',
+    src: '/settings-panel.html',
   },
   missing: {
     title: 'Not found',
+    src: '/missing-panel.html',
     error: true,
   },
 };
@@ -36,18 +39,23 @@ async function route(page) {
   return page.evaluate(() => document.querySelector('sym-router').$.route);
 }
 
-test('query routes expose native context and compose existing templates and imported views', async ({
+test('one bound import uses declared route sources, replaces sections and ignores URL source options', async ({
   page,
 }) => {
-  await page.route('**/settings-panel.html', (route) => route.fulfill({
-    contentType: 'text/html',
-    body: '<p>Imported settings</p>',
-  }));
-  await mount(page, routes, '<template id="tasks-view"><p>Task view</p></template>',
-    '<sym-conditional when="ROUTER/route" is="tasks" behavior="dom-add" use-template="#tasks-view"></sym-conditional>'
-    + '<sym-conditional when="ROUTER/route" is="settings" behavior="dom-add"><sym-import src="/settings-panel.html"></sym-import></sym-conditional>');
+  let requested = [];
+  await page.route('**/*-panel.html', (route) => {
+    let name = new URL(route.request().url()).pathname.slice(1, -11);
+    requested.push(name);
+    return route.fulfill({
+      contentType: 'text/html',
+      body: '<sym-context ctx="PANEL_' + name + '"><p>Imported ' + name + '</p></sym-context>',
+    });
+  });
+  await page.evaluate(() => history.replaceState(null, '', '?tasks&src=%2Funtrusted-panel.html'));
+  await mount(page, routes, '', '<sym-import bind="@src: ROUTER/+src"></sym-import>');
+  let importer = await page.locator('sym-import').elementHandle();
   await expect(page.getByRole('heading')).toHaveText('Tasks');
-  await expect(page.getByText('Task view', {
+  await expect(page.getByText('Imported tasks', {
     exact: true,
   })).toBeVisible();
   await page.getByRole('link', {
@@ -58,7 +66,7 @@ test('query routes expose native context and compose existing templates and impo
   await expect(page.getByText('Imported settings', {
     exact: true,
   })).toBeVisible();
-  await expect(page.getByText('Task view', {
+  await expect(page.getByText('Imported tasks', {
     exact: true,
   })).toHaveCount(0);
   await expect(page).toHaveTitle('Settings');
@@ -66,8 +74,50 @@ test('query routes expose native context and compose existing templates and impo
     let {
       PubSub,
     } = await import('/core/PubSub.js');
-    return PubSub.getCtx('ROUTER', false) === document.querySelector('sym-router').localCtx;
+    return PubSub.getCtx('ROUTER', false) === document.querySelector('sym-router').localCtx
+      && PubSub.getCtx('PANEL_tasks', false) === null;
   })).toBe(true);
+  await page.evaluate(() => {
+    let owner = document.querySelector('sym-router');
+    owner.$.routes = {
+      ...owner.$.routes,
+      settings: {
+        ...owner.$.routes.settings,
+        src: '/updated-panel.html',
+      },
+    };
+  });
+  await expect(page.getByText('Imported updated', {
+    exact: true,
+  })).toBeVisible();
+  expect(await page.evaluate(() => {
+    let owner = document.querySelector('sym-router');
+    try {
+      owner.$.routes = {
+        settings: {
+          src: 42,
+        },
+      };
+    } catch (error) {
+      return error instanceof TypeError;
+    }
+    return false;
+  })).toBe(true);
+  await expect(page.locator('sym-import')).toHaveAttribute('src', '/updated-panel.html');
+  await page.evaluate(() => {
+    history.pushState(null, '', '?unknown&src=%2Funtrusted-panel.html');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page.getByText('Imported missing', {
+    exact: true,
+  })).toBeVisible();
+  expect(await importer.evaluate((element) => element === document.querySelector('sym-import'))).toBe(true);
+  expect(requested).toEqual([
+    'tasks',
+    'settings',
+    'updated',
+    'missing',
+  ]);
 });
 
 test('direct query URLs and browser Back/Forward use the native history state', async ({
@@ -218,6 +268,13 @@ test('replacing routes clears the previous native mode and reconnecting does not
     await AppRouter.navigate('settings');
     let notifications = calls;
     subscription.remove();
+    let source = owner.$['+src'];
+    owner.remove();
+    owner.destroy();
+    document.body.append(owner);
+    await new Promise(queueMicrotask);
+    await new Promise(queueMicrotask);
+    let restoredSource = owner.$['+src'];
     owner.$.routes = {
       home: {
         pattern: '/',
@@ -237,12 +294,16 @@ test('replacing routes clears the previous native mode and reconnecting does not
     owner.destroy();
     return {
       notifications,
+      source,
+      restoredSource,
       pathMode,
       queryMode,
       emptyMap: Object.keys(AppRouter.appMap).length === 0,
     };
   })).toEqual({
     notifications: 1,
+    source: '/settings-panel.html',
+    restoredSource: '/settings-panel.html',
     pathMode: true,
     queryMode: true,
     emptyMap: true,
@@ -355,39 +416,82 @@ test('public WebMCP navigation awaits the native asynchronous guard', async ({
   });
 });
 
-test('the routed HTML-only Todo composes use-template, imports and shared data across pages', async ({
+test('the imported routing example navigates within the app and preserves its shell', async ({
   page,
 }) => {
-  await page.goto('/html-app/todo-routed.html');
-  await page.getByRole('textbox', {
-    name: 'New task',
-  }).fill('Routed task');
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.goto('/html-app/examples/full-app.html?routing');
+  let shell = await page.locator('sym-router').elementHandle();
+  await page.getByRole('link', {
+    name: 'Details',
+    exact: true,
+  }).click();
+  await expect(page).toHaveURL(/\/full-app\.html\?routing&source=link&tab=details$/);
+  await expect(page.getByRole('heading', {
+    name: 'Routing',
+    exact: true,
+  })).toBeVisible();
+  expect(await shell.evaluate((element) => element === document.querySelector('sym-router'))).toBe(true);
+  expect(await page.evaluate(() => document.querySelector('sym-router').$.options)).toMatchObject({
+    source: 'link',
+    tab: 'details',
+  });
+  await expect(page.getByText('Source: link / selected tab: details')).toBeVisible();
+  await expect(page.getByText('Details view selected.', {
+    exact: false,
+  })).toBeVisible();
+  await page.getByRole('button', {
+    name: 'Example',
+  }).click();
+  await expect(page.getByText('Source: button / selected tab: example')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByText('Source: link / selected tab: details')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByText('Source: direct / selected tab: example')).toBeVisible();
+});
+
+test('the feature guide shares collection data and persisted preferences across imported sections', async ({
+  page,
+}) => {
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.route('**/assets/tasks.json', (route) => route.fulfill({
+    json: {
+      tasks: [],
+    },
+  }));
+  await page.goto('/html-app/examples/full-app.html');
+  await expect(page.locator('sym-context[ctx="APP"]')).toHaveJSProperty('connectedOnce', true);
+  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+loading'])).toBe(false);
+  await page.getByRole('link', {
+    name: 'Collections',
+    exact: true,
+  }).click();
+  await page.getByPlaceholder('New task').fill('Routed task');
   await page.getByRole('button', {
     name: 'Add task',
   }).click();
-  await expect(page.locator('li')).toHaveCount(1);
-  await page.getByRole('link', {
-    name: 'Settings',
-    exact: true,
-  }).click();
-  await expect(page.getByRole('heading')).toHaveText('Settings');
+  await expect(page.locator('task-card')).toHaveCount(1);
   await page.getByRole('combobox', {
     name: 'Task order',
   }).selectOption('desc');
+  await page.getByRole('link', {
+    name: 'Browser storage',
+    exact: true,
+  }).click();
+  await expect(page.locator('h1')).toHaveText('Browser storage');
   await page.getByRole('button', {
     name: 'Save in this browser',
   }).click();
   await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+storageDirty'])).toBe(false);
   await page.reload();
-  await expect(page.getByRole('heading')).toHaveText('Settings');
-  await expect(page.getByRole('combobox')).toHaveValue('desc');
+  await expect(page.locator('h1')).toHaveText('Browser storage');
   await page.getByRole('link', {
-    name: 'Tasks',
+    name: 'Collections',
     exact: true,
   }).click();
-  await expect(page.locator('li')).toHaveCount(1);
-  await expect(page.getByRole('textbox', {
-    name: 'Title',
-    exact: true,
-  })).toHaveValue('Routed task');
+  await expect(page.getByRole('combobox', {
+    name: 'Task order',
+  })).toHaveValue('desc');
+  await expect(page.locator('task-card')).toHaveCount(1);
+  await expect(page.locator('task-card input[name="title"]')).toHaveValue('Routed task');
 });

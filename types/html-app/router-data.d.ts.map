@@ -1,1 +1,1 @@
-{"version":3,"file":"router-data.d.ts","sourceRoot":"","sources":["../../html-app/router-data.js"],"names":[],"mappings":"AAOA,kCAHW,OAAO,GACL,cAAc,sBAAsB,EAAE,SAAS,CAAC,MAAM,CAyClE"}
+{"version":3,"file":"router-data.d.ts","sourceRoot":"","sources":["../../html-app/router-data.js"],"names":[],"mappings":"AAOA,kCAHW,OAAO,GACL,cAAc,sBAAsB,EAAE,SAAS,CAAC,MAAM,GAAG,MAAM,CAAC,MAAM,EAAE;IAAE,GAAG,CAAC,EAAE,MAAM,CAAA;CAAE,CAAC,CA4CrG"}

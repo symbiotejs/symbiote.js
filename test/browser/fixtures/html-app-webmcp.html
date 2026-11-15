@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HTML-app WebMCP activation</title>
+  <script type="module" src="/html-app/index.js" webmcp-mode="true"></script>
+</head>
+<body>
+  <sym-context ctx="HTML_ACTIONS">
+    <script type="application/json">
+      {
+        "flag": false,
+        "importedFlag": false,
+        "items": [{"id": "first", "title": "First item"}]
+      }
+    </script>
+    <button type="button" bind="onclick: [toggle]flag">Toggle flag</button>
+    <output>{{flag}}</output>
+    <sym-collection data="HTML_ACTIONS/items">
+      <ul itemize="items">
+        <template>
+          <li>{{title}}<button type="button" bind="onclick: [item-remove]">Remove item</button></li>
+        </template>
+      </ul>
+    </sym-collection>
+    <sym-import src="./html-app-webmcp-fragment.html"></sym-import>
+  </sym-context>
+</body>
+</html>

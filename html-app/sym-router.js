@@ -1,6 +1,7 @@
 import { AppRouter } from '../core/AppRouter.js';
 import { SymContext } from './sym-context.js';
 import { routingMap } from './router-data.js';
+import { isDataKey } from './initial-data.js';
 
 /** @type {SymRouter | undefined} */
 let activeRouter;
@@ -21,8 +22,22 @@ export class SymRouter extends SymContext {
       throw new TypeError('sym-router requires a ctx name.');
     }
     this.checkOwnership();
-    routingMap(this.localCtx.read('routes'));
+    if (this.localCtx.has('routes')) {
+      routingMap(this.localCtx.read('routes'));
+    } else if (!this.getAttribute('src')?.trim()) {
+      throw new TypeError('sym-router requires routes or a JSON src.');
+    }
     super.prepare();
+    this.localCtx.add('+src', () => {
+      // Fragment sources come from the validated map, never URL options.
+      let routes = /** @type {ReturnType<typeof routingMap>} */ (AppRouter.appMap);
+      return routes[this.$.route]?.src ?? '';
+    }, true);
+    this.localCtx.add('+params', () => Object.fromEntries(Object.entries(this.$.options ?? {}).filter(([
+      key,
+      value,
+    ]) => isDataKey(key) && (value === null || typeof value === 'string' || typeof value === 'boolean'
+      || typeof value === 'number' && Number.isFinite(value)))), true);
   }
 
   checkOwnership() {
@@ -38,8 +53,6 @@ export class SymRouter extends SymContext {
       return;
     }
     this.checkOwnership();
-    let routes = routingMap(this.$.routes);
-    AppRouter.setRoutingMap(routes, true);
     this.#controller = new AbortController();
     activeRouter = this;
     this.localCtx.add('__htmlAppNavigate', (route, options) => {
@@ -47,14 +60,27 @@ export class SymRouter extends SymContext {
         return AppRouter.navigate(route, options);
       }
     }, true);
-    AppRouter.initRoutingCtx(this.getAttribute('ctx').trim(), {}, {
-      signal: this.#controller.signal,
-    });
+    let initialized = false;
     this.#subscription = this.sub('routes', () => {
       let routes = routingMap(this.$.routes);
       AppRouter.setRoutingMap(routes, true);
-      void AppRouter.notify();
-    }, false);
+      if (initialized) {
+        void AppRouter.notify();
+      } else {
+        initialized = true;
+        AppRouter.initRoutingCtx(this.getAttribute('ctx').trim(), {}, {
+          signal: this.#controller.signal,
+        });
+      }
+    }, this.localCtx.has('routes'));
+  }
+
+  /** @param {Record<string, unknown>} data */
+  mergeSource(data) {
+    if (Object.hasOwn(data, 'routes') || !this.localCtx.has('routes')) {
+      routingMap(data.routes);
+    }
+    super.mergeSource(data);
   }
 
   disconnectedCallback() {
@@ -69,6 +95,12 @@ export class SymRouter extends SymContext {
       activeRouter = undefined;
     }
     super.disconnectedCallback();
+  }
+
+  destroyCallback() {
+    this.localCtx.delete('+src');
+    this.localCtx.delete('+params');
+    super.destroyCallback();
   }
 }
 

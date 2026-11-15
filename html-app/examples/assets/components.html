@@ -1,0 +1,25 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>sym-component reg</code> registers an authored template as a custom element. Each instance gets independent JSON defaults and local state. The declaration and ordinary components both accept native <code>use-template</code> references.</p>
+  <div class="grid gap-5 lg:grid-cols-2">
+    <feature-note class="panel block">
+      <script type="application/json">{"title": "First instance", "message": "This instance owns its expanded state."}</script>
+    </feature-note>
+    <feature-note class="panel block">
+      <script type="application/json">{"title": "Second instance", "message": "Opening the other instance does not change this one."}</script>
+    </feature-note>
+  </div>
+  <sym-component use-template="#notice-template"></sym-component>
+</section>
+
+<sym-component reg="feature-note" use-template="#feature-note-template"></sym-component>
+<template id="feature-note-template">
+  <script type="application/json">{"title": "Note", "message": "", "expanded": false}</script>
+  <div class="grid gap-4">
+    <h2 class="font-semibold">{{title}}</h2>
+    <button type="button" bind="onclick: [toggle]expanded">Toggle details</button>
+    <sym-conditional when="^expanded"><p class="text-sm text-muted">{{^message}}</p></sym-conditional>
+  </div>
+</template>
+<template id="notice-template">
+  <div class="panel text-sm text-muted">This notice uses an extracted template without registering another tag.</div>
+</template>

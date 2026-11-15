@@ -1,0 +1,29 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>show</code> and <code>hide</code> retain the same DOM and input drafts. <code>dom-add</code> and <code>dom-remove</code> dispose inactive content; returning creates fresh controls. Boolean <code>is="true"</code> is typed, while other literal comparisons are strings.</p>
+  <sym-context ctx="CONDITIONS">
+    <script type="application/json">{"open": true, "status": "review"}</script>
+    <div class="panel field-row mb-5 flex-wrap">
+      <button type="button" class="primary" bind="onclick: [toggle]open">Toggle open</button>
+      <label class="field-row whitespace-nowrap">Status<select class="w-auto" bind="value: status; onchange: [pub-to]status"><option>review</option><option>published</option></select></label>
+      <sym-conditional when="CONDITIONS/status" is="published"><span class="text-sm text-accent">Published status matched.</span></sym-conditional>
+    </div>
+    <div class="grid gap-5 lg:grid-cols-2">
+      <div class="panel grid content-start gap-3">
+        <h2 class="font-semibold">show</h2>
+        <sym-conditional when="CONDITIONS/open" is="true"><input placeholder="Kept while hidden"></sym-conditional>
+      </div>
+      <div class="panel grid content-start gap-3">
+        <h2 class="font-semibold">hide</h2>
+        <sym-conditional when="CONDITIONS/open" is="true" behavior="hide"><input placeholder="Kept in the inverse view"></sym-conditional>
+      </div>
+      <div class="panel grid content-start gap-3">
+        <h2 class="font-semibold">dom-add</h2>
+        <sym-conditional when="CONDITIONS/open" is="true" behavior="dom-add"><input placeholder="Fresh after remount"></sym-conditional>
+      </div>
+      <div class="panel grid content-start gap-3">
+        <h2 class="font-semibold">dom-remove</h2>
+        <sym-conditional when="CONDITIONS/open" is="true" behavior="dom-remove"><input placeholder="Fresh in the inverse view"></sym-conditional>
+      </div>
+    </div>
+  </sym-context>
+</section>

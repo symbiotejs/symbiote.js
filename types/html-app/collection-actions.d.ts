@@ -5,7 +5,7 @@ export function prepareCollectionAction(owner: import("./BaseClass.js").BaseClas
     after?: undefined;
 } | {
     target: import("../core/parseProp.js").ParsedProp;
-    value: Record<string, any>[];
+    value: any;
     after: () => void;
     resolve: () => import("../core/parseProp.js").ParsedProp;
 };

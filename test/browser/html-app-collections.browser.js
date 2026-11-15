@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.beforeEach(async ({
   page,
 }) => {
-  await page.goto('/html-app/todo-ref.html');
+  await page.goto('/test/browser/fixtures/html-app-todo.html');
   await expect(page.locator('sym-collection')).toHaveJSProperty('connectedOnce', true);
 });
 
@@ -16,6 +16,116 @@ async function addTask(page, title) {
     name: 'Add task',
   }).click();
 }
+
+test('Collections loads external JSON and saves edits in local storage without an API', async ({
+  page,
+}) => {
+  let record = {
+    id: 'saved-task',
+    title: 'Original task',
+    note: '',
+    done: false,
+    pinned: false,
+  };
+  let apiRequests = [];
+  let sourceRequests = 0;
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.route('**/api/tasks', (route) => {
+    apiRequests.push(route.request().method());
+    return route.fulfill({
+      status: 404,
+    });
+  });
+  await page.route('**/assets/tasks.json', (route) => {
+    sourceRequests++;
+    return route.fulfill({
+      json: {
+        tasks: [
+          record,
+        ],
+      },
+    });
+  });
+  await page.route('https://example.test/tasks.json', (route) => route.fulfill({
+    headers: {
+      'access-control-allow-origin': '*',
+    },
+    json: {
+      tasks: [
+        {
+          ...record,
+          title: 'External task',
+        },
+      ],
+    },
+  }));
+  await page.goto('/html-app/examples/full-app.html?collections');
+  let title = page.locator('task-card input[name="title"]');
+  await expect(title).toHaveValue('Original task');
+  await page.locator('main').getByRole('link', {
+    name: 'JSON requests',
+    exact: true,
+  }).click();
+  let source = page.getByRole('textbox', {
+    name: 'JSON source',
+    exact: true,
+  });
+  await source.fill('https://example.test/tasks.json');
+  await source.blur();
+  await expect(page.locator('main li')).toHaveText('External task');
+  await page.locator('aside').getByRole('link', {
+    name: 'Collections',
+    exact: true,
+  }).click();
+  await expect(title).toHaveValue('External task');
+  let save = page.getByRole('button', {
+    name: 'Save tasks',
+    exact: true,
+  });
+  let snapshot = () => page.evaluate(() => JSON.parse(localStorage.getItem(
+    document.querySelector('sym-context[ctx="APP"]').getAttribute('storage-key'),
+  )));
+  await title.fill('   ');
+  await save.click();
+  expect(await snapshot()).toBeNull();
+  await title.fill('Edited task');
+  await expect(page.getByText('Changes are not saved in this browser.', {
+    exact: true,
+  })).toBeVisible();
+  await page.evaluate(() => {
+    let nativeSet = Storage.prototype.setItem;
+    let key = document.querySelector('sym-context[ctx="APP"]').getAttribute('storage-key');
+    Storage.prototype.setItem = function (name, value) {
+      if (name === key) {
+        Storage.prototype.setItem = nativeSet;
+        throw new DOMException('Storage quota reached.', 'QuotaExceededError');
+      }
+      return nativeSet.call(this, name, value);
+    };
+  });
+  await save.click();
+  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+storageError']?.code)).toBe('STORAGE_QUOTA');
+  let message = await page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+storageErrorMessage']);
+  await expect(page.getByText(message, {
+    exact: true,
+  })).toBeVisible();
+  await expect(title).toHaveValue('Edited task');
+  await save.click();
+  await expect(page.getByText('No unsaved browser changes.', {
+    exact: true,
+  })).toBeVisible();
+  expect((await snapshot()).data.tasks).toEqual([
+    {
+      ...record,
+      title: 'Edited task',
+    },
+  ]);
+  await page.reload();
+  await expect(title).toHaveValue('Edited task');
+  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+loading'])).toBe(false);
+  expect(sourceRequests).toBe(2);
+  expect(apiRequests).toEqual([]);
+});
 
 test('HTML-only Todo creates records dynamically, flushes drafts and resets after valid submission', async ({
   page,

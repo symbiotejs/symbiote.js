@@ -122,7 +122,7 @@ for (let mode of [
     await page.goto('/');
     await page.evaluate(async (mode) => {
       await import('/html-app/index.js');
-      let source = await (await fetch('/html-app/todo-ref.html')).text();
+      let source = await (await fetch('/test/browser/fixtures/html-app-todo.html')).text();
       let parsed = new DOMParser().parseFromString(source, 'text/html');
       let list = parsed.querySelector('ul[itemize]');
       let template = list.querySelector('template');
