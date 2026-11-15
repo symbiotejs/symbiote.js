@@ -1,6 +1,7 @@
 import { isDataKey, initialDefaults } from './initial-data.js';
 import { cloneData, validateJSON } from './collection-data.js';
 import { SourceError } from './fetch-source.js';
+import { validateValue } from './action-data.js';
 
 export class ContextData {
   keys = new Set();
@@ -123,11 +124,11 @@ export class ContextData {
     };
   }
 
-  snapshot() {
-    let keys = this.selected();
+  /** @param {string[]} [keys] */
+  snapshot(keys = this.selected()) {
     if (!keys.length || new Set(keys).size !== keys.length
       || keys.some((key) => !isDataKey(key) || !this.keys.has(key))) {
-      throw new SourceError('INVALID_DATA', 'sync-keys must select known public data fields.');
+      throw new SourceError('INVALID_DATA', 'Selected fields must be known public data fields.');
     }
     let data = Object.fromEntries(keys.map((key) => [
       key,
@@ -158,6 +159,23 @@ export class ContextData {
       }
     }
     this.owner.requests.publish();
+  }
+
+  /** @param {Record<string, unknown>} data */
+  validate(data) {
+    for (let [
+      key,
+      value,
+    ] of Object.entries(data)) {
+      if (!isDataKey(key)) {
+        throw new SourceError('INVALID_DATA', 'Source keys must be public data fields.');
+      }
+      if (this.owner.localCtx.has(key)) {
+        let current = this.owner.localCtx.read(key);
+        validateJSON(current);
+        validateValue(current, value);
+      }
+    }
   }
 
   invalidate() {

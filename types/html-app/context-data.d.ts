@@ -17,12 +17,15 @@ export class ContextData {
     intent(key: string, value: unknown): {
         remove: () => void;
     };
-    snapshot(): {
-        data: any;
+    snapshot(keys?: string[]): {
+        data: {
+            [k: string]: any;
+        };
         revision: number;
-        versions: Map<any, number>;
+        versions: Map<string, number>;
     };
     acknowledge(revision: number, versions: Map<string, number>): void;
+    validate(data: Record<string, unknown>): void;
     invalidate(): void;
 }
 //# sourceMappingURL=context-data.d.ts.map

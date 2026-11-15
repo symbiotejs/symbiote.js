@@ -19,19 +19,26 @@ export class ActionBindings {
         runtime: ActionBindings;
         version: number;
     };
-    activate(binding: Binding, event?: ActionEvent): Promise<{
+    activate(binding: Binding, event?: ActionEvent): {
         ok: boolean;
         error: {
-            operation: "load" | "sync";
+            operation: string;
             code: string;
             message: string;
-            status: number;
+            status: any;
         };
-    } | {
+    } | Promise<{
         ok: boolean;
         operation: string;
         revision: number;
-        dirty: boolean;
+    } | {
+        ok: boolean;
+        error: {
+            operation: string;
+            code: string;
+            message: string;
+            status: any;
+        };
     } | {
         ok: boolean;
         cancelled: boolean;
@@ -52,6 +59,15 @@ export class ActionBindings {
         ok: boolean;
         cancelled: boolean;
     }> | {
+        ok: boolean;
+        operation: string;
+        found: boolean;
+        applied: string[];
+        retained: any[];
+    } | {
+        ok: boolean;
+        cancelled: boolean;
+    } | {
         changed: boolean;
         pending?: undefined;
     } | {

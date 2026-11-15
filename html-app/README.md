@@ -1,6 +1,6 @@
 # Symbiote HTML-app foundation
 
-Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection` and `sym-conditional` and leaves the core entry independent.
+Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection`, `sym-conditional` and `sym-import` and leaves the core entry independent.
 
 ## Load the foundation
 
@@ -191,3 +191,52 @@ Register an autonomous custom element from a direct template or a native `use-te
 - URL changes and disconnection abort active requests and ignore stale results. Useful data and drafts survive failures. Aborting a write stops client acknowledgment; it cannot undo a request already received by the server.
 - URLs must use HTTP(S) without embedded credentials. Requests use same-origin credentials, normal browser CORS and no redirects. The default timeout is 15 seconds and maximum request/response size is 1 MiB; set positive integer `request-timeout` (milliseconds) and `max-bytes` limits when needed. Loading and saving are suppressed during SSR.
 - Source and saved data follow the JSON-only field contract. Reserved keys, handler replacements and incompatible known value types are rejected. The endpoint remains responsible for authorization, application validation, persistence and CSRF protection.
+
+## HTML fragments
+
+[The modular Todo](./todo-import.html) imports reusable [task controls](./fragments/todo.html) and [settings](./fragments/settings.html). It runs with an HTTP static server and saves selected data explicitly in the current browser.
+
+```html
+<sym-import src="./fragments/settings.html">
+  <p>Loading settings...</p>
+</sym-import>
+```
+
+- `sym-import` fetches an authored HTML fragment and replaces its content through native Symbiote bindings. It adds no presentation styles. Local bindings share the import owner's context; nested components own their contexts normally. Incoming `$`, outgoing `pub-map`, context providers, declarations and Itemize work inside imported content.
+- Local `+loading`, `+loadError` and `+loadErrorMessage` provide the same request-state shape as JSON loading. A successful `load` event includes the resolved `url`; failure emits `error`. Bind these events on the import element from its parent owner. Each load clears its previous error. Changing `src` or disconnecting aborts old requests; canceled results do not publish or emit errors.
+- Request or template-validation failure retains the previous fragment and drafts. Successful replacement immediately disposes only the old fragment's actions, pending publications, references, subscriptions and named contexts. Outer bindings stay connected. `process-inner-html="false"` leaves the fragment's ordinary markup unprocessed while nested owners still initialize.
+- Relative HTML URL attributes, source sets and nested JSON/import URLs resolve against the containing fragment URL. Fragment-only links such as `#panel` keep targeting the composed document. CSS `url()` values retain normal browser behavior; use absolute URLs in imported inline styles. Cycles fail explicitly, and nesting stops at 16 fragments.
+- The shared Fetch limits, same-origin credentials, CORS and redirect rules apply. Responses must use `text/html`; imports do not run during SSR.
+- Import only trusted application templates. Executable scripts, native `on*` attributes, executable URL schemes, embedded frames/plugins and document metadata are rejected, including inside templates. Inert `application/json` scripts are supported. HTTP(S) URL attributes are accepted; `href` also accepts `mailto:` and `tel:`. Declarative bindings and custom elements are active application behavior: these checks are not a sanitizer for arbitrary third-party HTML. Use a reviewed sanitization path for untrusted content instead.
+
+## Optional browser persistence
+
+Opt in with both a storage key and an explicit comma-separated field list. Nothing is written automatically, and backend `sync` never falls back to browser storage.
+
+```html
+<sym-context ctx="APP" storage-key="document-draft" storage-keys="title">
+  <script type="application/json">{"title":"Untitled"}</script>
+  <form bind="onsubmit: [persist]APP">
+    <label>Title
+      <input bind="value: title; oninput: [pub-to-200]title">
+    </label>
+    <button type="submit">Save in this browser</button>
+  </form>
+  <button type="button" bind="onclick: [restore]APP">Restore browser data</button>
+  <p role="alert" bind="textContent: +storageErrorMessage"></p>
+  <sym-conditional when="APP/+storageConflict">
+    <p>Another tab changed the saved data. Choose which version to keep.</p>
+    <button type="button" bind="onclick: [restore]APP">Use saved data</button>
+    <button type="button" action-overwrite bind="onclick: [persist]APP">Keep this draft</button>
+  </sym-conditional>
+</sym-context>
+```
+
+- On first connection, selected stored fields restore before `src` starts. Incoming `$` fields and edits or pending drafts win over stored fields; accepted stored fields win over fetched defaults; fetched data wins over inline defaults. A move or reconnection keeps the current draft and checks for intervening storage changes.
+- `[persist]APP` writes only `storage-keys`. Use a native form to validate and flush debounced controls first; pending selected edits outside that form cause `PENDING_DRAFT` rather than saving an older value. Local persistence never clears backend dirty state or acknowledges `savedRevision`.
+- `[restore]APP` explicitly accepts the selected stored fields, discarding their unbound drafts and canceling their pending publications. Incoming bound fields and unselected data remain. A missing entry retains current data. Restoring does not claim backend synchronization.
+- `+storageDirty` tracks selected changes since local persistence/restoration, including pending edits. `+storageConflict` reports a changed storage entry without automatically replacing or merging data. `+storageError` has `operation`, `code`, `message` and null `status`; `+storageErrorMessage` is its text form. Successful operations emit `persist` or `restore`, and failures emit `error`.
+- Normal persistence refuses changed or invalid entries. An explicit persist control with the boolean `action-overwrite` attribute replaces that entry deliberately. Other tabs receive conflicts through the native [storage event](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event). Writes recheck the entry under a [Web Lock](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API), serializing participating writers; unrelated code must cooperate with the same lock to obtain this guarantee.
+- Persistence requires Web Locks in a secure context, such as HTTPS or loopback HTTP. Missing support reports `LOCK_UNAVAILABLE`; no unsafe write fallback is selected. Blocked access, quota failures and invalid or incompatible envelopes leave current data intact. Reconfiguration, Restore and disconnection cancel queued writes.
+- The version-1 envelope contains `version`, a unique `revision`, `keys` and `data`. The property set must match `storage-keys` exactly, with compatible known field types. Invalid JSON, unsafe keys and incompatible versions fail visibly; there is no automatic migration. `max-bytes` also bounds storage envelopes, using the same 1 MiB default as requests.
+- Storage is scoped to the browser origin and is accessible to that origin's scripts. Choose distinct application keys and select only appropriate non-secret data. This is optional local persistence, not backup, a database, or cross-device synchronization. Storage access is suppressed during SSR.

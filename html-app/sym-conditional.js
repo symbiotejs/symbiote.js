@@ -1,32 +1,7 @@
-import Symbiote from '../core/Symbiote.js';
 import BaseClass from './BaseClass.js';
+import { FragmentContent, disposeContent } from './fragment-content.js';
 import { dataReference } from './action-data.js';
 import { conditionState } from './conditions.js';
-
-// A separate native owner lets DOM modes dispose only the conditional content.
-// Sharing the controller's context keeps authored local bindings in the same scope.
-class ConditionalContent extends BaseClass {
-  /** @type {import('../core/PubSub.js').PubSub | undefined} */
-  context;
-
-  get localCtx() {
-    return this.context ?? super.localCtx;
-  }
-}
-ConditionalContent.reg();
-
-/** @param {Element} element */
-function disposeContent(element) {
-  for (let child of [
-    ...element.children,
-    ...(element.shadowRoot?.children || []),
-  ]) {
-    disposeContent(child);
-  }
-  if (element instanceof Symbiote) {
-    element.destroy();
-  }
-}
 
 export class SymConditional extends BaseClass {
   static observedAttributes = [
@@ -42,7 +17,7 @@ export class SymConditional extends BaseClass {
   #subscription;
   /** @type {DocumentFragment | undefined} */
   #blueprint;
-  /** @type {ConditionalContent | undefined} */
+  /** @type {FragmentContent | undefined} */
   #content;
   #active = false;
 
@@ -124,7 +99,7 @@ export class SymConditional extends BaseClass {
     if (dom && !visible) {
       this.unmount();
     } else if (!this.#content) {
-      let content = new ConditionalContent();
+      let content = new FragmentContent();
       content.context = this.localCtx;
       content.style.display = 'contents';
       content.append(this.#blueprint.cloneNode(true));

@@ -180,13 +180,15 @@ BaseClass.rootStyles = css`
   sym-component,
   sym-context,
   sym-collection,
-  sym-conditional {
+  sym-conditional,
+  sym-import {
     display: contents;
   }
   sym-component[hidden],
   sym-context[hidden],
   sym-collection[hidden],
   sym-conditional[hidden],
+  sym-import[hidden],
   sym-component[reg] {
     display: none;
   }
