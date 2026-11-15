@@ -95,6 +95,9 @@ myDataCtx.multiPub({
 
 ### sub()
 
+Subscriptions normally require an existing key. Pass a fourth argument `true` to wait for a key without creating it: `context.sub('lateField', handler, true, true)`. No initial callback runs until that field exists. The returned `remove()` method is idempotent. Component `this.sub()` uses this waiting behavior, supports a named context registered later, returns a remover, and releases pending subscriptions during teardown.
+
+
 Subscribe to property changes.
 
 | Argument | Type | Required | Description |

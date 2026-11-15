@@ -1,8 +1,42 @@
 import { PubSub } from '../core/PubSub.js';
 import BaseClass from './BaseClass.js';
 import { initialDefaults, isDataKey } from './initial-data.js';
+import { ContextData } from './context-data.js';
+import { ContextRequests } from './context-requests.js';
 
 export class SymContext extends BaseClass {
+  static observedAttributes = [
+    ...BaseClass.observedAttributes,
+    'src',
+    'sync',
+    'sync-method',
+    'sync-keys',
+    'request-timeout',
+    'max-bytes',
+  ];
+  contextData = new ContextData(this);
+  requests = new ContextRequests(this);
+
+  /**
+   * @param {string} name
+   * @param {string | null} previous
+   * @param {string | null} value
+   */
+  attributeChangedCallback(name, previous, value) {
+    if (name === 'pub-map') {
+      super.attributeChangedCallback(name, previous, value);
+    } else if (previous !== value) {
+      this.requests.configure(name);
+    }
+  }
+
+  connectFoundation() {
+    super.connectFoundation();
+    if (this.isConnected && this.connectedOnce && !this.requests.connected) {
+      this.requests.connect();
+    }
+  }
+
   /** @type {PubSub | undefined} */
   #provided;
   #name = '';
@@ -32,6 +66,7 @@ export class SymContext extends BaseClass {
       this.#provided = PubSub.registerCtx(initial, name);
       initialDefaults.set(this.#provided, initialDefaults.get(super.localCtx) || {});
     }
+    this.requests.setup();
   }
 
   /**
@@ -40,6 +75,12 @@ export class SymContext extends BaseClass {
    * @param {boolean} [rewrite]
    */
   add$(values, rewrite = false) {
+    this.contextData.incoming(values);
+    for (let key of Object.keys(values)) {
+      if (isDataKey(key) && !this.#watched.has(key)) {
+        this.contextData.changed(key, this.localCtx.has(key) ? this.localCtx.read(key) : undefined, values[key]);
+      }
+    }
     this.#merging = true;
     try {
       super.add$(values, rewrite);
@@ -78,6 +119,7 @@ export class SymContext extends BaseClass {
   publishData(key, value) {
     let previous = this.#values.get(key);
     this.#values.set(key, value);
+    this.contextData.changed(key, previous, value);
     let target = this.getAttribute('pub-to')?.trim();
     if (this.#merging || !this.isConnected || !target || Object.is(previous, value)) { return; }
     let resolved = this.Symbiote.parseProp(target, this);
@@ -92,7 +134,23 @@ export class SymContext extends BaseClass {
     this.$[target] = data;
   }
 
+  /** @param {Record<string, unknown>} data */
+  mergeSource(data) {
+    this.contextData.applying = true;
+    try {
+      this.$ = data;
+    } finally {
+      this.contextData.applying = false;
+    }
+  }
+
+  disconnectedCallback() {
+    this.requests.disconnect();
+    super.disconnectedCallback();
+  }
+
   destroyCallback() {
+    this.requests.destroy();
     super.destroyCallback();
     if (this.#provided && PubSub.getCtx(this.#name, false) === this.#provided) {
       PubSub.deleteCtx(this.#name);

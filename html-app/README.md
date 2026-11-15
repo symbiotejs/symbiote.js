@@ -162,3 +162,32 @@ Register an autonomous custom element from a direct template or a native `use-te
 - `dom-add` mounts when matched; `dom-remove` removes when matched. Both dispose inactive content immediately, including its actions, pending edits, subscriptions and owned contexts. A later mount creates fresh content from the authored template.
 - Inactive content is hidden and inert. Local bindings retain the conditional owner's context. Nested components keep their own contexts. Attribute changes rebind the condition without retaining old subscriptions.
 - Native `use-template` and `process-inner-html="false"` remain available. No expression evaluation, additional styling or action-chain syntax is introduced.
+
+## JSON sources and explicit synchronization
+
+[The networked Todo](./todo-sync.html) uses the same HTML-only controls with a server API. Serve it beside an endpoint implementing GET and PUT at `/api/tasks`, returning an object such as `{"tasks":[]}`. The package does not supply a database or application server.
+
+```html
+<sym-context ctx="APP" src="/api/document" sync="/api/document" sync-keys="title">
+  <script type="application/json">{"title":""}</script>
+  <form bind="onsubmit: [sync]APP">
+    <label>Title
+      <input required bind="value: title; oninput: [pub-to-200]title">
+    </label>
+    <button type="submit" bind="disabled: APP/+busy">Save</button>
+  </form>
+  <button type="button" bind="onclick: [load]APP; disabled: APP/+busy">Reload</button>
+  <p role="alert" bind="textContent: APP/+syncErrorMessage"></p>
+</sym-context>
+```
+
+- `src` automatically loads a JSON object with GET. `[load]APP` refreshes the named provider explicitly. Named references can bind before fetched fields arrive; use named references for source-only properties because pop-up lookup requires a declared ancestor field.
+- Inline JSON initializes defaults. Fetched values merge through native `$` and override unchanged defaults; omitted fields remain. Incoming object-binding keys, published edits and pending debounced edits stay authoritative. A successful `load` event reports `applied` and `retained` field names in its detail.
+- `sync` alone never writes. `[sync]APP` clones the provider's public JSON data and sends PUT. `sync-method="POST"` or `PATCH` selects an existing endpoint contract. A 204 response or valid JSON acknowledges the submitted snapshot; response data is not merged into newer local edits.
+- `sync-keys` selects comma-separated public fields. Omit it to save JSON fields supplied by defaults, fetched data, incoming merges or authored edits. Prefer an explicit selection when UI state shares the provider. Handler functions, descriptors, computed values and request metadata are excluded; invalid selected data fails before a request is sent.
+- Save through a native form to validate controls and flush pending publications before the snapshot. Concurrent saves share the pending request; newer edits require another explicit save. Starting the other operation while loading or saving reports `BUSY`. Writes are never retried automatically.
+- Request state uses reserved computed properties: `+loading`, `+saving`, `+busy`, `+dirty`, `+revision` and `+savedRevision`. Revisions track selected data changes; dirty state includes pending local edits. Only a successful write acknowledges a submitted revision. A late acknowledgment leaves newer edits dirty.
+- `+loadError` and `+syncError` are separate structured errors with `operation`, `code`, `message` and nullable HTTP `status`. Their `+loadErrorMessage` and `+syncErrorMessage` counterparts are text bindings. Successful operations emit `load` or `sync`; failures emit `error`. Cancellation does not report a request failure.
+- URL changes and disconnection abort active requests and ignore stale results. Useful data and drafts survive failures. Aborting a write stops client acknowledgment; it cannot undo a request already received by the server.
+- URLs must use HTTP(S) without embedded credentials. Requests use same-origin credentials, normal browser CORS and no redirects. The default timeout is 15 seconds and maximum request/response size is 1 MiB; set positive integer `request-timeout` (milliseconds) and `max-bytes` limits when needed. Loading and saving are suppressed during SSR.
+- Source and saved data follow the JSON-only field contract. Reserved keys, handler replacements and incompatible known value types are rejected. The endpoint remains responsible for authorization, application validation, persistence and CSRF protection.

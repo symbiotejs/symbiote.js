@@ -14,7 +14,7 @@ export class PubSub<T extends Record<string, unknown>> {
     multiPub(updObj: T): void;
     delete(prop: keyof T): void;
     notify(prop: keyof T, val: any): void;
-    sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean): {
+    sub(prop: keyof T, callback: (val: unknown) => void, init?: boolean, wait?: boolean): {
         remove: () => void;
         callback: (val: unknown) => void;
     };

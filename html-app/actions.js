@@ -2,6 +2,7 @@ import { DICT } from '../core/dictionary.js';
 import { ownElements } from '../core/ownElements.js';
 import { controlValue, parseAction, resolveData, unavailable, validateValue } from './action-data.js';
 import { prepareCollectionAction } from './collection-actions.js';
+import { contextRequests, observeDataTarget } from './context-requests.js';
 /**
  * @typedef {Object} ActionEvent
  * @property {boolean} [defaultPrevented]
@@ -247,6 +248,9 @@ export class ActionBindings {
       };
     }
     let operation = binding.action.operation;
+    if (operation === 'load' || operation === 'sync') {
+      return contextRequests(binding.action.reference)[operation]();
+    }
     if (operation === 'item-pub' && Reflect.get(element, 'validity')?.valid === false) {
       return {
         changed: false,
@@ -311,11 +315,18 @@ export class ActionBindings {
       if (Object.is(before, value)) {
         return false;
       }
+      observeDataTarget(latest);
       latest.ctx.pub(latest.name, value);
       prepared?.after?.();
       return true;
     };
     if (binding.action.delay) {
+      if (!Object.is(before, value)) {
+        let intent = observeDataTarget(target)?.intent(target.name, value);
+        if (intent) {
+          binding.subscriptions.push(intent);
+        }
+      }
       binding.pending = commit;
       let subscription = target.ctx.sub(target.name, () => this.cancel(binding), false);
       if (subscription) {

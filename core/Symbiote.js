@@ -268,40 +268,57 @@ export class Symbiote extends HTMLElement {
    */
   sub(prop, handler, init = true) {
     let subCb = (val) => {
-      if (this.#noInit) {
-        return;
+      if (!this.#noInit) {
+        handler(val);
       }
-      handler(val);
     };
-    let parsed = Symbiote.parseProp(/** @type {string} */ (prop), this);
-    if (!parsed) {
-      // Named context not found — defer subscription
-      let slashIdx = /** @type {string} */ (prop).indexOf('/');
-      if (slashIdx !== -1) {
-        let ctxName = /** @type {string} */ (prop).slice(0, slashIdx);
-        let propName = /** @type {string} */ (prop).slice(slashIdx + 1);
-        if (!PubSub.pendingDeps.has(ctxName)) {
-          PubSub.pendingDeps.set(ctxName, []);
+    /** @type {{ remove(): void } | null} */
+    let subscription = null;
+    /** @type {(() => void) | undefined} */
+    let pending;
+    let ctxName = '';
+    let removed = false;
+    let release = {
+      remove: () => {
+        if (removed) { return; }
+        removed = true;
+        subscription?.remove();
+        let callbacks = PubSub.pendingDeps.get(ctxName);
+        let index = callbacks?.indexOf(pending) ?? -1;
+        if (index !== -1) {
+          callbacks.splice(index, 1);
+          if (!callbacks.length) { PubSub.pendingDeps.delete(ctxName); }
         }
-        PubSub.pendingDeps.get(ctxName).push(() => {
-          let ctx = PubSub.getCtx(ctxName, false);
-          if (!ctx) return;
-          let sub = ctx.sub(propName, subCb, init);
-          if (sub) {
-            this.allSubs.add(sub);
-          }
-        });
-      }
-      return;
-    }
-    if (!parsed.ctx.has(parsed.name)) {
-      // Avoid *prop binding race:
-      window.queueMicrotask(() => {
-        this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
-      });
+        this.allSubs.delete(release);
+      },
+    };
+    this.allSubs.add(release);
+    let parsed = Symbiote.parseProp(/** @type {string} */ (prop), this);
+    if (parsed) {
+      subscription = parsed.ctx.sub(parsed.name, subCb, init, true);
+      if (removed) { subscription?.remove(); }
     } else {
-      this.allSubs.add(parsed.ctx.sub(parsed.name, subCb, init));
+      let slash = String(prop).indexOf('/');
+      if (slash === -1) {
+        release.remove();
+        return release;
+      }
+      ctxName = String(prop).slice(0, slash);
+      let name = String(prop).slice(slash + 1);
+      pending = () => {
+        if (removed) { return; }
+        let context = PubSub.getCtx(ctxName, false);
+        if (context) {
+          subscription = context.sub(name, subCb, init, true);
+          if (removed) { subscription?.remove(); }
+        }
+      };
+      if (!PubSub.pendingDeps.has(ctxName)) {
+        PubSub.pendingDeps.set(ctxName, []);
+      }
+      PubSub.pendingDeps.get(ctxName).push(pending);
     }
+    return release;
   }
 
   /** @param {String} prop */

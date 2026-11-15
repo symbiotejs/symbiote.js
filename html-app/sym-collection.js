@@ -1,7 +1,7 @@
 import BaseClass from './BaseClass.js';
 import { itemizeProcessor } from '../core/itemizeProcessor.js';
 import { collectionItemsProcessor } from './collection-items.js';
-import { resolveData } from './action-data.js';
+import { dataReference, resolveData } from './action-data.js';
 import { projectCollection } from './collection-data.js';
 
 export class SymCollection extends BaseClass {
@@ -79,8 +79,16 @@ export class SymCollection extends BaseClass {
       subscription.remove();
     }
     this.#subscriptions = [];
+    let reference = this.getAttribute('data');
+    if (!reference) {
+      throw new TypeError('sym-collection requires a data context reference.');
+    }
+    let source = dataReference(this, reference);
+    if (source?.ctx === this.localCtx && source.name === 'items') {
+      throw new TypeError('Collection data must be separate from its derived items.');
+    }
     let references = [
-      this.source(),
+      reference,
     ];
     for (let name of [
       'filter',
@@ -89,29 +97,27 @@ export class SymCollection extends BaseClass {
     ]) {
       let reference = this.getAttribute(name);
       if (reference) {
-        references.push(resolveData(this, reference, true));
+        dataReference(this, reference, true);
+        references.push(reference);
       }
     }
     // Project before installing subscriptions so invalid data never replaces a view.
     this.project();
     for (let reference of references) {
-      let subscription = reference.ctx.sub(reference.name, () => this.project(), false);
-      if (subscription) {
-        this.#subscriptions.push(subscription);
-      }
+      this.#subscriptions.push(this.sub(reference, () => this.project(), false));
     }
   }
 
   project() {
-    let source = this.source();
-    let data = source.ctx.read(source.name);
+    let source = dataReference(this, this.getAttribute('data'));
+    let data = source?.ctx.has(source.name) ? source.ctx.read(source.name) : [];
     let read = (/** @type {string} */ name, /** @type {unknown} */ fallback) => {
       let reference = this.getAttribute(name);
       if (!reference) {
         return fallback;
       }
-      let target = resolveData(this, reference, true);
-      return target.ctx.read(target.name);
+      let target = dataReference(this, reference, true);
+      return target?.ctx.has(target.name) ? target.ctx.read(target.name) : fallback;
     };
     let fields = (this.getAttribute('search-fields') || '').split(',').map((field) => field.trim()).filter(Boolean);
     let items = projectCollection(data, read('filter', {}), read('search', ''), fields, read('sort', null));
