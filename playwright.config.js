@@ -1,4 +1,8 @@
 import { defineConfig } from '@playwright/test';
+import { createFirefoxEnvironment } from './test/helpers/firefox-environment.js';
+
+let firefox = createFirefoxEnvironment();
+process.once('exit', () => firefox.dispose());
 
 export default defineConfig({
   testDir: './test/browser',
@@ -20,6 +24,9 @@ export default defineConfig({
       testMatch: '**/html-app*.browser.js',
       use: {
         browserName: 'firefox',
+        launchOptions: {
+          env: firefox.env,
+        },
       },
     },
     {
