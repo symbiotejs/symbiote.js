@@ -25,6 +25,7 @@ test('routing configuration clones native JSON descriptors and rejects incompati
       title: 'Home',
       default: true,
       screen: 'home',
+      src: './home.html',
     },
   };
   let copy = routingMap(original);
@@ -51,6 +52,11 @@ test('routing configuration clones native JSON descriptors and rejects incompati
     {
       home: {
         title: 2,
+      },
+    },
+    {
+      home: {
+        src: 42,
       },
     },
     {

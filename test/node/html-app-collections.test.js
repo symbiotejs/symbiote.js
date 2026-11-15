@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { appendRecord, collectionData, projectCollection, updateMatching, updateRecord } from '../../html-app/collection-data.js';
+import { appendRecord, prependRecord, collectionData, projectCollection, updateMatching, updateRecord } from '../../html-app/collection-data.js';
 import { parseAction } from '../../html-app/action-data.js';
 
 test('collection actions accept fixed operations and local item fields only', () => {
   for (let source of [
     '[append]APP/tasks',
+    '[prepend]APP/tasks',
     '[patch-matching]^tasks',
     '[remove-matching]*tasks',
     '[item-pub]title',
@@ -21,11 +22,46 @@ test('collection actions accept fixed operations and local item fields only', ()
     '[item-remove]id',
     '[item-remove-20]',
     '[append-10]APP/tasks',
+    '[prepend-10]APP/tasks',
+    '[prepend]',
     '[patch-matching]',
     '[item-pub]__htmlAppAction0',
   ]) {
     assert.throws(() => parseAction(source), TypeError);
   }
+});
+
+test('prepend inserts a cloned record first, preserves existing records and rejects duplicate IDs', () => {
+  let original = Object.freeze([
+    Object.freeze({
+      id: 'existing',
+      title: 'Existing',
+    }),
+  ]);
+  let draft = {
+    title: 'First',
+    labels: [
+      'work',
+    ],
+  };
+  let next = prependRecord(original, draft);
+  assert.equal(next.length, 2);
+  assert.equal(next[0].title, 'First');
+  assert.equal(typeof next[0].id, 'string');
+  assert.equal(next[1], original[0]);
+  assert.notEqual(next[0].labels, draft.labels);
+  assert.equal(Object.hasOwn(draft, 'id'), false);
+  assert.equal(original.length, 1);
+  assert.deepEqual(prependRecord([], {
+    id: 'provided',
+  }), [
+    {
+      id: 'provided',
+    },
+  ]);
+  assert.throws(() => prependRecord(original, {
+    id: 'existing',
+  }), TypeError);
 });
 
 test('immutable operations clone new data, preserve untouched fields and validate before changing state', () => {

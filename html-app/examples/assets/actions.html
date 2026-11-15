@@ -1,0 +1,56 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted">Event descriptors replace application handlers. <code>[pub-to]</code> publishes immediately; a millisecond suffix delays publication until you stop typing. A valid form submission flushes its draft before <code>[set]</code> reads it. Native controls preserve strings, booleans and numbers.</p>
+  <sym-context ctx="ACTIONS">
+    <script type="application/json">
+      {
+        "immediate": "",
+        "delay200": "",
+        "delay1000": "",
+        "draft": "",
+        "submitted": "",
+        "open": false,
+        "ready": false,
+        "amount": 1
+      }
+    </script>
+    <div class="grid gap-4 md:grid-cols-3">
+      <div class="panel grid content-start gap-3">
+        <label>Immediate<input bind="value: immediate; oninput: [pub-to]immediate"></label>
+        <code class="text-sm text-muted">[pub-to]</code>
+        <p class="break-words text-sm">Published: <strong>{{immediate}}</strong></p>
+      </div>
+      <div class="panel grid content-start gap-3">
+        <label>200 ms<input bind="value: delay200; oninput: [pub-to-200]delay200"></label>
+        <code class="text-sm text-muted">[pub-to-200]</code>
+        <p class="break-words text-sm">Published: <strong>{{delay200}}</strong></p>
+      </div>
+      <div class="panel grid content-start gap-3">
+        <label>1000 ms<input bind="value: delay1000; oninput: [pub-to-1000]delay1000"></label>
+        <code class="text-sm text-muted">[pub-to-1000]</code>
+        <p class="break-words text-sm">Published: <strong>{{delay1000}}</strong></p>
+      </div>
+    </div>
+    <div class="grid gap-5 lg:grid-cols-2">
+      <form class="panel grid gap-4" action-data="ACTIONS/draft" bind="onsubmit: [set]ACTIONS/submitted">
+        <h2 class="font-semibold">Debounced input and native submission</h2>
+        <label>Message<input required placeholder="Type, then submit immediately" bind="value: draft; oninput: [pub-to-200]draft"></label>
+        <div class="field-row">
+          <button class="primary">Submit</button>
+          <button type="button" value="" bind="onclick: [set]submitted">Clear result</button>
+        </div>
+        <p>Submitted: <strong>{{submitted}}</strong></p>
+      </form>
+      <div class="panel grid content-start gap-4">
+        <h2 class="font-semibold">Typed values and boolean actions</h2>
+        <label>Amount<input type="number" min="0" bind="value: amount; oninput: [pub-to]amount"></label>
+        <label class="field-row"><input type="checkbox" bind="checked: ready; onchange: [pub-to]ready">Ready</label>
+        <div class="field-row flex-wrap">
+          <button type="button" value="true" bind="onclick: [set]ready">Set ready</button>
+          <button type="button" bind="onclick: [toggle]open">Toggle message</button>
+        </div>
+        <p class="text-sm text-muted">Amount: {{amount}} / ready: {{ready}}</p>
+        <sym-conditional when="ACTIONS/open"><p class="rounded-lg bg-accent/10 p-3 text-accent">Shown by a boolean toggle.</p></sym-conditional>
+      </div>
+    </div>
+  </sym-context>
+</section>

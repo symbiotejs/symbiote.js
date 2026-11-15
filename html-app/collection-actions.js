@@ -1,7 +1,12 @@
 import { resolveData, controlValue, validateValue } from './action-data.js';
 import { initialDefaults } from './initial-data.js';
-import { appendRecord, cloneData, collectionData, recordData, updateMatching, updateRecord } from './collection-data.js';
+import { appendRecord, prependRecord, cloneData, collectionData, recordData, updateMatching, updateRecord } from './collection-data.js';
 import { findCollectionItem } from './collection-items.js';
+
+let insertionActions = {
+  append: appendRecord,
+  prepend: prependRecord,
+};
 
 /**
  * @param {import('./BaseClass.js').BaseClass} owner
@@ -72,8 +77,8 @@ export function prepareCollectionAction(owner, action, element, operand) {
   let value;
   /** @type {(() => void) | undefined} */
   let after;
-  if (action.operation === 'append') {
-    value = appendRecord(before, readOperand(owner, element, operand, 'action-data'));
+  if (Object.hasOwn(insertionActions, action.operation)) {
+    value = insertionActions[action.operation](before, readOperand(owner, element, operand, 'action-data'));
     let reference = operand.getAttribute('action-reset') ?? element.getAttribute('action-reset');
     if (reference !== null) {
       let reset = resolveData(owner, reference);

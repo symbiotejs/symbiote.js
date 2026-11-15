@@ -1,0 +1,63 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>sym-collection</code> projects shared records through filters, search and sorting, then native Itemize renders a reusable item. Item actions publish immutable updates by ID. Counts leave the controller through <code>pub-map</code>; page changes keep the source data.</p>
+  <p class="max-w-3xl text-sm leading-relaxed text-muted">An external JSON file supplies initial tasks to <code>APP/tasks</code>. <strong>Save tasks</strong> keeps tasks and preferences in this browser; saved data is restored before the JSON source loads. Open <a class="text-accent underline underline-offset-4" href="../full-app.html?data" bind="onclick: [navigate]ROUTER">JSON requests</a> to change the source URL or try optional HTTP synchronization.</p>
+  <sym-conditional when="APP/+loading"><p class="text-sm text-accent">Loading tasks...</p></sym-conditional>
+  <sym-conditional when="APP/+loadError"><p class="text-sm text-rose-500" bind="textContent: APP/+loadErrorMessage"></p></sym-conditional>
+  <div class="flex items-center justify-between gap-4">
+    <h2 class="text-2xl font-semibold">{{PREFERENCES/title}}</h2>
+    <sym-conditional when="PREFERENCES/showCounts" is="true"><span class="rounded-full bg-accent/10 px-3 py-1 text-sm text-accent">{{APP/shown}} / {{APP/total}} tasks</span></sym-conditional>
+  </div>
+  <div class="panel grid gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <input type="search" class="max-w-xs" placeholder="Search title or notes" bind="value: APP/query; oninput: [pub-to-200]APP/query">
+      <button type="button" action-data="APP/allFilter" bind="onclick: [set]APP/filter">All</button>
+      <button type="button" action-data="APP/activeFilter" bind="onclick: [set]APP/filter">Active</button>
+      <button type="button" action-data="APP/completedFilter" bind="onclick: [set]APP/filter">Completed</button>
+      <sym-context bind="$: APP/sort" pub-to="APP/sort">
+        <label class="field-row whitespace-nowrap">Task order<select class="w-auto" bind="value: direction; onchange: [pub-to]direction">
+          <option value="asc">Title, ascending</option><option value="desc">Title, descending</option>
+        </select></label>
+      </sym-context>
+    </div>
+    <sym-context bind="$: APP/draft" pub-to="APP/draft">
+      <form class="field-row" action-data="APP/draft" action-reset="APP/draft" bind="onsubmit: [append]APP/tasks; inert: APP/+loading">
+        <input name="title" placeholder="New task" required pattern=".*\S.*" bind="value: title; oninput: [pub-to-200]title">
+        <button class="primary">Add task</button>
+      </form>
+    </sym-context>
+  </div>
+  <form class="grid gap-5" bind="onsubmit: [persist]APP">
+    <sym-collection data="APP/tasks" filter="APP/filter" search="APP/query" search-fields="title,note" sort="APP/sort"
+      pub-map="APP/shown: count; APP/total: totalCount">
+      <div class="grid gap-3" itemize="items" item-tag="task-card"></div>
+      <sym-conditional when="^empty"><p class="panel text-muted">No matching tasks.</p></sym-conditional>
+    </sym-collection>
+    <div class="field-row flex-wrap">
+      <button type="submit" class="primary" bind="disabled: APP/+busy">Save tasks</button>
+      <button type="button" action-match="APP/allFilter" action-data="APP/completePatch" bind="onclick: [patch-matching]APP/tasks">Complete all</button>
+      <button type="button" action-match="APP/completedFilter" bind="onclick: [remove-matching]APP/tasks">Clear completed</button>
+    </div>
+    <p class="text-sm text-amber-500" bind="hidden: !APP/+storageDirty">Changes are not saved in this browser.</p>
+    <p class="text-sm text-muted" bind="hidden: APP/+storageDirty">No unsaved browser changes.</p>
+    <sym-conditional when="APP/+storageError">
+      <p class="text-sm text-rose-500" bind="textContent: APP/+storageErrorMessage"></p>
+      <a class="text-sm text-accent underline underline-offset-4" href="../full-app.html?storage" bind="onclick: [navigate]ROUTER">Open browser storage</a>
+    </sym-conditional>
+  </form>
+</section>
+
+<sym-component reg="task-card" use-template="#task-card"></sym-component>
+<template id="task-card">
+  <script type="application/json">{"expanded": false}</script>
+  <div class="field-row">
+    <input type="checkbox" bind="checked: done; onchange: [item-pub]done">
+    <input name="title" required pattern=".*\S.*" class="border-transparent bg-transparent font-medium" bind="value: title; oninput: [item-pub]title">
+    <button type="button" bind="onclick: [item-toggle]pinned">
+      <sym-conditional when="^pinned">Unpin</sym-conditional>
+      <sym-conditional when="^pinned" behavior="hide">Pin</sym-conditional>
+    </button>
+    <button type="button" bind="onclick: [toggle]expanded">Notes</button>
+    <button type="button" class="text-muted hover:text-rose-500" bind="onclick: [item-remove]">Delete</button>
+  </div>
+  <sym-conditional when="^expanded"><textarea class="mt-3" rows="2" placeholder="Task notes" bind="value: ^note; oninput: [item-pub]note"></textarea></sym-conditional>
+</template>

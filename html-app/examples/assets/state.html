@@ -1,0 +1,32 @@
+<section class="grid gap-5">
+  <p class="max-w-3xl text-sm leading-relaxed text-muted">A context owns JSON data. Native <code>bind="$: ..."</code> supplies an object to a child; <code>pub-to</code> writes edits back. <code>pub-map</code> publishes several local properties to named destinations.</p>
+  <sym-context ctx="PROFILE">
+    <script type="application/json">
+      {"person": {"name": "Alex", "role": "Designer"}, "namePreview": "", "rolePreview": ""}
+    </script>
+    <div class="grid gap-5 lg:grid-cols-2">
+      <sym-context bind="$: PROFILE/person" pub-to="PROFILE/person"
+        pub-map="PROFILE/namePreview: name; PROFILE/rolePreview: role">
+        <div class="panel grid gap-4">
+          <h2 class="font-semibold">Edit the child context</h2>
+          <label>Name<input bind="value: name; oninput: [pub-to]name"></label>
+          <label>Role<select bind="value: role; onchange: [pub-to]role">
+            <option>Designer</option><option>Developer</option><option>Reviewer</option>
+          </select></label>
+        </div>
+      </sym-context>
+      <div class="panel grid content-start gap-5">
+        <h2 class="font-semibold">Parent object and outgoing fields</h2>
+        <sym-context bind="$: PROFILE/person">
+          <p class="text-2xl font-semibold">{{name}}</p>
+          <p class="text-muted">{{role}}</p>
+        </sym-context>
+        <p class="border-t border-line pt-4 text-sm">Published with <code>pub-map</code>: {{PROFILE/namePreview}} / {{PROFILE/rolePreview}}</p>
+      </div>
+    </div>
+  </sym-context>
+  <sym-component process-inner-html="false">
+    <pre class="panel overflow-auto text-sm text-muted"><code>&lt;p&gt;{{name}}&lt;/p&gt;</code></pre>
+  </sym-component>
+  <p class="text-sm text-muted"><code>process-inner-html="false"</code> keeps the code sample literal; nested components can still process their own content.</p>
+</section>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Todo</title>
+  <script type="module" src="../index.js"></script>
+</head>
+<body>
+  <sym-context ctx="APP">
+    <script type="application/json">
+      {
+        "tasks": [],
+        "draft": {"title": "", "done": false}
+      }
+    </script>
+    <h1>Todo</h1>
+    <sym-context bind="$: APP/draft" pub-to="APP/draft">
+      <form action-data="APP/draft" action-reset="APP/draft" bind="onsubmit: [append]APP/tasks">
+        <input placeholder="New task" required bind="value: title; oninput: [pub-to]title">
+        <button>Add task</button>
+      </form>
+    </sym-context>
+    <sym-collection data="APP/tasks">
+      <ul itemize="items">
+        <template>
+          <li>
+            <input type="checkbox" bind="checked: done; onchange: [item-pub]done">
+            <input required bind="value: title; oninput: [item-pub]title">
+            <button bind="onclick: [item-remove]">Delete</button>
+          </li>
+        </template>
+      </ul>
+      <p bind="hidden: !empty">No tasks yet.</p>
+    </sym-collection>
+  </sym-context>
+</body>
+</html>

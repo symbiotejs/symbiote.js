@@ -41,7 +41,8 @@ test('HTML-only Todo saves selected fields and a late acknowledgment leaves newe
       status: 204,
     });
   });
-  await page.goto('/html-app/todo-sync.html');
+  await page.goto('/test/browser/fixtures/html-app-todo.html');
+  await page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').setAttribute('src', '/api/tasks'));
   await ready(page);
   expect(await state(page, 'savedRevision')).toBeNull();
   expect(writes).toHaveLength(0);
@@ -103,7 +104,8 @@ test('failed saves retain records and drafts and never retry automatically', asy
       });
     }
   });
-  await page.goto('/html-app/todo-sync.html');
+  await page.goto('/test/browser/fixtures/html-app-todo.html');
+  await page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').setAttribute('src', '/api/tasks'));
   await ready(page);
   await page.locator('li').getByRole('textbox').fill('Unsaved record');
   await page.getByRole('form', {

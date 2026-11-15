@@ -1,0 +1,58 @@
+{
+  "routes": {
+    "state": {
+      "href": "?state",
+      "src": "./assets/state.html",
+      "title": "State & bindings",
+      "default": true
+    },
+    "actions": {
+      "href": "?actions",
+      "src": "./assets/actions.html",
+      "title": "Actions & forms"
+    },
+    "collections": {
+      "href": "?collections",
+      "src": "./assets/collections.html",
+      "title": "Collections"
+    },
+    "components": {
+      "href": "?components",
+      "src": "./assets/components.html",
+      "title": "Components"
+    },
+    "conditional": {
+      "href": "?conditional",
+      "src": "./assets/conditional.html",
+      "title": "Conditional content"
+    },
+    "imports": {
+      "href": "?imports",
+      "src": "./assets/imports.html",
+      "title": "HTML imports"
+    },
+    "data": {
+      "href": "?data",
+      "src": "./assets/data.html",
+      "title": "JSON requests"
+    },
+    "storage": {
+      "href": "?storage",
+      "src": "./assets/storage.html",
+      "title": "Browser storage"
+    },
+    "routing": {
+      "href": "?routing",
+      "src": "./assets/routing.html",
+      "title": "Routing",
+      "source": "direct",
+      "tab": "example"
+    },
+    "notFound": {
+      "href": "?notFound",
+      "src": "./assets/not-found.html",
+      "title": "Page not found",
+      "error": true
+    }
+  }
+}

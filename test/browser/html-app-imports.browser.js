@@ -216,17 +216,36 @@ test('cycles and excessive nesting terminate with structured errors', async ({
   await expect(page.locator('sym-import')).toHaveCount(17);
 });
 
-test('the imported Todo and settings round-trip through explicit browser storage', async ({
+test('the full app imports live controls and restores selected browser data', async ({
   page,
 }) => {
-  await page.goto('/html-app/todo-import.html');
-  await page.getByRole('textbox', {
-    name: 'New task',
-  }).fill('Persisted imported task');
+  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await page.route('**/assets/tasks.json', (route) => route.fulfill({
+    json: {
+      tasks: [],
+    },
+  }));
+  await page.goto('/html-app/examples/full-app.html');
+  await expect(page.locator('sym-context[ctx="APP"]')).toHaveJSProperty('connectedOnce', true);
+  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+loading'])).toBe(false);
+  await page.getByRole('link', {
+    name: 'Collections',
+    exact: true,
+  }).click();
+  await page.getByPlaceholder('New task').fill('Persisted imported task');
   await page.getByRole('button', {
     name: 'Add task',
   }).click();
-  await page.getByText('Settings', {
+  await page.getByRole('link', {
+    name: 'HTML imports',
+    exact: true,
+  }).click();
+  await page.getByRole('checkbox', {
+    name: 'Show task counts',
+  }).uncheck();
+  expect(await page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$.settings.showCounts)).toBe(false);
+  await page.getByRole('link', {
+    name: 'Browser storage',
     exact: true,
   }).click();
   await page.getByRole('textbox', {
@@ -235,14 +254,21 @@ test('the imported Todo and settings round-trip through explicit browser storage
   await page.getByRole('button', {
     name: 'Save in this browser',
   }).click();
-  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context').$['+storageDirty'])).toBe(false);
+  await expect.poll(() => page.evaluate(() => document.querySelector('sym-context[ctx="APP"]').$['+storageDirty'])).toBe(false);
   await page.reload();
-  await expect(page.getByRole('heading')).toHaveText('Stored title');
-  await expect(page.locator('li')).toHaveCount(1);
   await expect(page.getByRole('textbox', {
-    name: 'Title',
+    name: 'List title',
+  })).toHaveValue('Stored title');
+  await expect(page.getByRole('checkbox', {
+    name: 'Show task counts',
+  })).not.toBeChecked();
+  await page.getByRole('link', {
+    name: 'Collections',
     exact: true,
-  })).toHaveValue('Persisted imported task');
+  }).click();
+  await expect(page.locator('h2').first()).toHaveText('Stored title');
+  await expect(page.locator('task-card')).toHaveCount(1);
+  await expect(page.locator('task-card input[name="title"]')).toHaveValue('Persisted imported task');
 });
 
 test('imported native WebMCP actions are discoverable and disposed with their fragment', async ({
