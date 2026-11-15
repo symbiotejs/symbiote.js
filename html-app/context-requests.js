@@ -205,7 +205,8 @@ export class ContextRequests {
     };
   }
 
-  async load() {
+  /** @param {boolean} [overwrite] */
+  async load(overwrite = false) {
     this.scheduled = false;
     if (!this.connected || globalThis.__SYMBIOTE_SSR) {
       return {
@@ -243,8 +244,10 @@ export class ContextRequests {
         key,
         value,
       ] of Object.entries(data)) {
-        if (this.owner.contextData.bound.has(key) || this.owner.contextData.edited.has(key)
-          || this.owner.contextData.pending.has(key) || this.owner.storage.restored.has(key) || (this.owner.contextData.versions.get(key) ?? 0) !== (versions.get(key) ?? 0)) {
+        if (this.owner.contextData.bound.has(key)
+          || (!overwrite && (this.owner.contextData.edited.has(key)
+            || this.owner.contextData.pending.has(key) || this.owner.storage.restored.has(key)))
+          || (this.owner.contextData.versions.get(key) ?? 0) !== (versions.get(key) ?? 0)) {
           retained.push(key);
         } else {
           accepted[key] = value;

@@ -62,21 +62,12 @@ test('Collections loads external JSON and saves edits in local storage without a
   await page.goto('/html-app/examples/full-app.html?collections');
   let title = page.locator('task-card input[name="title"]');
   await expect(title).toHaveValue('Original task');
-  await page.locator('main').getByRole('link', {
-    name: 'JSON requests',
-    exact: true,
-  }).click();
   let source = page.getByRole('textbox', {
     name: 'JSON source',
     exact: true,
   });
   await source.fill('https://example.test/tasks.json');
   await source.blur();
-  await expect(page.locator('main li')).toHaveText('External task');
-  await page.locator('aside').getByRole('link', {
-    name: 'Collections',
-    exact: true,
-  }).click();
   await expect(title).toHaveValue('External task');
   let save = page.getByRole('button', {
     name: 'Save tasks',

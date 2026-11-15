@@ -35,7 +35,7 @@ export class ContextRequests {
             status: number;
         };
     };
-    load(): Promise<{
+    load(overwrite?: boolean): Promise<{
         ok: boolean;
         error: {
             operation: "load" | "sync";

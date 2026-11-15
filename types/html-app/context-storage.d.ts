@@ -19,6 +19,7 @@ export class ContextStorage {
     scheduled: boolean;
     owner: import("./sym-context.js").SymContext;
     status(): {
+        storageFound: boolean;
         storageDirty: boolean;
         storageConflict: boolean;
         storageError: {

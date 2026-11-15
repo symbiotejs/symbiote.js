@@ -1,6 +1,10 @@
 <section class="grid gap-5">
   <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>sym-collection</code> projects shared records through filters, search and sorting, then native Itemize renders a reusable item. Item actions publish immutable updates by ID. Counts leave the controller through <code>pub-map</code>; page changes keep the source data.</p>
-  <p class="max-w-3xl text-sm leading-relaxed text-muted">An external JSON file supplies initial tasks to <code>APP/tasks</code>. <strong>Save tasks</strong> keeps tasks and preferences in this browser; saved data is restored before the JSON source loads. Open <a class="text-accent underline underline-offset-4" href="../full-app.html?data" bind="onclick: [navigate]ROUTER">JSON requests</a> to change the source URL or try optional HTTP synchronization.</p>
+  <p class="max-w-3xl text-sm leading-relaxed text-muted">Load tasks from a JSON object containing <code>tasks</code>, edit the list, then save it in this browser. <strong>Reload JSON</strong> replaces the current list without changing your saved copy. <strong>Restore saved tasks</strong> discards unsaved edits and restores your last browser save.</p>
+  <div class="panel grid gap-3">
+    <label>JSON source<input bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
+    <button type="button" class="justify-self-start" action-overwrite bind="onclick: [load]APP; disabled: APP/+busy">Reload JSON</button>
+  </div>
   <sym-conditional when="APP/+loading"><p class="text-sm text-accent">Loading tasks...</p></sym-conditional>
   <sym-conditional when="APP/+loadError"><p class="text-sm text-rose-500" bind="textContent: APP/+loadErrorMessage"></p></sym-conditional>
   <div class="flex items-center justify-between gap-4">
@@ -34,14 +38,19 @@
     </sym-collection>
     <div class="field-row flex-wrap">
       <button type="submit" class="primary" bind="disabled: APP/+busy">Save tasks</button>
+      <button type="button" bind="onclick: [restore]APP; disabled: APP/+busy">Restore saved tasks</button>
       <button type="button" action-match="APP/allFilter" action-data="APP/completePatch" bind="onclick: [patch-matching]APP/tasks">Complete all</button>
       <button type="button" action-match="APP/completedFilter" bind="onclick: [remove-matching]APP/tasks">Clear completed</button>
     </div>
+    <p class="text-sm text-muted" bind="hidden: APP/+storageFound">No browser save yet. Use Save tasks to create one.</p>
     <p class="text-sm text-amber-500" bind="hidden: !APP/+storageDirty">Changes are not saved in this browser.</p>
     <p class="text-sm text-muted" bind="hidden: APP/+storageDirty">No unsaved browser changes.</p>
     <sym-conditional when="APP/+storageError">
       <p class="text-sm text-rose-500" bind="textContent: APP/+storageErrorMessage"></p>
-      <a class="text-sm text-accent underline underline-offset-4" href="../full-app.html?storage" bind="onclick: [navigate]ROUTER">Open browser storage</a>
+      <sym-conditional when="APP/+storageConflict">
+        <p class="text-sm text-muted">Another tab changed the saved data. Restore its version or explicitly overwrite it.</p>
+      </sym-conditional>
+      <button type="submit" action-overwrite>Overwrite browser save</button>
     </sym-conditional>
   </form>
 </section>
