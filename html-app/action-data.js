@@ -32,18 +32,33 @@ export function resolveData(owner, reference, computed = false) {
   if (!isDataReference(reference, computed)) {
     throw new TypeError('Expected a data context reference: ' + reference);
   }
-  let result = owner.Symbiote.parseProp(reference, owner);
+  let result = dataReference(owner, reference, computed);
   if (!result || !result.ctx.has(result.name)) {
     throw new TypeError('Unknown data target: ' + reference);
   }
   return result;
 }
+/**
+ * Resolve a validated read reference even before a named field arrives.
+ * @param {import('./BaseClass.js').BaseClass} owner
+ * @param {string} reference
+ * @param {boolean} [computed]
+ */
+export function dataReference(owner, reference, computed = false) {
+  if (!isDataReference(reference, computed)) {
+    throw new TypeError('Expected a data context reference: ' + reference);
+  }
+  return owner.Symbiote.parseProp(reference, owner);
+}
+
 /** @param {string} source */
 export function parseAction(source) {
-  let match = /^\[(toggle|set|pub-to|append|patch-matching|remove-matching|item-pub|item-toggle|item-remove)(?:-(\d+))?\](.*)$/.exec(source);
+  let match = /^\[(toggle|set|pub-to|append|patch-matching|remove-matching|item-pub|item-toggle|item-remove|load|sync)(?:-(\d+))?\](.*)$/.exec(source);
   let operation = match?.[1];
   let reference = match?.[3] || '';
-  let validReference = operation === 'item-remove' ? !reference
+  let validReference = operation === 'load' || operation === 'sync'
+    ? !!reference && !/[\s/:;,\[\]@*^+]/.test(reference)
+    : operation === 'item-remove' ? !reference
     : operation?.startsWith('item-') ? isDataKey(reference) && !/[\s:;,\[\]]/.test(reference)
     : isDataReference(reference);
   if (!match || (match[2] !== undefined && ![

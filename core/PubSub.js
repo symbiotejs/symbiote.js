@@ -124,12 +124,13 @@ export class PubSub {
         if (!PubSub.pendingDeps.has(ctxName)) {
           PubSub.pendingDeps.set(ctxName, []);
         }
-        PubSub.pendingDeps.get(ctxName).push(() => {
+        let pending = () => {
+          if (!this.has(compProp)) { return; }
           let resolvedCtx = PubSub.getCtx(ctxName, false);
           if (!resolvedCtx) return;
           let sub = resolvedCtx.sub(propName, () => {
             this.#recalcComputed(compProp);
-          }, false);
+          }, false, true);
           if (sub) {
             if (!this.#externalSubs[compProp]) {
               this.#externalSubs[compProp] = [];
@@ -137,13 +138,24 @@ export class PubSub {
             this.#externalSubs[compProp].push(sub);
           }
           this.#recalcComputed(compProp);
+        };
+        PubSub.pendingDeps.get(ctxName).push(pending);
+        this.#externalSubs[compProp].push({
+          remove: () => {
+            let callbacks = PubSub.pendingDeps.get(ctxName);
+            let index = callbacks?.indexOf(pending) ?? -1;
+            if (index !== -1) {
+              callbacks.splice(index, 1);
+              if (!callbacks.length) { PubSub.pendingDeps.delete(ctxName); }
+            }
+          },
         });
         continue;
       }
 
       let sub = extCtx.sub(propName, () => {
         this.#recalcComputed(compProp);
-      }, false);
+      }, false, true);
 
       if (sub) {
         this.#externalSubs[compProp].push(sub);
@@ -252,7 +264,12 @@ export class PubSub {
       return;
     }
     this.store[prop] = val;
-    this.notify(prop, val);
+    if (String(prop).startsWith(DICT.COMPUTED_PX) && this.callbackMap[prop]) {
+      if (this.__computedMap) { delete this.__computedMap[prop]; }
+      this.read(prop);
+    } else {
+      this.notify(prop, val);
+    }
     globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
 
@@ -274,7 +291,12 @@ export class PubSub {
       warnMsg(2, String(this.uid || 'local'), String(prop), typeof this.store[prop], typeof val, JSON.stringify(this.store[prop]), JSON.stringify(val));
     }
     this.store[prop] = val;
-    this.notify(prop, val);
+    if (String(prop).startsWith(DICT.COMPUTED_PX) && this.callbackMap[prop]) {
+      if (this.__computedMap) { delete this.__computedMap[prop]; }
+      this.read(prop);
+    } else {
+      this.notify(prop, val);
+    }
     globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
 
@@ -309,6 +331,13 @@ export class PubSub {
       return;
     }
     delete this.store[prop];
+    if (String(prop).startsWith(DICT.COMPUTED_PX)) {
+      delete this.__computedMap?.[prop];
+      let name = String(prop);
+      delete this.#localDeps[name];
+      this.#externalSubs[name]?.forEach((subscription) => subscription.remove());
+      delete this.#externalSubs[name];
+    }
     this.notify(prop, null);
     globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
   }
@@ -324,7 +353,8 @@ export class PubSub {
       this.callbackMap[prop].forEach((callback) => {
         callback(val);
       });
-      if (isComputed) {
+      if (isComputed && this.has(String(prop))) {
+        this.__computedMap ??= {};
         this.__computedMap[prop] = val;
       }
     }
@@ -339,9 +369,10 @@ export class PubSub {
    * @param {keyof T} prop
    * @param {(val: unknown) => void} callback
    * @param {Boolean} [init]
+   * @param {Boolean} [wait] Subscribe before the key is registered.
    */
-  sub(prop, callback, init = true) {
-    if (!this.#storeIsProxy && !(prop in this.store)) {
+  sub(prop, callback, init = true, wait = false) {
+    if (!wait && !this.#storeIsProxy && !(prop in this.store)) {
       PubSub.#warn('subscribe', prop);
       return null;
     }
@@ -349,13 +380,13 @@ export class PubSub {
       this.callbackMap[prop] = new Set();
     }
     this.callbackMap[prop].add(callback);
-    if (init) {
+    if (init && (this.#storeIsProxy || prop in this.store)) {
       callback(this.read(prop));
     }
     return {
       remove: () => {
-        this.callbackMap[prop].delete(callback);
-        if (!this.callbackMap[prop].size) {
+        this.callbackMap[prop]?.delete(callback);
+        if (this.callbackMap[prop] && !this.callbackMap[prop].size) {
           delete this.callbackMap[prop];
         }
       },

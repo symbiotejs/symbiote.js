@@ -1,6 +1,6 @@
 import Symbiote from '../core/Symbiote.js';
 import BaseClass from './BaseClass.js';
-import { resolveData } from './action-data.js';
+import { dataReference } from './action-data.js';
 import { conditionState } from './conditions.js';
 
 // A separate native owner lets DOM modes dispose only the conditional content.
@@ -37,8 +37,7 @@ export class SymConditional extends BaseClass {
     'behavior',
   ];
 
-  /** @type {ReturnType<typeof resolveData> | undefined} */
-  #source;
+  #reference = '';
   /** @type {{ remove(): void } | undefined} */
   #subscription;
   /** @type {DocumentFragment | undefined} */
@@ -99,20 +98,23 @@ export class SymConditional extends BaseClass {
     if (!reference) {
       throw new TypeError('sym-conditional requires a when context reference.');
     }
-    this.#source = resolveData(this, reference, true);
+    dataReference(this, reference, true);
+    this.#reference = reference;
     this.updateContent();
-    this.#subscription = this.#source.ctx.sub(this.#source.name, () => this.updateContent(), false) || undefined;
+    this.#subscription = this.sub(reference, () => this.updateContent(), false);
   }
 
   updateContent() {
-    if (!this.#active || !this.isConnected || !this.#source) {
+    if (!this.#active || !this.isConnected || !this.#reference) {
       return;
     }
+    let source = dataReference(this, this.#reference, true);
+    let value = source?.ctx.has(source.name) ? source.ctx.read(source.name) : undefined;
     let {
       visible,
       dom,
     } = conditionState(
-      this.#source.ctx.read(this.#source.name),
+      value,
       this.getAttribute('is'),
       this.getAttribute('behavior') ?? 'show',
       this.getAttribute('is-type'),

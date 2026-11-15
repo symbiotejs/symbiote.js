@@ -1,5 +1,6 @@
 export function isDataReference(reference: string, computed?: boolean): boolean;
 export function resolveData(owner: import("./BaseClass.js").BaseClass, reference: string, computed?: boolean): import("../core/parseProp.js").ParsedProp;
+export function dataReference(owner: import("./BaseClass.js").BaseClass, reference: string, computed?: boolean): import("../core/parseProp.js").ParsedProp;
 export function parseAction(source: string): {
     operation: string;
     reference: string;

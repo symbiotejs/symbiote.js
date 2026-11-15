@@ -51,7 +51,9 @@ export class Symbiote<S> extends HTMLElement {
     get ctxName(): string;
     get localCtx(): PubSub<any>;
     get sharedCtx(): PubSub<any>;
-    sub<T extends keyof S>(prop: T, handler: (value: S[T]) => void, init?: boolean): void;
+    sub<T extends keyof S>(prop: T, handler: (value: S[T]) => void, init?: boolean): {
+        remove: () => void;
+    };
     notify(prop: string): void;
     has(prop: string): any;
     add<T extends keyof S>(prop: string, val: S[T], rewrite?: boolean): void;
