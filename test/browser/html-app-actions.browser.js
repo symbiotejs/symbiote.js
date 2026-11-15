@@ -124,8 +124,18 @@ test('composition is held until completion and stale, detached and reused item p
   let delayed = page.getByLabel('Delayed', {
     exact: true,
   });
+  await delayed.focus();
   await delayed.dispatchEvent('compositionstart');
-  await delayed.fill('変換');
+  // Firefox's fill() commits a composition; model an in-progress IME input instead.
+  await delayed.evaluate((input) => {
+    input.value = '変換';
+    input.dispatchEvent(new InputEvent('input', {
+      bubbles: true,
+      inputType: 'insertCompositionText',
+      data: '変換',
+      isComposing: true,
+    }));
+  });
   await page.clock.fastForward(20000);
   expect(await data(page, 'delayed')).toBe('');
   await delayed.dispatchEvent('compositionend');
