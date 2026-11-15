@@ -19,6 +19,7 @@ export function itemizeProcessor(fr, fnCtx) {
   }) => {
     /** @type {any[]} */
     let previous = [];
+    let hydrating = clientSSR;
     /** @type {any[]} */
     let active = [
       ...el.children,
@@ -58,11 +59,14 @@ export function itemizeProcessor(fr, fnCtx) {
       }
       let retained = new Set();
       let next = items.map((item, index) => {
-        let previousIndex = keyProp ? byKey.get(item[keyProp]) : index;
+        let previousIndex = hydrating ? index : keyProp ? byKey.get(item[keyProp]) : index;
         let child = previousIndex === undefined ? null : active[previousIndex];
         if (child) {
           retained.add(child);
-          if (item !== previous[previousIndex]) {
+          if (hydrating) {
+            child.ssrMode = true;
+            child.$ = item;
+          } else if (item !== previous[previousIndex]) {
             if (child.set$) {
               child.set$(item);
             } else {
@@ -105,8 +109,9 @@ export function itemizeProcessor(fr, fnCtx) {
           preventScroll: true,
         });
       }
+      hydrating = false;
       previous = items;
       active = next;
-    }, !clientSSR);
+    });
   });
 }

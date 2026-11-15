@@ -1,10 +1,24 @@
 # Symbiote HTML-app foundation
 
-Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection`, `sym-conditional`, `sym-import` and `sym-router` and leaves the core entry independent.
+**Write the application in HTML, including the interactions.**
+
+A form adds a task. Its checkbox marks it complete. A filtered list updates immediately, and Save keeps your edits for the next visit. HTML-app lets you describe that whole workflow with HTML tags, attributes and JSON, without writing component classes or event handlers.
+
+Symbiote supplies the reactive state and Runtime Agnostic Templates (RAT). Your markup declares the data, connects controls to it, and composes reusable views. The same data can drive several parts of the page, so an edit in one place updates its bound views. Record actions, filtering, navigation and local saving are available declaratively; JSON endpoints and trusted HTML fragments can supply external data and content.
+
+**Create your own components in HTML, too.** Declare a custom tag with `sym-component reg="..."`, supply a template and JSON defaults, then reuse it like any other HTML element. Each instance gets its own state and can use declarative bindings and actions. Templates can be inline or referenced with `use-template`; no JavaScript class is needed. See [reusable component declarations](#reusable-component-declarations).
+
+**Compose applications from portable HTML chunks.** Split screens into [imported sections](#html-fragments), nest reusable components, and combine them with inline or referenced templates. Bind a chunk to caller-provided data or let its nested components own their state. You can reuse the same markup across views and rearrange the application without rewriting its bindings or adding glue scripts.
+
+**Combine Markdown and interactive UI in compact AI output.** In a host with HTML-app loaded and a Markdown renderer that preserves [embedded HTML](https://spec.commonmark.org/0.31.2/#raw-html), prose and interactive components can share one document. An AI agent can generate explanations, HTML chunks and JSON data together, reusing built-in actions instead of writing event handlers and state-management code. For workflows covered by those actions, this can reduce generated code and output token consumption.
+
+Start on a static HTTP server with one external module script. Keep native HTML controls and your choice of CSS. When needed, opt into WebMCP to make the declared UI actions discoverable and callable by agents. The application stays readable HTML that people and coding agents can inspect and revise.
+
+Try the [compact Todo](./examples/todo-ref.html), explore the [interactive feature guide](./examples/full-app.html), or read [HTML-app and htmx](../docs/html-app-vs-htmx.md) to choose an approach for your application.
 
 ## Load the foundation
 
-Serve the package's ES modules over HTTP and load its optional entry:
+The optional entry registers `sym-component`, `sym-context`, `sym-collection`, `sym-conditional`, `sym-import` and `sym-router`. It works alongside ordinary Symbiote components and leaves the core entry independent. Serve the package's ES modules over HTTP and load the entry:
 
 ```html
 <script type="module" src="/vendor/symbiote/html-app/index.js"></script>
@@ -46,7 +60,7 @@ The literal `"true"` loads WebMCP and enables automatic tools for foundation com
 
 Serve the examples with a static HTTP server. The guide loads initial tasks from `examples/assets/tasks.json`; Collections includes JSON source loading, editing, local saving and restoring in one view. Reload JSON replaces the current list; Restore saved tasks returns to the last browser save. Saved browser data takes precedence over the JSON defaults. Feature sections, the nested import fragment and sample JSON live in `examples/assets/`.
 
-From a checkout, `node test/server.js` prints the example links and additionally supplies an optional GET and PUT/POST/PATCH API at `/api/tasks`, keeping records in memory until restart. Use Send tasks in JSON requests to demonstrate HTTP synchronization, or configure another endpoint there. Collections saving does not need that API.
+Use Send tasks in JSON requests with an HTTP endpoint that accepts the configured method and JSON document. Collections saves in the browser and does not require a write endpoint.
 
 ## State and templates
 
@@ -239,7 +253,7 @@ Register an autonomous custom element from a direct template or a native `use-te
 
 ## JSON sources and explicit synchronization
 
-[The full app](./examples/full-app.html) demonstrates explicit JSON synchronization. Its endpoint accepts a tasks document such as `{"tasks":[]}`. The development server described above implements that contract; production authorization and persistence belong to the host.
+[The full app](./examples/full-app.html) demonstrates explicit JSON synchronization. Its endpoint accepts a tasks document such as `{"tasks":[]}`. Authorization and persistence belong to the host application.
 
 ```html
 <sym-context ctx="APP" src="/api/document" sync="/api/document" sync-keys="title">
@@ -316,3 +330,39 @@ Opt in with both a storage key and an explicit comma-separated field list. Nothi
 - Persistence requires Web Locks in a secure context, such as HTTPS or loopback HTTP. Missing support reports `LOCK_UNAVAILABLE`; no unsafe write fallback is selected. Blocked access, quota failures and invalid or incompatible envelopes leave current data intact. Reconfiguration, Restore and disconnection cancel queued writes.
 - The version-1 envelope contains `version`, a unique `revision`, `keys` and `data`. The property set must match `storage-keys` exactly, with compatible known field types. Invalid JSON, unsafe keys and incompatible versions fail visibly; there is no automatic migration. `max-bytes` also bounds storage envelopes, using the same 1 MiB default as requests.
 - Storage is scoped to the browser origin and is accessible to that origin's scripts. Choose distinct application keys and select only appropriate non-secret data. This is optional local persistence, not backup, a database, or cross-device synchronization. Storage access is suppressed during SSR.
+
+## Server rendering and hydration
+
+Use the native [SSR API](../docs/ssr.md) after initializing its DOM environment, then import the foundation. Inline JSON contexts, native templates and collections can render without browser requests. Put referenced templates before their consumers in the server input. Server rendering preserves authored action descriptors for client attachment; it does not invoke actions or read browser storage. JSON sources, HTML imports and routing start in the browser. Supply their initial data in the server markup when needed.
+
+For templated owners and collections, select the native `ssrMode` flag on the client through a binding, for example `bind="ssrMode: APP/hydrate"` with `"hydrate": true` in the context's inline JSON. The server ignores this flag while rendering. Prefer explicit `textContent` bindings to text tokens for nodes that must react after hydration. Reuse the same templates and initial records on both sides; hydration retains the existing nodes and attaches item actions.
+
+Each rendering request must release its context owners before tearing down the DOM environment:
+
+```js
+import { SSR } from '@symbiotejs/symbiote/node';
+
+await SSR.init();
+let { BaseClass } = await import('@symbiotejs/symbiote/html-app');
+let html;
+try {
+  html = await SSR.processHtml(markup, {
+    nonce: responseNonce,
+  });
+} finally {
+  let owners = [...document.querySelectorAll('*')].filter((element) => element instanceof BaseClass);
+  document.body.replaceChildren();
+  for (let owner of owners.reverse()) {
+    owner.destroy();
+  }
+  SSR.destroy();
+}
+```
+
+Use the native SSR lifecycle serially within a process; it owns global DOM state. Remote-data SSR, independently nested routers and arbitrary fragment hydration are outside this contract. `sym-import` renders its authored fallback on the server and fetches its content in the browser.
+
+## CSP and template trust
+
+The foundation does not evaluate expressions or require inline executable scripts. Serve modules from origins allowed by `script-src` and data/fragments from origins allowed by `connect-src`. Inline `application/json` is inert data. A strict policy can omit both `unsafe-eval` and `unsafe-inline`; server-rendered styles need the native SSR nonce option. The Tailwind browser CDN in the styled example is for demonstration and has its own CSP requirements; use a static stylesheet under a production policy.
+
+Imported HTML is trusted application code, including its bindings, custom elements and actions. Executable scripts, native event attributes and executable URLs are rejected, but these checks do not sanitize arbitrary third-party content. Render untrusted text through `textContent`. Keep the [core security contract](../docs/security.md), including Trusted Types, when integrating with a host. Verify the foundation's HTML parsing paths against your host's Trusted Types policy.

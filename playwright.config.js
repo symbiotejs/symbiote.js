@@ -9,7 +9,26 @@ export default defineConfig({
     headless: true,
   },
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
+    {
+      name: 'chromium',
+      use: {
+        browserName: 'chromium',
+      },
+    },
+    {
+      name: 'firefox',
+      testMatch: '**/html-app*.browser.js',
+      use: {
+        browserName: 'firefox',
+      },
+    },
+    {
+      name: 'webkit',
+      testMatch: '**/html-app*.browser.js',
+      use: {
+        browserName: 'webkit',
+      },
+    },
   ],
   webServer: {
     command: 'node test/server.js',

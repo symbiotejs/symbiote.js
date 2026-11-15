@@ -29,6 +29,8 @@
 
 ## Features
 
+- [**HTML-app foundation**](../html-app/README.md) - Build applications with HTML, JSON and declarative actions
+- [**HTML-app and htmx**](./html-app-vs-htmx.md) - Compare reactive HTML applications with HTTP-driven HTML updates
 - [**WebMCP**](./webmcp.md) — Expose live UI state and handlers as browser-native tools
 - [**Routing**](./routing.md) — SPA routing with path patterns, guards, lazy loading
 - [**SSR**](./ssr.md) — Server-side rendering, streaming, hydration

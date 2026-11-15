@@ -1,0 +1,11 @@
+<template id="summary"><p bind="textContent: APP/title"></p></template>
+<sym-context ctx="APP" src="/must-not-fetch.json" sync="/must-not-write" storage-key="server-data" storage-keys="tasks">
+  <script type="application/json">{"hydrate":true,"title":"Server tasks","show":true,"tasks":[{"id":"one","title":"First task"}]}</script>
+  <h1 bind="textContent: title"></h1>
+  <button type="button" value="Updated title" bind="onclick: [set]APP/title">Change title</button>
+  <sym-component bind="ssrMode: APP/hydrate" use-template="#summary"></sym-component>
+  <sym-collection data="APP/tasks" bind="ssrMode: APP/hydrate">
+    <ul itemize="items"><template><li><input bind="value: title; oninput: [item-pub]title"><button type="button" bind="onclick: [item-remove]">Remove task</button></li></template></ul>
+  </sym-collection>
+  <sym-import src="/must-not-import.html"><p>Import fallback</p></sym-import>
+</sym-context>

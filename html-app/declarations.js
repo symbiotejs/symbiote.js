@@ -18,7 +18,7 @@ export function registerDeclaration(element, Base) {
     ...element.children,
   ].filter((child) => child.localName === 'template');
   let source = selector ? resolveTemplate(element, selector) : templates[0];
-  if (!(source instanceof HTMLTemplateElement) || (!selector && templates.length !== 1)) {
+  if (!(source?.localName === 'template') || (!selector && templates.length !== 1)) {
     throw new TypeError('A component declaration requires one template or a valid use-template reference.');
   }
   let template = source.innerHTML;

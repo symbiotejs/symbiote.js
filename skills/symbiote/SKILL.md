@@ -1,12 +1,42 @@
 ---
 name: symbiote
-description: Build, debug, and review Symbiote.js Web Components using Runtime Agnostic Templates, reactive state and context bindings, Itemize lists, SSR, and optional WebMCP integration. Use when a project uses @symbiotejs/symbiote or the user requests Symbiote.js.
+description: Build, debug, and review Symbiote.js components and HTML-only applications with the optional HTML-app foundation, RAT templates, reactive contexts, Itemize, SSR, and WebMCP. Use when a project uses @symbiotejs/symbiote or the user requests Symbiote.js or its HTML-app foundation.
 license: MIT
 ---
 
 # Symbiote.js
 
 Use Symbiote's native Custom Elements and named bindings to implement the requested UI. Match the project's installed version, imports, component structure, and rendering mode. Consult its source and docs when they differ from this guide; do not migrate unrelated components or introduce a build system just to use Symbiote.
+
+## HTML-only applications and components
+
+When the installed version provides `@symbiotejs/symbiote/html-app`, read the [HTML-app guide](https://github.com/symbiotejs/symbiote.js/blob/main/html-app/README.md) for its contracts. For supported interactions, reuse its elements, declarative actions and templates instead of generating equivalent event handlers or state helpers. Keep an existing project's component model; use ordinary Symbiote classes for behavior that needs application JavaScript.
+
+Load the optional entry through an external module script, or import it into an existing module. The core entry alone does not register the foundation. Applications can use HTML and inert JSON without application-defined JavaScript or a build step.
+
+- Declare local or named state with `sym-context` and one direct JSON data script. Native `bind="$: APP/record"` merges incoming state; `pub-to` publishes an edited object back, and `pub-map` publishes selected outputs. These remain explicit directions of data flow.
+- Create reusable custom elements with `sym-component reg="..."`, using an inline template or native `use-template`. Each instance has its own state and defaults. Reuse declarations and templates to keep generated markup compact.
+- Use `sym-collection data="APP/items"` with native Itemize for record arrays, `sym-conditional` for conditional content and `sym-router` for declarative navigation. Follow the guide's supported actions and stable record-ID contract rather than inventing expressions or action syntax.
+- Compose portable HTML chunks with `sym-import src="..."`. Bind incoming data and publish outputs explicitly. Keep shared context providers outside sections that are replaced; let nested components own their local state. Treat imports as trusted application templates, not arbitrary external content.
+- JSON loading, local edits and saving are separate: `sym-context src` loads defaults; `[persist]APP` and `[restore]APP` use explicitly configured browser storage; `[sync]APP` writes to a configured HTTP endpoint. Local edits do not write to the source URL. Read the guide before choosing reload or overwrite behavior.
+
+A reusable component can include its behavior entirely in HTML:
+
+```html
+<sym-component reg="expand-note">
+  <template>
+    <script type="application/json">{"expanded":false}</script>
+    <button type="button" bind="onclick: [toggle]expanded">Details</button>
+    <sym-conditional when="^expanded"><p>Reusable content.</p></sym-conditional>
+  </template>
+</sym-component>
+
+<expand-note></expand-note>
+```
+
+Markdown prose and interactive chunks can share a document when the host loads HTML-app and its Markdown renderer preserves trusted custom elements, binding attributes and inert JSON. HTML-app does not parse Markdown itself. Preserve the host's content-trust and sanitization rules. Reusing built-in actions can reduce output tokens spent on handler and state-management boilerplate; savings depend on the workflow, so do not invent benchmark figures.
+
+Start from the [compact Todo](https://github.com/symbiotejs/symbiote.js/blob/main/html-app/examples/todo-ref.html) or [feature guide](https://github.com/symbiotejs/symbiote.js/blob/main/html-app/examples/full-app.html). Use the [htmx comparison](https://github.com/symbiotejs/symbiote.js/blob/main/docs/html-app-vs-htmx.md) when choosing between reactive records and server-returned HTML; it does not imply an automatic integration.
 
 ## Component and template model
 
@@ -131,7 +161,7 @@ Use `Component.rootStyles = css` for regular Light DOM styles and `Component.sha
 
 For SSR, use the `@symbiotejs/symbiote/node` entrypoint and the optional `linkedom` dependency. Initialize `SSR` before dynamically importing component modules, because those modules extend `HTMLElement`. Clean up an explicitly initialized SSR environment after use. `ssrMode` attaches bindings to existing markup; `isoMode` selects hydration when content exists and normal rendering otherwise. Read the SSR reference for concurrency, streaming, and styles.
 
-For agent-accessible UI, import `@symbiotejs/symbiote/webmcp` before rendering participating components. `mcpToolMode` enables automatic event-handler tools; global activation exposes handlers across the application. Explicit `ToolDescriptor` state values register independently, so leave automatic mode disabled when exposing only selected actions. `ToolDescriptor` adds descriptions, input schemas, `execute`, and optional `when`/`deps`. Visibility dependencies must be explicit.
+For HTML-app, use `webmcp-mode="true"` on its external module loader to enable automatic tools for foundation components without activating them globally. For ordinary Symbiote components, import `@symbiotejs/symbiote/webmcp` before rendering participating components. `mcpToolMode` enables automatic event-handler tools; global activation exposes handlers across the application. Explicit `ToolDescriptor` state values register independently, so leave automatic mode disabled when exposing only selected actions. `ToolDescriptor` adds descriptions, input schemas, `execute`, and optional `when`/`deps`. Visibility dependencies must be explicit.
 
 Use `getActiveWebMCPTools()` to discover current registrations and `executeWebMCPTool(name, input)` to invoke the chosen tool within the user's authorized task. Rediscover after UI changes. Handle returned errors and verify the resulting UI or data state. Discovery and visibility are not authorization; the application or transport must enforce access controls and validate input.
 
@@ -147,9 +177,9 @@ Use `getActiveWebMCPTools()` to discover current registrations and `executeWebMC
 
 Check behavior at the boundary being changed: initial render, user events, subsequent state publications, and lifecycle transitions. For object bindings, verify omitted values survive, new keys become reactive, and children keep their state proxy. Exercise hydration or WebMCP only when the task uses them.
 
-In the Symbiote source repository, `npm run test:unit` runs Node tests and `npm run test:browser -- test/browser/symbiote.browser.js` runs the component browser tests. `npm run test:webmcp:native` covers native WebMCP. Use the host project's own scripts in consuming applications. Test dependency setup is separate from publishing.
+Use the host project's existing validation commands. For HTML-app, exercise the actual declared actions and their data targets, including form submission, record updates and any configured saving. Check imported chunks in their consuming context and verify that the Markdown host preserves active markup when that mode is used.
 
-Read only the documentation needed for the task. Prefer matching local files under the project's Symbiote source or `node_modules/@symbiotejs/symbiote/docs/`; otherwise these maintained references are available:
+Read only the documentation needed for the task. Prefer matching files in the project's installed package or Symbiote checkout, including `html-app/README.md` and `docs/`; otherwise these maintained references are available:
 
 - [Get started](https://github.com/symbiotejs/symbiote.js/blob/main/docs/get-started.md) and [ecosystem](https://github.com/symbiotejs/symbiote.js/blob/main/docs/ecosystem.md): installation, first components, IDE setup, and build tools.
 - [Templates](https://github.com/symbiotejs/symbiote.js/blob/main/docs/templates.md) and [properties](https://github.com/symbiotejs/symbiote.js/blob/main/docs/properties.md): binding syntax, bulk state, and computed values.

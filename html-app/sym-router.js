@@ -49,7 +49,7 @@ export class SymRouter extends SymContext {
 
   connectFoundation() {
     super.connectFoundation();
-    if (!this.isConnected || !this.connectedOnce || this.#controller) {
+    if (globalThis.__SYMBIOTE_SSR || !this.isConnected || !this.connectedOnce || this.#controller) {
       return;
     }
     this.checkOwnership();

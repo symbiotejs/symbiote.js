@@ -8,13 +8,16 @@
   "scripts": {
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
-    "prepublishOnly": "npm test",
-    "pub": "npm test && npm run types && npm publish",
-    "test:setup": "playwright install chromium && puppeteer browsers install chrome",
+    "prepublishOnly": "npm test && npm run size:html-app -- --check",
+    "pub": "npm publish",
+    "test:setup": "playwright install --with-deps chromium firefox webkit && puppeteer browsers install chrome",
     "test:unit": "node --test test/node/*.test.js",
     "test:browser": "playwright test",
+    "test:html-app": "playwright test --config playwright.html-app.config.js",
+    "test:package": "node scripts/check-html-app-package.js",
+    "size:html-app": "node scripts/check-html-app-size.js",
     "test:webmcp:native": "node --test test/browser/webmcp.native.test.js",
-    "test": "node --test test/node/*.test.js && playwright test && npm run test:webmcp:native"
+    "test": "npm run types && npm run test:unit && npm run test:browser && npm run test:webmcp:native && npm run test:package"
   },
   "files": [
     "core/*",
