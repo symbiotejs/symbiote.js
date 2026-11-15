@@ -11,11 +11,18 @@ export class AppRouter {
     };
     static setDefaultTitle(title: string | (() => string)): void;
     static setRoutingMap(map: {
-        [x: string]: {};
-    }): void;
+        [x: string]: {
+            title?: string | (() => string);
+            default?: boolean;
+            error?: boolean;
+            pattern?: string;
+            load?: () => Promise<any>;
+            __loaded?: boolean;
+        };
+    }, replace?: boolean): void;
     static set routingEventName(name: string);
     static get routingEventName(): string;
-    static readAddressBar(): {
+    static readAddressBar(address?: Pick<Location, "search" | "pathname">): {
         route: any;
         options: {};
     };
@@ -25,7 +32,7 @@ export class AppRouter {
     }): void;
     static navigate(route: string, options?: {
         [x: string]: any;
-    }): void;
+    }): Promise<void>;
     static beforeRoute(fn: (to: {
         route: string;
         options: {
@@ -48,6 +55,8 @@ export class AppRouter {
             load?: () => Promise<any>;
             __loaded?: boolean;
         };
+    }, options?: {
+        signal?: AbortSignal;
     }): PubSub<any>;
     static removePopstateListener(): void;
 }

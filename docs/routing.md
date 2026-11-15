@@ -2,6 +2,8 @@
 
 Symbiote.js has a built-in SPA routing solution based on the standard [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API).
 
+For HTML-only applications, the optional foundation provides [`sym-router`](../html-app/README.md#declarative-routing), a declarative adapter to this same router.
+
 > In 3.x, `AppRouter` is imported separately from the main package:
 > ```js
 > import { AppRouter } from '@symbiotejs/symbiote/core/AppRouter.js';
@@ -101,7 +103,7 @@ AppRouter.initRoutingCtx('R', {
 ### AppRouter.initRoutingCtx()
 
 ```js
-initRoutingCtx(id, routingMap)
+initRoutingCtx(id, routingMap, options)
 // > PubSub instance
 ```
 
@@ -109,6 +111,8 @@ initRoutingCtx(id, routingMap)
 |:--|:--|:--|:--|
 | `id` | `String` | yes | Context ID |
 | `routingMap` | `Object<string, RouteDescriptor>` | yes | Routing map |
+
+Optional `options.signal` removes the context's route-event listener when aborted. An existing named context is reused without replacement; missing route-state fields are initialized. The context owner remains responsible for releasing its store and, when it owns the application router, calling `removePopstateListener()`.
 
 `RouteDescriptor` type:
 
@@ -122,10 +126,12 @@ initRoutingCtx(id, routingMap)
 
 ### AppRouter.navigate()
 
-Navigate and dispatch route change event:
+Navigate and dispatch the route change event. The returned promise resolves after native guards and loading complete:
 ```js
-AppRouter.navigate('user', { id: '42' });
+await AppRouter.navigate('user', { id: '42' });
 ```
+
+URL options are copied before path substitution. Query values are encoded and decoded. A newer navigation or map configuration prevents an obsolete asynchronous guard/loader from publishing over current state.
 
 > **Migration note**: `applyRoute()` from 2.x has been renamed to `navigate()` in 3.x.
 
@@ -145,10 +151,13 @@ AppRouter.notify();
 
 ### AppRouter.readAddressBar()
 
-Read and parse the current URL:
+Read and parse the current URL, or supply a URL/location-like object without changing browser history:
 ```js
 let { route, options } = AppRouter.readAddressBar();
+let target = AppRouter.readAddressBar(new URL(link.href));
 ```
+
+Malformed percent encoding produces an unmatched route instead of throwing.
 
 ### AppRouter.beforeRoute()
 
@@ -166,6 +175,8 @@ AppRouter.setRoutingMap({
   new_route: { pattern: '/new', title: 'New Section' },
 });
 ```
+
+Pass `true` as the second argument to replace the map and reset route defaults and path/query mode. Patterns compile before the new map takes effect, so an invalid pattern leaves the previous configuration intact. The default behavior remains additive.
 
 ### AppRouter.setSeparator()
 

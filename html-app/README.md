@@ -1,6 +1,6 @@
 # Symbiote HTML-app foundation
 
-Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection`, `sym-conditional` and `sym-import` and leaves the core entry independent.
+Use HTML-owned state and native Symbiote bindings without defining an application component class. The optional entry registers `sym-component`, `sym-context`, `sym-collection`, `sym-conditional`, `sym-import` and `sym-router` and leaves the core entry independent.
 
 ## Load the foundation
 
@@ -162,6 +162,54 @@ Register an autonomous custom element from a direct template or a native `use-te
 - `dom-add` mounts when matched; `dom-remove` removes when matched. Both dispose inactive content immediately, including its actions, pending edits, subscriptions and owned contexts. A later mount creates fresh content from the authored template.
 - Inactive content is hidden and inert. Local bindings retain the conditional owner's context. Nested components keep their own contexts. Attribute changes rebind the condition without retaining old subscriptions.
 - Native `use-template` and `process-inner-html="false"` remain available. No expression evaluation, additional styling or action-chain syntax is introduced.
+
+## Declarative routing
+
+`sym-router` configures the existing [AppRouter](../docs/routing.md) from HTML. [The routed Todo](./todo-routed.html) combines reusable templates, imported task controls, settings and browser storage without application JavaScript.
+
+```html
+<sym-router ctx="ROUTER">
+  <script type="application/json">
+    {
+      "routes": {
+        "tasks": {
+          "title": "Tasks",
+          "default": true
+        },
+        "settings": {
+          "title": "Settings"
+        },
+        "notFound": {
+          "title": "Page not found",
+          "error": true
+        }
+      }
+    }
+  </script>
+  <h1>{{title}}</h1>
+  <nav aria-label="Pages">
+    <a href="?tasks" bind="onclick: [navigate]ROUTER">Tasks</a>
+    <a href="?settings" bind="onclick: [navigate]ROUTER">Settings</a>
+  </nav>
+  <sym-conditional when="ROUTER/route" is="tasks" behavior="dom-add">
+    <p>Task overview</p>
+  </sym-conditional>
+  <sym-conditional when="ROUTER/route" is="settings" behavior="dom-add"
+    use-template="#settings-page"></sym-conditional>
+</sym-router>
+
+<template id="settings-page">
+  <p>Settings view</p>
+</template>
+```
+
+- Supply a nonempty `routes` object through inline JSON, native `use-template` defaults or incoming `$` bindings. Use the native `title`, `default`, `error` and optional `pattern` fields. Titles are strings, flags are booleans, and each route may include JSON metadata. Executable `load` functions and module URLs are not part of this HTML API; compose `sym-import` explicitly instead.
+- The required `ctx` name exposes native `route`, `options` and `title` state, including to components outside the router. Local bindings address those same fields. Reuse `sym-conditional`, extracted templates and imports for views; the router provides no separate outlet or rendering system. Reassign `routes` to replace configuration; nested object mutation does not notify.
+- Without patterns, AppRouter uses URLs such as `?settings`. For path routing, give every route an absolute pattern such as `/tasks/:id`; native matching populates `options`. Path mode requires your server to serve the app entry for those URLs. Use at most one default and one distinct error route.
+- `[navigate]ROUTER` on a native button or select uses its string `value` as the route name. Optional `action-data="APP/parameters"` supplies a record of scalar URL options, including path parameters. A native form can validate and flush pending controls before navigating. Option objects are not mutated.
+- Explicitly bound anchors retain useful `href` values. Plain internal clicks delegate URL matching and navigation to AppRouter; modifier clicks, new targets, downloads, external destinations, unknown routes and fragment links retain browser behavior. Query links to another document also keep normal navigation. Back/Forward uses the native popstate listener. Navigation actions await native guards/loaders, including through optional WebMCP.
+- AppRouter is one application router. A second active `sym-router`, or an already configured independent native router, is rejected. Disconnecting releases its context listener, popstate handler and native map. A move reconnects the same owner; destruction releases its named context. Initialization does not enable WebMCP globally.
+- URL options are input data. Keep template/import URLs and binding declarations authored rather than deriving them from unvalidated options. Native guards remain available to JavaScript integrations; no declarative guard language is added.
 
 ## JSON sources and explicit synchronization
 

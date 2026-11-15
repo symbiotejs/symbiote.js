@@ -3,10 +3,16 @@ import { ownElements } from '../core/ownElements.js';
 import { controlValue, parseAction, resolveData, unavailable, validateValue } from './action-data.js';
 import { prepareCollectionAction } from './collection-actions.js';
 import { contextRequests, observeDataTarget } from './context-requests.js';
+import { navigateAction } from './router-navigation.js';
 /**
  * @typedef {Object} ActionEvent
  * @property {boolean} [defaultPrevented]
  * @property {boolean} [isComposing]
+ * @property {number} [button]
+ * @property {boolean} [ctrlKey]
+ * @property {boolean} [metaKey]
+ * @property {boolean} [shiftKey]
+ * @property {boolean} [altKey]
  * @property {Element | null} [submitter]
  * @property {() => void} [preventDefault]
  *
@@ -248,6 +254,9 @@ export class ActionBindings {
       };
     }
     let operation = binding.action.operation;
+    if (operation === 'navigate') {
+      return navigateAction(this.owner, binding.action.reference, element, operand, event);
+    }
     if (operation === 'load' || operation === 'sync') {
       return contextRequests(binding.action.reference)[operation]();
     }

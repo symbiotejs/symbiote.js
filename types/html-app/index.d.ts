@@ -4,5 +4,6 @@ import { SymContext } from './sym-context.js';
 import { SymCollection } from './sym-collection.js';
 import { SymConditional } from './sym-conditional.js';
 import { SymImport } from './sym-import.js';
-export { BaseClass, SymComponent, SymContext, SymCollection, SymConditional, SymImport };
+import { SymRouter } from './sym-router.js';
+export { BaseClass, SymComponent, SymContext, SymCollection, SymConditional, SymImport, SymRouter };
 //# sourceMappingURL=index.d.ts.map
