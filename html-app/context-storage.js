@@ -3,6 +3,7 @@ import { isDataKey } from './initial-data.js';
 import { requestLimits, SourceError } from './fetch-source.js';
 
 export let storageSignals = Object.freeze([
+  'storageFound',
   'storageDirty',
   'storageConflict',
   'storageError',
@@ -35,6 +36,7 @@ export class ContextStorage {
 
   status() {
     return {
+      storageFound: typeof this.baseline === 'string',
       storageDirty: this.fields.some((key) => !this.savedVersions.has(key)
         || this.savedVersions.get(key) !== (this.owner.contextData.versions.get(key) ?? 0)
         || this.owner.contextData.pending.has(key)),

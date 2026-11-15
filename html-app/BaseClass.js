@@ -137,10 +137,12 @@ export class BaseClass extends Symbiote {
    * @param {boolean} [force]
    */
   set$(values, force = false) {
-    if (Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey)) {
+    let itemUpdate = Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey);
+    if (itemUpdate) {
       this.actionBindings.invalidate();
     }
-    super.set$(values, force);
+    // An incoming record also resets invalid DOM drafts absent from state.
+    super.set$(values, force || itemUpdate);
   }
 
   /**

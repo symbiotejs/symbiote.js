@@ -258,7 +258,10 @@ export class ActionBindings {
       return navigateAction(this.owner, binding.action.reference, element, operand, event);
     }
     if (operation === 'load' || operation === 'sync') {
-      return contextRequests(binding.action.reference)[operation]();
+      let requests = contextRequests(binding.action.reference);
+      return operation === 'load'
+        ? requests.load(operand.hasAttribute('action-overwrite') || element.hasAttribute('action-overwrite'))
+        : requests.sync();
     }
     if (operation === 'persist' || operation === 'restore') {
       let storage = contextRequests(binding.action.reference).owner.storage;
