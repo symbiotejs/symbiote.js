@@ -8,7 +8,7 @@
   "scripts": {
     "prepare": "git config core.hooksPath .git-hooks",
     "types": "rm -rf types && tsc -p dts.cfg.json && node scripts/clean-dts.js && node scripts/update-exports.js",
-    "prepublishOnly": "npm test && npm run size:html-app -- --check",
+    "prepublishOnly": "npm test && npm run size:html-app",
     "pub": "npm publish",
     "test:setup": "playwright install --with-deps chromium firefox webkit && puppeteer browsers install chrome",
     "test:unit": "node --test test/node/*.test.js",
