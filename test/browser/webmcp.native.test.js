@@ -105,7 +105,9 @@ describe('native WebMCP integration', () => {
     await serve();
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--enable-features=WebMCPTesting,DevToolsWebMCPSupport'],
+      args: [
+        '--enable-features=WebMCP',
+      ],
     });
   });
 
