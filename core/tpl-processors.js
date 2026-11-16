@@ -182,6 +182,9 @@ function domBindProcessor(fr, fnCtx) {
                 el[DICT.SET_LATER_KEY] = Object.create(null);
               }
               el[DICT.SET_LATER_KEY][prop] = val;
+            } else {
+              // A newly upgraded child must not replay an older queued assignment.
+              delete el[DICT.SET_LATER_KEY]?.[prop];
             }
           }
         }, !skipInit);

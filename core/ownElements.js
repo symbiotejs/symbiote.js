@@ -2,7 +2,7 @@
  * querySelectorAll scoped to own elements only.
  * During ssrMode hydration, `fr` is the component itself (an HTMLElement).
  * querySelectorAll matches ALL descendants, including those inside child components.
- * This helper excludes elements whose closest custom-element ancestor is not `fr`.
+ * Nested custom elements own their contents, except explicitly non-parsing hosts that delegate to `fr`.
  * @param {Element | DocumentFragment} fr
  * @param {string} selector
  * @returns {Element[]}
@@ -12,7 +12,7 @@ export function ownElements(fr, selector) {
   return all.filter((el) => {
     let parent = el.parentElement;
     while (parent && parent !== fr) {
-      if (parent.localName?.includes('-')) return false;
+      if (parent.localName?.includes('-') && parent.getAttribute('process-inner-html') !== 'false') return false;
       parent = parent.parentElement;
     }
     return true;
@@ -28,7 +28,7 @@ export function ownElements(fr, selector) {
 export function isOwnNode(node, root) {
   let parent = node.parentElement;
   while (parent && parent !== root) {
-    if (parent.localName?.includes('-')) return false;
+    if (parent.localName?.includes('-') && parent.getAttribute('process-inner-html') !== 'false') return false;
     parent = parent.parentElement;
   }
   return true;
