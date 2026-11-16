@@ -3,14 +3,14 @@
   <div class="grid gap-5 lg:grid-cols-2">
     <div class="panel grid content-start gap-4">
       <h2 class="font-semibold">Request configuration</h2>
-      <label>JSON source<input bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
-      <label>Write endpoint<input bind="value: ENDPOINTS/destination; onchange: [pub-to]ENDPOINTS/destination"></label>
-      <label>Request method<select bind="value: ENDPOINTS/method; onchange: [pub-to]ENDPOINTS/method">
+      <label>JSON source<input toolname="set_tasks_source" tooldescription="Change the JSON source URL used to load task data." bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
+      <label>Write endpoint<input toolname="set_tasks_destination" tooldescription="Set the HTTP endpoint used by Send tasks." bind="value: ENDPOINTS/destination; onchange: [pub-to]ENDPOINTS/destination"></label>
+      <label>Request method<select toolname="set_tasks_request_method" tooldescription="Choose PUT, POST, or PATCH for sending tasks to the configured endpoint." bind="value: ENDPOINTS/method; onchange: [pub-to]ENDPOINTS/method">
         <option>PUT</option><option>POST</option><option>PATCH</option>
       </select></label>
       <div class="field-row">
-        <button type="button" bind="onclick: [load]APP; disabled: APP/+busy">Reload</button>
-        <button type="button" class="primary" bind="onclick: [sync]APP; disabled: APP/+busy">Send tasks</button>
+        <button type="button" toolname="reload_tasks" tooldescription="Load task data from the configured JSON source while preserving protected local edits." bind="onclick: [load]APP; disabled: APP/+busy">Reload</button>
+        <button type="button" class="primary" toolname="send_tasks" tooldescription="Send the task list to the configured HTTP endpoint using the selected request method." bind="onclick: [sync]APP; disabled: APP/+busy">Send tasks</button>
       </div>
       <p class="text-sm text-muted">Sending requires a server that accepts the selected method. The checkout's development server provides an optional in-memory API at <code>/api/tasks</code>. Static hosting needs only the JSON source and browser storage.</p>
     </div>

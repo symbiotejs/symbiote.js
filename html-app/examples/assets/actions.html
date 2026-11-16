@@ -15,38 +15,38 @@
     </script>
     <div class="grid gap-4 md:grid-cols-3">
       <div class="panel grid content-start gap-3">
-        <label>Immediate<input bind="value: immediate; oninput: [pub-to]immediate"></label>
+        <label>Immediate<input toolname="edit_immediate_value" tooldescription="Edit the immediate publication example; publish the new text immediately." bind="value: immediate; oninput: [pub-to]immediate"></label>
         <code class="text-sm text-muted">[pub-to]</code>
         <p class="break-words text-sm">Published: <strong>{{immediate}}</strong></p>
       </div>
       <div class="panel grid content-start gap-3">
-        <label>200 ms<input bind="value: delay200; oninput: [pub-to-200]delay200"></label>
+        <label>200 ms<input toolname="edit_200ms_value" tooldescription="Edit the 200 ms debounce example; publish the text after 200 ms without further input." bind="value: delay200; oninput: [pub-to-200]delay200"></label>
         <code class="text-sm text-muted">[pub-to-200]</code>
         <p class="break-words text-sm">Published: <strong>{{delay200}}</strong></p>
       </div>
       <div class="panel grid content-start gap-3">
-        <label>1000 ms<input bind="value: delay1000; oninput: [pub-to-1000]delay1000"></label>
+        <label>1000 ms<input toolname="edit_1000ms_value" tooldescription="Edit the 1000 ms debounce example; publish the text after 1000 ms without further input." bind="value: delay1000; oninput: [pub-to-1000]delay1000"></label>
         <code class="text-sm text-muted">[pub-to-1000]</code>
         <p class="break-words text-sm">Published: <strong>{{delay1000}}</strong></p>
       </div>
     </div>
     <div class="grid gap-5 lg:grid-cols-2">
-      <form class="panel grid gap-4" action-data="ACTIONS/draft" bind="onsubmit: [set]ACTIONS/submitted">
+      <form class="panel grid gap-4" toolname="submit_demo_message" tooldescription="Submit the current draft message, flushing its pending text publication first." action-data="ACTIONS/draft" bind="onsubmit: [set]ACTIONS/submitted">
         <h2 class="font-semibold">Debounced input and native submission</h2>
-        <label>Message<input required placeholder="Type, then submit immediately" bind="value: draft; oninput: [pub-to-200]draft"></label>
+        <label>Message<input required placeholder="Type, then submit immediately" toolname="edit_demo_message" tooldescription="Edit the draft message; publish after 200 ms or when the form is submitted." bind="value: draft; oninput: [pub-to-200]draft"></label>
         <div class="field-row">
           <button class="primary">Submit</button>
-          <button type="button" value="" bind="onclick: [set]submitted">Clear result</button>
+          <button type="button" value="" toolname="clear_submitted_message" tooldescription="Clear the submitted message result." bind="onclick: [set]submitted">Clear result</button>
         </div>
         <p>Submitted: <strong>{{submitted}}</strong></p>
       </form>
       <div class="panel grid content-start gap-4">
         <h2 class="font-semibold">Typed values and boolean actions</h2>
-        <label>Amount<input type="number" min="0" bind="value: amount; oninput: [pub-to]amount"></label>
-        <label class="field-row"><input type="checkbox" bind="checked: ready; onchange: [pub-to]ready">Ready</label>
+        <label>Amount<input type="number" min="0" toolname="edit_demo_amount" tooldescription="Edit the nonnegative numeric amount in the typed-values example." bind="value: amount; oninput: [pub-to]amount"></label>
+        <label class="field-row"><input type="checkbox" toolname="set_demo_ready" tooldescription="Set the ready flag in the typed-values example." bind="checked: ready; onchange: [pub-to]ready">Ready</label>
         <div class="field-row flex-wrap">
-          <button type="button" value="true" bind="onclick: [set]ready">Set ready</button>
-          <button type="button" bind="onclick: [toggle]open">Toggle message</button>
+          <button type="button" value="true" toolname="mark_demo_ready" tooldescription="Set the ready flag to true." bind="onclick: [set]ready">Set ready</button>
+          <button type="button" toolname="toggle_demo_message" tooldescription="Show or hide the boolean-toggle example message." bind="onclick: [toggle]open">Toggle message</button>
         </div>
         <p class="text-sm text-muted">Amount: {{amount}} / ready: {{ready}}</p>
         <sym-conditional when="ACTIONS/open"><p class="rounded-lg bg-accent/10 p-3 text-accent">Shown by a boolean toggle.</p></sym-conditional>

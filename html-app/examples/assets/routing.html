@@ -6,10 +6,10 @@
       <h2 class="font-semibold">URL-driven tabs</h2>
       <sym-context bind="$: ROUTER/+params">
         <nav class="flex overflow-x-auto border-b border-line">
-          <button class="tab-link" type="button" value="routing" action-data="ROUTE_DEMO/parameters" bind="onclick: [navigate]ROUTER">Example
+          <button class="tab-link" type="button" value="routing" toolname="open_routing_example" tooldescription="Open the routing example tab with the button's URL parameters." action-data="ROUTE_DEMO/parameters" bind="onclick: [navigate]ROUTER">Example
             <sym-conditional when="^tab" is="example"><span class="absolute inset-x-0 bottom-0 border-b-2 border-accent"></span></sym-conditional>
           </button>
-          <a class="tab-link" href="../full-app.html?routing&amp;source=link&amp;tab=details" bind="onclick: [navigate]ROUTER">Details
+          <a class="tab-link" href="../full-app.html?routing&amp;source=link&amp;tab=details" toolname="open_routing_details" tooldescription="Open the routing details tab through its query-string link." bind="onclick: [navigate]ROUTER">Details
             <sym-conditional when="^tab" is="details"><span class="absolute inset-x-0 bottom-0 border-b-2 border-accent"></span></sym-conditional>
           </a>
         </nav>

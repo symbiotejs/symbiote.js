@@ -1,4 +1,7 @@
 export namespace WEBMCP_DICT {
+    let TOOL_NAME_ATTR: string;
+    let TOOL_DESCRIPTION_ATTR: string;
+    let TOOL_AUTOSUBMIT_ATTR: string;
     namespace TOOL_EVENTS {
         namespace onclick {
             let event: string;

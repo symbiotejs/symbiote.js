@@ -1,4 +1,4 @@
 <section class="grid gap-4 text-sm leading-relaxed">
   <p>This fragment loads relative to its importing section. Its checkbox publishes to <code>PREFERENCES/showCounts</code>, which the Collections section also reads.</p>
-  <label class="field-row"><input type="checkbox" bind="checked: PREFERENCES/showCounts; onchange: [pub-to]PREFERENCES/showCounts">Show task counts</label>
+  <label class="field-row"><input type="checkbox" toolname="set_imported_task_counts" tooldescription="Show or hide task counts through this imported preferences control." bind="checked: PREFERENCES/showCounts; onchange: [pub-to]PREFERENCES/showCounts">Show task counts</label>
 </section>

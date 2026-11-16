@@ -9,8 +9,8 @@
         pub-map="PROFILE/namePreview: name; PROFILE/rolePreview: role">
         <div class="panel grid gap-4">
           <h2 class="font-semibold">Edit the child context</h2>
-          <label>Name<input bind="value: name; oninput: [pub-to]name"></label>
-          <label>Role<select bind="value: role; onchange: [pub-to]role">
+          <label>Name<input toolname="edit_profile_name" tooldescription="Edit the person's name and publish it to the parent profile and preview." bind="value: name; oninput: [pub-to]name"></label>
+          <label>Role<select toolname="set_profile_role" tooldescription="Select the person's role and publish it to the parent profile and preview." bind="value: role; onchange: [pub-to]role">
             <option>Designer</option><option>Developer</option><option>Reviewer</option>
           </select></label>
         </div>

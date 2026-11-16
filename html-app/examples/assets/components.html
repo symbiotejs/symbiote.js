@@ -16,7 +16,7 @@
   <script type="application/json">{"title": "Note", "message": "", "expanded": false}</script>
   <div class="grid gap-4">
     <h2 class="font-semibold">{{title}}</h2>
-    <button type="button" bind="onclick: [toggle]expanded">Toggle details</button>
+    <button type="button" toolname="toggle_component_details" tooldescription="Show or hide the details for this component instance." bind="onclick: [toggle]expanded">Toggle details</button>
     <sym-conditional when="^expanded"><p class="text-sm text-muted">{{^message}}</p></sym-conditional>
   </div>
 </template>
