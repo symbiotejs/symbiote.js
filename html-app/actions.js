@@ -120,7 +120,9 @@ export class ActionBindings {
           subscriptions: [],
         };
         this.bindings.push(binding);
-        this.owner.localCtx.add(key, (/** @type {ActionEvent} */ event) => this.activate(binding, event));
+        let handler = (/** @type {ActionEvent} */ event) => this.activate(binding, event);
+        handler[DICT.GENERATED_HANDLER_KEY] = true;
+        this.owner.localCtx.add(key, handler);
         if (element instanceof HTMLFormElement && property === 'onsubmit') {
           configuredForms.add(element);
         }
@@ -212,7 +214,7 @@ export class ActionBindings {
     let node = this.owner;
     while (node) {
       let runtime = Reflect.get(node, 'actionBindings');
-      if (Reflect.has(node, DICT.MCP_ITEM_INDEX_KEY) && runtime instanceof ActionBindings) {
+      if (Reflect.has(node, DICT.ITEM_INDEX_KEY) && runtime instanceof ActionBindings) {
         return {
           runtime,
           version: runtime.version,

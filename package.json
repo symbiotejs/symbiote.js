@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@symbiotejs/symbiote",
-  "version": "3.10.2",
+  "version": "3.10.3",
   "description": "Symbiote.js - zero-dependency close-to-platform frontend library to build super-powered web components",
   "author": "team@rnd-pro.com",
   "license": "MIT",
@@ -84,6 +84,10 @@
       "types": "./types/core/dictionary.d.ts",
       "default": "./core/dictionary.js"
     },
+    "./core/extensions.js": {
+      "types": "./types/core/extensions.d.ts",
+      "default": "./core/extensions.js"
+    },
     "./core/full.js": {
       "types": "./types/core/full.d.ts",
       "default": "./core/full.js"
@@ -131,6 +135,14 @@
     "./core/warn.js": {
       "types": "./types/core/warn.d.ts",
       "default": "./core/warn.js"
+    },
+    "./core/webmcp-bindings.js": {
+      "types": "./types/core/webmcp-bindings.d.ts",
+      "default": "./core/webmcp-bindings.js"
+    },
+    "./core/webmcp-dictionary.js": {
+      "types": "./types/core/webmcp-dictionary.d.ts",
+      "default": "./core/webmcp-dictionary.js"
     },
     "./core/webmcp.js": {
       "types": "./types/core/webmcp.d.ts",

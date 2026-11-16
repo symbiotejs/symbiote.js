@@ -141,7 +141,7 @@ export class BaseClass extends Symbiote {
    * @param {boolean} [force]
    */
   set$(values, force = false) {
-    let itemUpdate = Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey);
+    let itemUpdate = Reflect.has(this, DICT.ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey);
     if (itemUpdate) {
       this.actionBindings.invalidate();
     }
@@ -154,7 +154,7 @@ export class BaseClass extends Symbiote {
    * @param {boolean} [rewrite]
    */
   add$(values, rewrite = false) {
-    if (Reflect.has(this, DICT.MCP_ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey)) {
+    if (Reflect.has(this, DICT.ITEM_INDEX_KEY) && Object.keys(values).some(isDataKey)) {
       this.actionBindings.invalidate();
     }
     super.add$(values, rewrite);

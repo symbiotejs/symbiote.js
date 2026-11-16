@@ -229,8 +229,8 @@ test('named handlers and optional WebMCP reuse the native binding and discovery 
       ToolDescriptor,
     } = await import('/core/webmcp.js');
     let {
-      DICT,
-    } = await import('/core/dictionary.js');
+      WEBMCP_DICT: MCP,
+    } = await import('/core/webmcp-dictionary.js');
     Symbiote.mcpToolMode = true;
     let {
       SymComponent,
@@ -256,8 +256,8 @@ test('named handlers and optional WebMCP reuse the native binding and discovery 
     ].slice(0, 2)) {
       button.click();
     }
-    let entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.textContent === 'Declarative');
-    let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[DICT.MCP_OWNER_ID_KEY] && tool.key === 'auto:' + entry.key);
+    let entry = owner[MCP.EVENTS_KEY].find((binding) => binding.el.textContent === 'Declarative');
+    let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[MCP.OWNER_ID_KEY] && tool.key === 'auto:' + entry.key);
     if (!tool) {
       throw new Error('Declarative action was not discovered.');
     }
@@ -266,7 +266,7 @@ test('named handlers and optional WebMCP reuse the native binding and discovery 
       calls: owner.$.calls,
       flag: owner.$.flag,
     };
-    let ownerId = owner[DICT.MCP_OWNER_ID_KEY];
+    let ownerId = owner[MCP.OWNER_ID_KEY];
     owner.remove();
     await new Promise((resolve) => setTimeout(resolve, 125));
     return {

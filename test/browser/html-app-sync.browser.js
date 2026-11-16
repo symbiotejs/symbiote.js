@@ -192,8 +192,8 @@ test('explicit load and sync actions await real results through the public WebMC
   expect(await page.evaluate(async () => {
     let {
       Symbiote,
-      DICT,
     } = await import('/core/Symbiote.js');
+    let { WEBMCP_DICT: MCP } = await import('/core/webmcp-dictionary.js');
     let {
       getActiveWebMCPTools,
       executeWebMCPTool,
@@ -211,8 +211,8 @@ test('explicit load and sync actions await real results through the public WebMC
       once: true,
     }));
     let invoke = async (label) => {
-      let entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.textContent === label);
-      let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[DICT.MCP_OWNER_ID_KEY]
+      let entry = owner[MCP.EVENTS_KEY].find((binding) => binding.el.textContent === label);
+      let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[MCP.OWNER_ID_KEY]
         && tool.key === 'auto:' + entry.key);
       if (!tool) {
         throw new Error('Request action was not discovered.');

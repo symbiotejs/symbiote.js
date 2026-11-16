@@ -53,6 +53,21 @@ Enable automatic UI tools on the external entry script:
 
 The literal `"true"` loads WebMCP and enables automatic tools for foundation components before they initialize, including generated items and imported fragments. At startup, the entry reads `document.currentScript` when available, otherwise the first external module script marked `webmcp-mode="true"`. This also supports CDN module wrappers whose URL differs from the imported implementation. The flag is read before asynchronous loading; an available current script takes precedence, including an absent or `"false"` flag. Without an opted-in loader, existing WebMCP settings stay unchanged. The full example opts in; the compact Todo keeps the default. Programmatic imports can use the native [WebMCP activation API](../docs/webmcp.md#activation).
 
+Automatic tools cover click, submit, change, and input operations. Incidental events such as mouseup and focus retain normal UI behavior without creating tools. Set `toolname` and `tooldescription` on an operation's control to provide a useful public name and description. Generated handlers without a description, label, or authored tool name are skipped. Descriptions include the event, control label, existing element ID, and component context.
+
+For an existing `UI/note` property:
+
+```html
+<label>Note
+  <input id="note-editor" toolname="edit_note" tooldescription="Edit the current note."
+    bind="value: UI/note; oninput: [pub-to]UI/note">
+</label>
+```
+
+Calling `executeWebMCPTool('edit_note', { value: 'New note' })` inserts the text and invokes the declared publication handler. Change tools also support checkbox/radio `checked` booleans and select values. See [data insertion](../docs/webmcp.md#data-insertion) for schemas and control support.
+
+Forms with native declarative WebMCP support own their submission tools; Symbiote avoids registering the same submission twice. `toolparamdescription` and `toolautosubmit` retain their native meanings. Without native support, annotated forms that require user review do not receive an immediate-submit fallback. See [native forms](../docs/webmcp.md#native-forms) for discovery and fallback behavior. WebMCP's dictionary and binding implementation remain optional imports.
+
 ## Examples
 
 - [todo-ref.html](./examples/todo-ref.html): a compact, unstyled Todo with creation, editing, completion and removal.

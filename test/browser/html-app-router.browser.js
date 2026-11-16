@@ -379,8 +379,8 @@ test('public WebMCP navigation awaits the native asynchronous guard', async ({
       AppRouter,
     } = await import('/core/AppRouter.js');
     let {
-      DICT,
-    } = await import('/core/Symbiote.js');
+      WEBMCP_DICT: MCP,
+    } = await import('/core/webmcp-dictionary.js');
     let {
       getActiveWebMCPTools,
       executeWebMCPTool,
@@ -388,16 +388,17 @@ test('public WebMCP navigation awaits the native asynchronous guard', async ({
     let owner = document.querySelector('sym-router');
     owner.mcpToolMode = true;
     owner.syncWebMCPTools();
-    let entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.value === 'settings');
-    // Event metadata is collected while rendering; enable before a fresh render.
+    let entry = owner[MCP.EVENTS_KEY]?.find((binding) => binding.el.value === 'settings');
+    // The core creates no WebMCP metadata without the extension. Collect it on
+    // a fresh render after enabling automatic tools.
     if (!entry) {
       owner.remove();
       owner.destroy();
       document.body.append(owner);
       await new Promise(queueMicrotask);
-      entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.value === 'settings');
+      entry = owner[MCP.EVENTS_KEY].find((binding) => binding.el.value === 'settings');
     }
-    let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[DICT.MCP_OWNER_ID_KEY]
+    let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === owner[MCP.OWNER_ID_KEY]
       && tool.key === 'auto:' + entry.key);
     let remove = AppRouter.beforeRoute(async () => {
       await new Promise((done) => setTimeout(done, 20));

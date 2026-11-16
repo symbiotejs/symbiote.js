@@ -5,6 +5,7 @@ import { animateOut } from './animateOut.js';
 import { setNestedProp } from '../utils/setNestedProp.js';
 import { prepareStyleSheet } from '../utils/prepareStyleSheet.js';
 import { parseProp } from './parseProp.js';
+import { extensions } from './extensions.js';
 
 import PROCESSORS from './tpl-processors.js';
 import { resolveTemplate } from './resolveTemplate.js';
@@ -88,7 +89,9 @@ export class Symbiote extends HTMLElement {
    * @param {Boolean} [shadow]
    */
   render(template, shadow = this.renderShadow) {
-    this[DICT.MCP_EVENTS_KEY] = [];
+    for (let extension of extensions.values()) {
+      extension.beforeRender?.(this);
+    }
     /** @type {DocumentFragment} */
     let fr;
     if ((shadow || this.#super.shadowStyleSheets) && !this.shadowRoot) {
@@ -209,15 +212,16 @@ export class Symbiote extends HTMLElement {
 
   syncWebMCPTools() {
     if (globalThis.__SYMBIOTE_SSR) return;
-    let sync = globalThis[DICT.MCP_SYNC_OWNER_KEY];
-    if (sync) {
-      sync(this);
+    for (let extension of extensions.values()) {
+      extension.syncOwner?.(this);
     }
   }
 
   unregisterWebMCPTools() {
     if (globalThis.__SYMBIOTE_SSR) return;
-    globalThis[DICT.MCP_UNREGISTER_OWNER_KEY]?.(this);
+    for (let extension of extensions.values()) {
+      extension.disconnectOwner?.(this);
+    }
   }
 
   /** @returns {String} */

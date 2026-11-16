@@ -29,7 +29,7 @@ export function findCollectionItem(owner) {
       if (!collection.isConnected) {
         break;
       }
-      let id = Reflect.get(item, DICT.MCP_ITEM_KEY_KEY);
+      let id = Reflect.get(item, DICT.ITEM_KEY_KEY);
       if (typeof id !== 'string') {
         break;
       }

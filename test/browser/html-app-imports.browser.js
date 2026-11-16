@@ -284,8 +284,8 @@ test('imported native WebMCP actions are discoverable and disposed with their fr
   }));
   expect(await page.evaluate(async () => {
     let {
-      DICT,
-    } = await import('/core/Symbiote.js');
+      WEBMCP_DICT: MCP,
+    } = await import('/core/webmcp-dictionary.js');
     let {
       getActiveWebMCPTools,
       executeWebMCPTool,
@@ -301,8 +301,8 @@ test('imported native WebMCP actions are discoverable and disposed with their fr
       once: true,
     }));
     let owner = host.firstElementChild;
-    let entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.textContent === 'Toggle imported');
-    let ownerId = owner[DICT.MCP_OWNER_ID_KEY];
+    let entry = owner[MCP.EVENTS_KEY].find((binding) => binding.el.textContent === 'Toggle imported');
+    let ownerId = owner[MCP.OWNER_ID_KEY];
     let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === ownerId && tool.key === 'auto:' + entry.key);
     if (!tool) {
       throw new Error('Imported action was not discovered.');

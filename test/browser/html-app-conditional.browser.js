@@ -204,8 +204,8 @@ test('DOM disposal removes only the content owner tools from the public WebMCP c
   expect(await page.evaluate(async () => {
     let {
       Symbiote,
-      DICT,
     } = await import('/core/Symbiote.js');
+    let { WEBMCP_DICT: MCP } = await import('/core/webmcp-dictionary.js');
     let {
       getActiveWebMCPTools,
       executeWebMCPTool,
@@ -219,8 +219,8 @@ test('DOM disposal removes only the content owner tools from the public WebMCP c
     state.append(conditional);
     await new Promise((done) => setTimeout(done, 25));
     let owner = conditional.firstElementChild;
-    let entry = owner[DICT.MCP_EVENTS_KEY].find((binding) => binding.el.textContent === 'Conditional tool');
-    let ownerId = owner[DICT.MCP_OWNER_ID_KEY];
+    let entry = owner[MCP.EVENTS_KEY].find((binding) => binding.el.textContent === 'Conditional tool');
+    let ownerId = owner[MCP.OWNER_ID_KEY];
     let tool = getActiveWebMCPTools().find((tool) => tool.ownerId === ownerId && tool.key === 'auto:' + entry.key);
     if (!tool) {
       throw new Error('Conditional content action was not discovered.');
