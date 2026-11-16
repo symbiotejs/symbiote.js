@@ -131,10 +131,10 @@ describe('native WebMCP integration', () => {
         getActiveWebMCPTools,
       } = await import('/core/webmcp.js');
       let {
-        DICT,
-      } = await import('/core/dictionary.js');
+        WEBMCP_DICT: MCP,
+      } = await import('/core/webmcp-dictionary.js');
       let owner = document.querySelector('sym-context[ctx="HTML_ACTIONS"]');
-      let tool = getActiveWebMCPTools().find((item) => item.ownerId === owner[DICT.MCP_OWNER_ID_KEY]
+      let tool = getActiveWebMCPTools().find((item) => item.ownerId === owner[MCP.OWNER_ID_KEY]
         && item.key.startsWith('auto:'));
       return tool?.name;
     });
@@ -145,6 +145,69 @@ describe('native WebMCP integration', () => {
     await page.$eval('sym-context[ctx="HTML_ACTIONS"]', (owner) => owner.remove());
     await waitForNoTool(page, name);
   });
+
+  it('exposes insertion schemas and publishes inserted values through native tools', async (t) => {
+    let page = await browser.newPage();
+    t.after(() => page.close());
+    await page.goto(`${baseURL}/test/browser/fixtures/html-app-webmcp.html`);
+    await waitForTool(page, 'insert_title');
+    let direct = await page.evaluate(async () => (await import('/core/webmcp.js')).getActiveWebMCPTools().find((tool) => tool.name === 'insert_title'));
+    let native = await getTool(page, 'insert_title');
+    assert.equal(native.description, direct.description);
+    assert.deepEqual(native.inputSchema, direct.inputSchema);
+    assert.match(native.description, /ID: input-title/);
+    await executeTool(page, 'insert_title', { value: 'Native insertion' });
+    await executeTool(page, 'set_checked', { checked: true });
+    await executeTool(page, 'set_choices', { value: ['beta'] });
+    let state = await page.$eval('sym-context', (owner) => ({ title: owner.$.title, checked: owner.$.checked, choices: owner.$.choices }));
+    assert.deepEqual(state, { title: 'Native insertion', checked: true, choices: ['beta'] });
+  });
+
+  for (let mode of ['declarative', 'imperative', 'absent']) {
+    it(`avoids duplicate native form submissions with ${mode} support`, async (t) => {
+      let targetBrowser = mode === 'declarative' ? browser : await puppeteer.launch({
+        headless: true,
+        args: mode === 'imperative' ? ['--enable-features=WebMCP', '--disable-features=DeclarativeWebMCP'] : [],
+      });
+      let page = await targetBrowser.newPage();
+      t.after(async () => {
+        await page.close();
+        if (targetBrowser !== browser) await targetBrowser.close();
+      });
+      await page.goto(`${baseURL}/test/browser/fixtures/webmcp-forms.html`);
+      await page.waitForFunction(() => window.__WEBMCP_FORMS_READY);
+      let discovery = await page.evaluate(async () => ({
+        imperative: !!document.modelContext?.registerTool,
+        declarative: 'agentInvoked' in SubmitEvent.prototype && typeof SubmitEvent.prototype.respondWith === 'function',
+        tools: (await import('/core/webmcp.js')).getActiveWebMCPTools(),
+      }));
+      assert.equal(discovery.imperative, mode !== 'absent');
+      assert.equal(discovery.declarative, mode === 'declarative');
+      assert.ok(discovery.tools.some((tool) => tool.name === 'independent_action'));
+      assert.ok(discovery.tools.some((tool) => tool.key === 'auto:submitPlain'));
+      assert.equal(discovery.tools.some((tool) => tool.key.includes('submitReview')), false);
+      if (mode === 'declarative') {
+        assert.equal(discovery.tools.some((tool) => tool.key === 'auto:submitForm'), false);
+        await waitForTool(page, 'native_submit');
+        assert.equal((await toolNames(page)).filter((name) => name === 'native_submit').length, 1);
+        await executeTool(page, 'native_submit', { query: 'Browser form input' });
+        assert.equal(await page.$eval('#native-form input', (el) => el.value), 'Browser form input');
+      } else {
+        let submissions = discovery.tools.filter((tool) => tool.key === 'auto:submitForm');
+        assert.equal(submissions.length, 1);
+        assert.equal(submissions[0].name, 'native_submit');
+        assert.equal(submissions[0].nativeActive, mode === 'imperative');
+        let result = await page.evaluate(async () => (await import('/core/webmcp.js')).executeWebMCPTool('native_submit'));
+        assert.equal(!!result.isError, false);
+      }
+      assert.equal(await page.$eval('webmcp-form-controls', (owner) => owner.$.submissions), 1);
+      let independent = await page.evaluate(async () => (await import('/core/webmcp.js')).executeWebMCPTool('independent_action'));
+      assert.equal(!!independent.isError, false);
+      assert.equal(await page.$eval('webmcp-form-controls', (owner) => owner.$.independent), 1);
+      await page.click('#review-form button');
+      assert.equal(await page.$eval('webmcp-form-controls', (owner) => owner.$.reviews), 1);
+    });
+  }
 
   for (let nativeAvailable of [true, false]) {
     it(`invokes public tools with native WebMCP ${nativeAvailable ? 'enabled' : 'unavailable'}`, async (t) => {

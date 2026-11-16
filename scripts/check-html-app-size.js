@@ -22,6 +22,8 @@ let core = await build({
 });
 assert.ok(Object.keys(core.metafile.inputs).every((path) => !path.startsWith('html-app/')),
   'The core entry must not import HTML-app.');
+assert.ok(Object.keys(core.metafile.inputs).every((path) => !path.startsWith('core/webmcp')),
+  'The core entry must not import the optional WebMCP implementation or dictionary.');
 let sharedCore = new Set(Object.keys(core.metafile.inputs).map((path) => resolve(root, path)));
 /** @type {import('esbuild').Plugin} */
 let sharedImports = {

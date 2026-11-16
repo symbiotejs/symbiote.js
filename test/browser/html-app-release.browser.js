@@ -115,11 +115,11 @@ test('strict CSP supports forms, JSON, trusted imports and scoped WebMCP alongsi
   })).toBe(false);
   await page.evaluate(async () => {
     let { PubSub } = await import('/core/PubSub.js');
-    let { DICT } = await import('/core/dictionary.js');
+    let { WEBMCP_DICT: MCP } = await import('/core/webmcp-dictionary.js');
     let { getActiveWebMCPTools } = await import('/core/webmcp.js');
     let owner = document.querySelector('sym-context');
     let scopes = [owner, ...owner.querySelectorAll('*')];
-    let ownerIds = scopes.map((element) => element[DICT.MCP_OWNER_ID_KEY]).filter(Boolean);
+    let ownerIds = scopes.map((element) => element[MCP.OWNER_ID_KEY]).filter(Boolean);
     window.ownedToolNames = getActiveWebMCPTools().filter((tool) => ownerIds.includes(tool.ownerId)).map((tool) => tool.name);
     if (!window.ownedToolNames.length) {
       throw new Error('Expected tools for the mounted fixture actions.');

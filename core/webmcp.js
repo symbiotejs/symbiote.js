@@ -3,6 +3,9 @@ import Symbiote from './Symbiote.js';
 import { devState } from './warn.js';
 import { DICT } from './dictionary.js';
 import { parseProp } from './parseProp.js';
+import { extensions } from './extensions.js';
+import { WEBMCP_DICT as MCP } from './webmcp-dictionary.js';
+import { isToolDescriptor, webMCPBindings } from './webmcp-bindings.js';
 
 /**
  * @typedef {Object} WebMCPToolResultText
@@ -57,10 +60,6 @@ let pendingOwnerSync = new WeakSet();
 /** @type {WeakMap<object, number>} */
 let ownerVersions = new WeakMap();
 let _modelContext;
-
-function isToolDescriptor(val) {
-  return !!val?.[DICT.MCP_TOOL_DESCRIPTOR_MARKER];
-}
 
 function isElementOwner(owner) {
   return typeof HTMLElement !== 'undefined' && owner instanceof HTMLElement;
@@ -173,7 +172,7 @@ function ownerToolName(owner) {
   if (!isElementOwner(owner)) {
     return name;
   }
-  let identity = owner[DICT.MCP_ITEM_KEY_KEY] ?? owner[DICT.MCP_ITEM_INDEX_KEY];
+  let identity = owner[DICT.ITEM_KEY_KEY] ?? owner[DICT.ITEM_INDEX_KEY];
   let clean = identity === undefined ? '' : cleanIdentity(identity);
   return clean ? `${name}_${clean}` : name;
 }
@@ -264,10 +263,10 @@ function ownerType(owner) {
 }
 
 function ownerId(owner) {
-  if (!owner[DICT.MCP_OWNER_ID_KEY]) {
-    owner[DICT.MCP_OWNER_ID_KEY] = `${ownerType(owner)}-${++ownerIdCount}`;
+  if (!owner[MCP.OWNER_ID_KEY]) {
+    owner[MCP.OWNER_ID_KEY] = `${ownerType(owner)}-${++ownerIdCount}`;
   }
-  return owner[DICT.MCP_OWNER_ID_KEY];
+  return owner[MCP.OWNER_ID_KEY];
 }
 
 function getModelContext() {
@@ -428,6 +427,7 @@ function makeEntryWithComponentDescription(publicName, key, descriptor, owner, e
   let schema = readInputSchema(descriptor, owner);
   let entry = {
     name: publicName,
+    baseName: publicName,
     key,
     ownerId: id,
     ownerType: ownerType(owner),
@@ -475,18 +475,173 @@ function createExplicitDesired(owner, key, descriptor) {
   };
 }
 
-function createAutoDesired(owner, key, eventBinding = null) {
+function normalizeText(value) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function textAttribute(el, name) {
+  return normalizeText(el?.getAttribute?.(name));
+}
+
+function controlLabel(el) {
+  let root = el?.getRootNode?.() || el?.ownerDocument;
+  let references = textAttribute(el, 'aria-labelledby').split(' ').filter(Boolean);
+  let label = references.map((id) => root?.getElementById?.(id)?.textContent || '').join(' ');
+  label = normalizeText(label) || textAttribute(el, 'aria-label');
+  if (!label) {
+    label = normalizeText(Array.from(el?.labels || [], (label) => {
+      let content = label.cloneNode(true);
+      content.querySelectorAll('input, textarea, select, button, meter, output, progress').forEach((control) => control.remove());
+      return content.textContent;
+    }).join(' '));
+  }
+  if (!label && (['button', 'a'].includes(el?.localName) || textAttribute(el, 'role') === 'button')) {
+    label = normalizeText(el.textContent);
+  }
+  if (!label && el?.localName === 'input' && ['button', 'submit', 'reset'].includes(el.type)) {
+    label = normalizeText(el.value);
+  }
+  label ||= textAttribute(el, 'title');
+  return label.length > 200 ? `${label.slice(0, 199)}…` : label;
+}
+
+function submissionForm(owner, binding) {
+  let el = binding.el;
+  if (binding.prop === 'onsubmit' && el?.localName === 'form') {
+    return el;
+  }
+  // A separately bound submit control duplicates the form only when it uses
+  // the same handler. Independent click operations keep their own tools.
+  if (binding.prop === 'onclick' && ['button', 'input'].includes(el?.localName)
+    && ['submit', 'image'].includes(el.type) && el.form?.onsubmit === owner.$?.[binding.key]) {
+    return el.form;
+  }
+  return null;
+}
+
+function hasNativeFormTools(form) {
+  let doc = form.ownerDocument;
+  let prototype = doc?.defaultView?.SubmitEvent?.prototype;
+  // SubmitEvent's WebMCP extensions are gated by declarative support,
+  // independently of the imperative modelContext API.
+  return !!(doc?.modelContext?.registerTool && prototype
+    && 'agentInvoked' in prototype && typeof prototype.respondWith === 'function');
+}
+
+function autoBindingAvailable(owner, binding) {
+  let el = binding.el;
+  if (!Object.hasOwn(MCP.TOOL_EVENTS, binding.prop) || el?.isConnected === false
+    || binding.sourceOwner?.isConnected === false) {
+    return false;
+  }
+  let form = submissionForm(owner, binding);
+  if (form && textAttribute(form, 'toolname') && textAttribute(form, 'tooldescription')) {
+    if (hasNativeFormTools(form) || !form.hasAttribute('toolautosubmit')) {
+      return false;
+    }
+  }
+  if (binding.prop === 'oninput' || binding.prop === 'onchange') {
+    return !el?.matches?.(':disabled') && !el?.readOnly && !el?.closest?.('[inert], [aria-disabled="true"]');
+  }
+  return true;
+}
+
+function autoControlInput(el, prop) {
+  let editing = prop === 'oninput' || prop === 'onchange';
+  let supported = ['input', 'textarea', 'select'].includes(el?.localName);
+  if (!editing || !supported) {
+    return prop === 'oninput' ? null : { inputSchema: emptySchema(), apply() {} };
+  }
+  if (el.localName === 'input' && ['file', 'hidden', 'button', 'submit', 'reset', 'image'].includes(el.type)) {
+    return null;
+  }
+  let checked = el.localName === 'input' && ['checkbox', 'radio'].includes(el.type);
+  let multiple = el.localName === 'select' && el.multiple;
+  let numeric = el.localName === 'input' && ['number', 'range'].includes(el.type);
+  let property = checked ? 'checked' : 'value';
+  let type = checked ? 'boolean' : multiple ? 'array' : numeric ? ['string', 'number'] : 'string';
+  let field = { type, description: checked ? 'Checked state to apply to the control.' : 'Value to insert into the control.' };
+  let options = el.localName === 'select'
+    ? Array.from(el.options).filter((option) => !option.disabled && !option.parentElement?.disabled).map((option) => option.value)
+    : null;
+  let valueSchema = multiple ? { ...field, items: { type: 'string', enum: options } }
+    : options ? { ...field, enum: options } : field;
+  return {
+    inputSchema: {
+      ...emptySchema(),
+      properties: { [property]: valueSchema },
+      required: prop === 'oninput' ? [property] : [],
+    },
+    apply(args) {
+      if (!Object.hasOwn(args, property)) {
+        if (prop === 'oninput') {
+          throw new TypeError(`Input tool requires "${property}".`);
+        }
+        return;
+      }
+      let value = args[property];
+      let valid = checked ? typeof value === 'boolean'
+        : multiple ? Array.isArray(value) && value.every((item) => typeof item === 'string')
+        : typeof value === 'string' || (numeric && typeof value === 'number' && Number.isFinite(value));
+      if (!valid) {
+        throw new TypeError(`Invalid control "${property}".`);
+      }
+      // Check current options, since a tool can outlive a change to the select.
+      if (options) {
+        let allowed = Array.from(el.options).filter((option) => !option.disabled && !option.parentElement?.disabled).map((option) => option.value);
+        if (!(multiple ? value : [value]).every((item) => allowed.includes(item))) {
+          throw new TypeError('Unknown or disabled select option.');
+        }
+      }
+      if (multiple) {
+        for (let option of el.options) {
+          option.selected = value.includes(option.value);
+        }
+      } else {
+        let previous = el[property];
+        el[property] = checked ? value : String(value);
+        if (!checked && el.value !== String(value)) {
+          el[property] = previous;
+          throw new TypeError('The control cannot accept this value.');
+        }
+      }
+    },
+  };
+}
+
+function autoMetadata(owner, binding) {
+  let el = binding.el;
+  let operation = MCP.TOOL_EVENTS[binding.prop];
+  let name = textAttribute(el, 'toolname');
+  let description = textAttribute(el, 'tooldescription');
+  let label = controlLabel(el);
+  let handler = owner.$?.[binding.key];
+  let authoredKey = !handler?.[DICT.GENERATED_HANDLER_KEY];
+  let priority = description ? 4 : label ? 3 : name ? 2 : authoredKey ? 1 : 0;
+  let input = autoControlInput(el, binding.prop);
+  if (!priority || !input) {
+    return null;
+  }
+  description ||= `${operation.description}: ${label || name || binding.key}.`;
+  let control = el?.localName ? ` Control: <${el.localName}>${label ? ` ${JSON.stringify(label)}` : ''}.` : '';
+  let id = textAttribute(el, 'id');
+  description += `\nEvent: ${operation.event}.${control}${id ? ` ID: ${id}.` : ''} Component: <${ownerToolName(owner)}>.`;
+  return { name, description, priority, ...input };
+}
+
+function createAutoDesired(owner, key, eventBinding, metadata) {
   let tagName = ownerName(owner);
   let toolOwnerName = ownerToolName(owner);
   let sourceName = sourceToolName(eventBinding?.sourceOwner);
   let sourceSuffix = sourceName ? `_${sourceName}` : '';
-  let publicName = `${key}_in_${toolOwnerName}${sourceSuffix}`;
+  let publicName = metadata.name || `${key}_in_${toolOwnerName}${sourceSuffix}`;
   let sourceDescription = sourceName ? ` Source binding: <${sourceName}>.` : '';
   let descriptor = new ToolDescriptor({
     name: publicName,
-    description: `Active UI action "${key}" in <${tagName}>.${sourceDescription}`,
-    inputSchema: emptySchema(),
-    execute: () => {
+    description: `${metadata.description}${sourceDescription}`,
+    inputSchema: metadata.inputSchema,
+    when: () => autoBindingAvailable(owner, eventBinding),
+    execute: (input) => {
       let handler = owner.$?.[key];
       if (isToolDescriptor(handler)) {
         return handler.execute({}, owner);
@@ -494,6 +649,7 @@ function createAutoDesired(owner, key, eventBinding = null) {
       if (typeof handler !== 'function') {
         throw new Error(`Handler "${key}" is not available on <${tagName}>.`);
       }
+      metadata.apply(input);
       let result = handler.call(owner, syntheticEvent(eventBinding?.el));
       let respond = (value) => {
         let suffix = value ? `: ${value}` : '';
@@ -507,6 +663,7 @@ function createAutoDesired(owner, key, eventBinding = null) {
   return {
     key: sourceName ? `auto:${key}@${sourceName}` : `auto:${key}`,
     baseName: publicName,
+    priority: metadata.priority,
     descriptor,
     executor(input) {
       return descriptor.execute(input || {}, owner);
@@ -530,17 +687,19 @@ function collectAutoTools(owner, explicitKeys) {
   if (!isElementOwner(owner) || !(owner.mcpToolMode || owner.constructor?.mcpToolMode)) {
     return [];
   }
-  let handlers = owner[DICT.MCP_EVENTS_KEY] || [];
-  let result = [];
-  let seen = new Set();
+  let handlers = owner[MCP.EVENTS_KEY] || [];
+  let result = new Map();
   let seenCtx = new Set();
   for (let item of handlers) {
+    if (!autoBindingAvailable(owner, item)) {
+      continue;
+    }
     if (item.sourceOwner && (!item.sourceOwner.isConnected || explicitKeys.has(item.key))) {
       continue;
     }
     let sourceName = sourceToolName(item.sourceOwner);
     let toolKey = sourceName ? `${item.key}@${sourceName}` : item.key;
-    if (explicitKeys.has(item.key) || seen.has(toolKey)) {
+    if (explicitKeys.has(item.key)) {
       continue;
     }
     let parsed = parseProp(item.key, owner);
@@ -550,13 +709,15 @@ function collectAutoTools(owner, explicitKeys) {
         syncWebMCPTools(parsed.ctx);
       }
     }
-    if (parsed?.scope !== 'local') {
+    if (parsed?.scope !== 'local' || typeof owner.$?.[item.key] !== 'function') {
       continue;
     }
-    seen.add(toolKey);
-    result.push(createAutoDesired(owner, item.key, item));
+    let metadata = autoMetadata(owner, item);
+    if (metadata && (!result.has(toolKey) || result.get(toolKey).priority < metadata.priority)) {
+      result.set(toolKey, createAutoDesired(owner, item.key, item, metadata));
+    }
   }
-  return result;
+  return [...result.values()];
 }
 
 function collectDesiredTools(owner) {
@@ -627,7 +788,7 @@ export class ToolDescriptor {
 
   /** @param {ToolDescriptorOptions} options */
   constructor(options = {}) {
-    this[DICT.MCP_TOOL_DESCRIPTOR_MARKER] = true;
+    this[MCP.TOOL_DESCRIPTOR_MARKER] = true;
     this.name = options.name;
     this.description = options.description || 'Symbiote WebMCP tool.';
     this.inputSchema = options.inputSchema || emptySchema();
@@ -726,11 +887,17 @@ function applyDesiredTools(owner, id, ownerEntry, desired, componentDescription)
       }
       continue;
     }
-    let publicName = ownerEntry.toolsByKey[item.key] || resolveName(item.baseName, id, item.key);
+    let oldName = ownerEntry.toolsByKey[item.key];
+    if (oldName && webMCPRegistry.store.tools.read(oldName)?.baseName !== item.baseName) {
+      unregisterToolName(oldName);
+      oldName = null;
+    }
+    let publicName = oldName || resolveName(item.baseName, id, item.key);
     if (hasToolName(publicName)) {
       unregisterToolName(publicName);
     }
     let entry = makeEntryWithComponentDescription(publicName, item.key, item.descriptor, owner, item.executor, componentDescription);
+    entry.baseName = item.baseName;
     ownerEntry.toolsByKey[item.key] = publicName;
     webMCPRegistry.store.tools.add(publicName, entry, true);
   }
@@ -782,11 +949,11 @@ export function syncWebMCPTools(owner) {
 export function unregisterWebMCPTools(owner) {
   if (!owner) return;
   bumpOwnerVersion(owner);
-  let targets = owner[DICT.MCP_EVENT_TARGET_OWNERS_KEY];
+  let targets = owner[MCP.EVENT_TARGET_OWNERS_KEY];
   if (targets) {
     for (let target of targets) {
-      if (target[DICT.MCP_EVENTS_KEY]) {
-        target[DICT.MCP_EVENTS_KEY] = target[DICT.MCP_EVENTS_KEY].filter((entry) => entry.sourceOwner !== owner);
+      if (target[MCP.EVENTS_KEY]) {
+        target[MCP.EVENTS_KEY] = target[MCP.EVENTS_KEY].filter((entry) => entry.sourceOwner !== owner);
       }
       syncWebMCPTools(target);
     }
@@ -829,31 +996,29 @@ export function installWebMCP(SymbioteClass = Symbiote) {
     return;
   }
   installedClasses.add(SymbioteClass);
-  globalThis[DICT.MCP_SYNC_OWNER_KEY] = syncWebMCPTools;
-  globalThis[DICT.MCP_UNREGISTER_OWNER_KEY] = unregisterWebMCPTools;
-  globalThis[DICT.MCP_PUBSUB_REGISTERED_KEY] = (ctx, uid) => {
-    if (uid === REGISTRY_UID) return;
-    syncWebMCPTools(ctx);
-  };
-  globalThis[DICT.MCP_PUBSUB_DELETED_KEY] = (ctx, uid) => {
-    if (uid === REGISTRY_UID) return;
-    unregisterWebMCPTools(ctx);
-  };
-  globalThis[DICT.MCP_PUBSUB_CHANGED_KEY] = (ctx, prop) => {
-    if (!ctx.uid || ctx === webMCPRegistry || ctx === webMCPRegistry.store.tools
-      || ctx === webMCPRegistry.store.owners || ctx === webMCPRegistry.store.diagnostics) {
-      return;
-    }
-    let id = ownerId(ctx);
-    let existingOwner = webMCPRegistry.store.owners.has(id)
-      ? webMCPRegistry.store.owners.read(id)
-      : null;
-    let propOwnsTool = !!existingOwner?.toolsByKey?.[prop];
-    if (!isToolDescriptor(ctx.store[prop]) && !propOwnsTool) {
-      return;
-    }
-    syncWebMCPTools(ctx);
-  };
+  globalThis[MCP.SYNC_OWNER_KEY] = syncWebMCPTools;
+  globalThis[MCP.UNREGISTER_OWNER_KEY] = unregisterWebMCPTools;
+  extensions.set('webmcp', {
+    ...webMCPBindings,
+    syncOwner: syncWebMCPTools,
+    disconnectOwner: unregisterWebMCPTools,
+    contextRegistered(ctx, uid) {
+      if (uid !== REGISTRY_UID) syncWebMCPTools(ctx);
+    },
+    contextDeleted(ctx, uid) {
+      if (uid !== REGISTRY_UID) unregisterWebMCPTools(ctx);
+    },
+    contextChanged(ctx, prop) {
+      if (!ctx.uid || ctx === webMCPRegistry || ctx === webMCPRegistry.store.tools
+        || ctx === webMCPRegistry.store.owners || ctx === webMCPRegistry.store.diagnostics) {
+        return;
+      }
+      let existingOwner = webMCPRegistry.store.owners.read(ownerId(ctx));
+      if (isToolDescriptor(ctx.store[prop]) || existingOwner?.toolsByKey?.[prop]) {
+        syncWebMCPTools(ctx);
+      }
+    },
+  });
 }
 
 installWebMCP(Symbiote);

@@ -1,6 +1,6 @@
 import { animateOut } from './animateOut.js';
 import { warnMsg } from './warn.js';
-import { setupItemize, setItemWebMCPMetadata } from './itemizeSetup.js';
+import { setupItemize, setItemMetadata } from './itemizeSetup.js';
 
 /**
  * @template {import('./Symbiote.js').Symbiote} T
@@ -22,7 +22,7 @@ export function itemizeProcessor(fr, fnCtx) {
       let fillItems = (/** @type {*[]} */ items) => {
         items.forEach((item, idx) => {
           if (currentList[idx]) {
-            setItemWebMCPMetadata(currentList[idx], item, idx);
+            setItemMetadata(currentList[idx], item, idx);
             if (currentList[idx].set$) {
               currentList[idx].set$(item);
             } else {
@@ -38,7 +38,7 @@ export function itemizeProcessor(fr, fnCtx) {
             if (isLazy) {
               repeatItem.lazyMode = true;
             }
-            setItemWebMCPMetadata(repeatItem, item, idx);
+            setItemMetadata(repeatItem, item, idx);
             Object.assign((repeatItem?.init$ || repeatItem), item);
             fragment.appendChild(repeatItem);
           }

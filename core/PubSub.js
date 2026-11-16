@@ -1,4 +1,5 @@
 import { DICT } from './dictionary.js';
+import { extensions } from './extensions.js';
 import { warnMsg, devState } from './warn.js';
 
 // structuredClone() is limited by supported types, so we use custom cloning:
@@ -270,7 +271,9 @@ export class PubSub {
     } else {
       this.notify(prop, val);
     }
-    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
+    for (let extension of extensions.values()) {
+      extension.contextChanged?.(this, prop);
+    }
   }
 
   /**
@@ -297,7 +300,9 @@ export class PubSub {
     } else {
       this.notify(prop, val);
     }
-    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
+    for (let extension of extensions.values()) {
+      extension.contextChanged?.(this, prop);
+    }
   }
 
   /** @returns {T} */
@@ -339,7 +344,9 @@ export class PubSub {
       delete this.#externalSubs[name];
     }
     this.notify(prop, null);
-    globalThis[DICT.MCP_PUBSUB_CHANGED_KEY]?.(this, prop);
+    for (let extension of extensions.values()) {
+      extension.contextChanged?.(this, prop);
+    }
   }
 
   /** @param {keyof T} prop */
@@ -430,14 +437,20 @@ export class PubSub {
         }
       }
     }
-    globalThis[DICT.MCP_PUBSUB_REGISTERED_KEY]?.(data, uid);
+    for (let extension of extensions.values()) {
+      extension.contextRegistered?.(data, uid);
+    }
     return data;
   }
 
   /** @param {String | Symbol} uid */
   static deleteCtx(uid) {
     let ctx = PubSub.globalStore.get(uid);
-    ctx && globalThis[DICT.MCP_PUBSUB_DELETED_KEY]?.(ctx, uid);
+    if (ctx) {
+      for (let extension of extensions.values()) {
+        extension.contextDeleted?.(ctx, uid);
+      }
+    }
     PubSub.globalStore.delete(uid);
   }
 

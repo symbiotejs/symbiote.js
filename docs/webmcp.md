@@ -11,6 +11,8 @@ import Symbiote, { html } from '@symbiotejs/symbiote';
 import '@symbiotejs/symbiote/webmcp';
 ```
 
+The operation dictionary and WebMCP binding processors load with this extension. The core entry does not import them; its generic extension hooks also handle component and context lifecycle notifications.
+
 ## Automatic Tools
 
 Enable `mcpToolMode` globally or per component to generate tools from bound event handlers:
@@ -35,6 +37,17 @@ WebmcpCounter.template = html`
 WebmcpCounter.reg('webmcp-counter');
 ```
 
+Automatic discovery uses an operation dictionary:
+
+| Binding | Operation |
+| --- | --- |
+| `onclick` | Activate a control |
+| `onsubmit` | Submit a form |
+| `onchange` | Commit a control value or selection |
+| `oninput` | Insert data into a control |
+
+Mouseup, pointer movement, hover, focus, blur, scroll, and individual keyboard events do not create automatic tools. These events continue to work as ordinary UI bindings. Use an explicit `ToolDescriptor` for additional authored operations.
+
 The generated tool name keeps the handler key and custom element tag:
 
 ```text
@@ -52,6 +65,73 @@ Popup bindings such as `^removeItem` are registered on the ancestor component th
 ```text
 removeItem_in_task-list_task-item_alpha
 ```
+
+### Action metadata
+
+Use the [WebMCP declarative API proposal's](https://github.com/webmachinelearning/webmcp/blob/main/declarative-api-explainer.md#form-attributes) `toolname` and `tooldescription` attributes on an eligible event-bound element:
+
+```html
+<button id="details-toggle"
+  bind="onclick: toggleDetails"
+  toolname="toggle_details"
+  tooldescription="Expand or collapse the details panel.">
+  Details
+</button>
+```
+
+The proposal defines these attributes for forms; Symbiote also reads them on other controls for its automatic event tools. HTML attributes do not enable excluded event types. Explicit `ToolDescriptor` names and descriptions remain authoritative.
+
+Description resolution uses `tooldescription`, then the control label, then an authored `toolname`, then an authored handler key. Labels use `aria-labelledby`, `aria-label`, associated labels, button/link text, or `title`; fallback label text is limited to 200 characters. Unlabeled framework-generated handlers are skipped when neither description nor tool name is supplied.
+
+The description includes the event, control tag and label, existing element ID when non-empty, and component/list-item identity. For example:
+
+```text
+Expand or collapse the details panel.
+Event: click. Control: <button> "Details". ID: details-toggle. Component: <details-panel>.
+```
+
+Bindings sharing a handler and source component produce one tool. An explicit description takes priority when choosing its binding; metadata and invocation target always come from that same binding. Call `component.syncWebMCPTools()` after changing labels or attributes to refresh descriptions, names, and eligibility. Name collisions use the existing `-N` suffix.
+
+### Data insertion
+
+Input tools update the selected DOM control before calling its bound handler, so that handler can publish the new data through normal state bindings:
+
+```js
+class QueryEditor extends Symbiote {
+  query = '';
+  updateQuery(event) {
+    this.$.query = event.target.value;
+  }
+}
+QueryEditor.template = html`
+  <label>Query
+    <input toolname="edit_query" bind="value: query; oninput: updateQuery">
+  </label>
+`;
+QueryEditor.reg('query-editor');
+```
+
+After mounting the component, invoke `executeWebMCPTool('edit_query', { value: 'New query' })` or its native WebMCP counterpart.
+
+| Control | Tool input |
+| --- | --- |
+| Text input or textarea | `{ value: string }` |
+| Number or range input | `{ value: string \| number }` |
+| Checkbox or radio | `{ checked: boolean }` |
+| Single select | `{ value: string }` from enabled options |
+| Multiple select | `{ value: string[] }` from enabled options |
+
+`oninput` requires a value. `onchange` also accepts an empty object to invoke the handler against the current control state. Invalid input, unsupported select options, and disabled/read-only/inert controls cannot insert data. File inputs and controls without a supported value interface need explicit tools. Automatic handlers retain the synthetic event with `type: 'webmcp'` and the selected control as `target` and `currentTarget`.
+
+### Native forms
+
+Annotated forms with both `toolname` and `tooldescription` use the browser's declarative WebMCP implementation when available. Symbiote checks the document's imperative API and the declarative `SubmitEvent.agentInvoked` / `respondWith()` extensions. Imperative support alone does not cause forms to be skipped.
+
+Symbiote omits a duplicate automatic submission tool for the form, including an associated submit control bound to the same handler. Independent control actions remain eligible. The browser owns form schemas, `toolparamdescription`, submission responses, and the user-review behavior controlled by `toolautosubmit`.
+
+Without native declarative support, an annotated form can use the bound-handler fallback when `toolautosubmit` is present. Otherwise the fallback submission tool is omitted because it cannot represent the browser's user-review flow. Ordinary UI submission continues to work. Unannotated forms retain normal automatic handler discovery.
+
+Browser-owned forms appear in native WebMCP discovery. `getActiveWebMCPTools()` and `executeWebMCPTool()` cover Symbiote-created tools; they do not mirror browser-owned form tools.
 
 ## Explicit Tool Descriptors
 

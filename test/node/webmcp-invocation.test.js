@@ -1,7 +1,7 @@
 import { before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { PubSub } from '../../core/PubSub.js';
-import { DICT } from '../../core/dictionary.js';
+import { WEBMCP_DICT as MCP } from '../../core/webmcp-dictionary.js';
 import { devState } from '../../core/warn.js';
 
 globalThis.HTMLElement ||= class {};
@@ -114,7 +114,7 @@ for (let mode of ['absent', 'native', 'rejected']) {
           return 'finished';
         },
       };
-      owner[DICT.MCP_EVENTS_KEY] = [{ key: 'increment', el: target }];
+      owner[MCP.EVENTS_KEY] = [{ prop: 'onclick', key: 'increment', el: target }];
       api.syncWebMCPTools(owner);
       t.after(() => api.unregisterWebMCPTools(owner));
       let name = 'increment_in_direct-component';

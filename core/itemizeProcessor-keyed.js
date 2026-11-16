@@ -1,6 +1,6 @@
 import { animateOut } from './animateOut.js';
 import { warnMsg } from './warn.js';
-import { setupItemize, setItemWebMCPMetadata } from './itemizeSetup.js';
+import { setupItemize, setItemMetadata } from './itemizeSetup.js';
 
 /**
  * Optional Itemize processor with stable keyed identity.
@@ -80,7 +80,7 @@ export function itemizeProcessor(fr, fnCtx) {
           }
           Object.assign(child.init$ || child, item);
         }
-        setItemWebMCPMetadata(child, item, index, keyProp ? item[keyProp] : undefined);
+        setItemMetadata(child, item, index, keyProp ? item[keyProp] : undefined);
         return child;
       });
       // Leaving elements are excluded from future reconciliation immediately.

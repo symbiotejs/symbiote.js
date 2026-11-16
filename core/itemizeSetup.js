@@ -10,13 +10,13 @@ import { warnMsg } from './warn.js';
  * @param {number} idx
  * @param {unknown} [key]
  */
-export function setItemWebMCPMetadata(itemEl, item, idx, key = item && Object.hasOwn(item, '_KEY_') ? item._KEY_ : undefined) {
+export function setItemMetadata(itemEl, item, idx, key = item && Object.hasOwn(item, '_KEY_') ? item._KEY_ : undefined) {
   if (!itemEl) { return; }
-  itemEl[DICT.MCP_ITEM_INDEX_KEY] = idx;
+  itemEl[DICT.ITEM_INDEX_KEY] = idx;
   if (key !== undefined) {
-    itemEl[DICT.MCP_ITEM_KEY_KEY] = key;
+    itemEl[DICT.ITEM_KEY_KEY] = key;
   } else {
-    delete itemEl[DICT.MCP_ITEM_KEY_KEY];
+    delete itemEl[DICT.ITEM_KEY_KEY];
   }
 }
 

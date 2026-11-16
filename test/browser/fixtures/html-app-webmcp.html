@@ -11,11 +11,28 @@
       {
         "flag": false,
         "importedFlag": false,
+        "title": "Initial title",
+        "notes": "",
+        "checked": false,
+        "amount": 1,
+        "choice": "alpha",
+        "choices": ["alpha"],
         "items": [{"id": "first", "title": "First item"}]
       }
     </script>
     <button type="button" bind="onclick: [toggle]flag">Toggle flag</button>
     <output>{{flag}}</output>
+    <label for="input-title">Title</label>
+    <input id="input-title" toolname="insert_title" bind="value: title; oninput: [pub-to]title">
+    <label>Notes<textarea toolname="insert_notes" bind="value: notes; oninput: [pub-to]notes"></textarea></label>
+    <label><input type="checkbox" toolname="set_checked" bind="checked: checked; onchange: [pub-to]checked">Enabled</label>
+    <label>Amount<input type="number" toolname="insert_amount" bind="value: amount; oninput: [pub-to]amount"></label>
+    <label>Choice<select toolname="set_choice" bind="value: choice; onchange: [pub-to]choice">
+      <option value="alpha">Alpha</option><option value="beta">Beta</option><option value="disabled" disabled>Disabled</option>
+    </select></label>
+    <label>Choices<select multiple toolname="set_choices" bind="onchange: [pub-to]choices">
+      <option value="alpha" selected>Alpha</option><option value="beta">Beta</option>
+    </select></label>
     <sym-collection data="HTML_ACTIONS/items">
       <ul itemize="items">
         <template>

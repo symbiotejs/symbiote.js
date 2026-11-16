@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>WebMCP form ownership</title></head>
+<body>
+  <webmcp-form-controls></webmcp-form-controls>
+  <script type="module">
+    import Symbiote from '/core/Symbiote.js';
+    import '/core/webmcp.js';
+
+    class FormControls extends Symbiote {
+      static mcpToolMode = true;
+      submissions = 0;
+      reviews = 0;
+      plain = 0;
+      independent = 0;
+      submitForm(event) {
+        event.preventDefault?.();
+        this.$.submissions++;
+        let result = { submissions: this.$.submissions };
+        event.respondWith?.(Promise.resolve(result));
+        return result;
+      }
+      submitReview(event) {
+        event.preventDefault?.();
+        this.$.reviews++;
+        event.respondWith?.(Promise.resolve({ reviews: this.$.reviews }));
+      }
+      submitPlain(event) {
+        event.preventDefault?.();
+        this.$.plain++;
+      }
+      independentAction() {
+        this.$.independent++;
+      }
+      initCallback() {
+        this.add$({ submissions: 0, reviews: 0, plain: 0, independent: 0 });
+      }
+    }
+    FormControls.template = `
+      <form id="native-form" toolname="native_submit" tooldescription="Submit a search." toolautosubmit bind="onsubmit: submitForm">
+        <input name="query" toolparamdescription="Search text">
+        <button type="submit">Search</button>
+      </form>
+      <button id="associated-submit" type="submit" form="native-form" bind="onclick: submitForm">Same submission</button>
+      <button id="independent-submit" type="submit" form="native-form" toolname="independent_action" bind="onclick: independentAction">Independent action</button>
+      <form id="review-form" toolname="review_submit" tooldescription="Submit after review." bind="onsubmit: submitReview">
+        <button type="submit">Review and submit</button>
+      </form>
+      <form id="plain-form" aria-label="Submit plain form" bind="onsubmit: submitPlain">
+        <button type="submit">Plain submit</button>
+      </form>
+    `;
+    FormControls.reg('webmcp-form-controls');
+    window.__WEBMCP_FORMS_READY = true;
+  </script>
+</body>
+</html>
