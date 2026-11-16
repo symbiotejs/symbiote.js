@@ -70,7 +70,7 @@ Use Send tasks in JSON requests with an HTTP endpoint that accepts the configure
 - `sym-context` without `ctx` owns local state. With `ctx="APP"`, its local data and `APP/property` refer to the same native PubSub context. Named contexts need unique owners; an existing store is never overwritten.
 - `bind="$: APP/contact"` uses native shallow merging: supplied fields update, missing fields are registered, and omitted fields remain. It does not replace the local state proxy or publish changes back automatically.
 - Optional `pub-to="APP/contact"` publishes a fresh data object after an owned field changes. Incoming merges do not echo. The target must already exist in another context. Use native bindings for incoming state and explicit outgoing publication for edits.
-- `process-inner-html="false"` disables an owner's inner binding parsing. Nested foundation elements still own and process their contents. The default is `true`.
+- `process-inner-html="false"` disables an owner's inner binding parsing. An enclosing template can still bind through this explicitly non-parsing layout, without a second parsing pass. Other nested foundation elements own and process their contents. The default is `true`.
 - Removal releases subscriptions and owned named contexts after the native destruction delay. A move retains state; reconnecting a destroyed instance restores its authored markup and latest data.
 - JSON keys are data-only local properties. Context prefixes and prototype-related keys are rejected. Only trusted templates and binding declarations belong in authored HTML.
 

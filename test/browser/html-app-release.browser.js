@@ -15,6 +15,12 @@ test('static SSR hydrates native bindings and collection actions in place', asyn
 }) => {
   let errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  // Keep SSR visible before hydration so readiness cannot depend on its text.
+  let releaseHydration;
+  await page.route('**/html-app/index.js', async (route) => {
+    await new Promise((resolve) => { releaseHydration = resolve; });
+    await route.continue();
+  });
   await page.route('**/must-not-*', (route) => route.fulfill({
     status: 404,
   }));
@@ -23,10 +29,18 @@ test('static SSR hydrates native bindings and collection actions in place', asyn
     body: '<!doctype html><html><body>' + rendered
       + '<script type="module" src="/test/browser/helpers/html-app-hydrate.js"></script></body></html>',
   }));
-  await page.goto('/hydrated.html');
+  await page.goto('/hydrated.html', {
+    waitUntil: 'commit',
+  });
   await expect(page.locator('h1')).toHaveText('Server tasks');
   await expect(page.locator('sym-component p')).toHaveText('Server tasks');
   await expect(page.locator('input')).toHaveValue('First task');
+  await expect.poll(() => typeof releaseHydration).toBe('function');
+  await expect(page.getByRole('button', {
+    name: 'Change title',
+  })).toHaveJSProperty('onclick', null);
+  releaseHydration();
+  await expect(page.locator('sym-context')).toHaveJSProperty('connectedOnce', true);
   expect(await page.evaluate(() => document.querySelector('h1') === window.serverHeading)).toBe(true);
   expect(await page.evaluate(() => document.querySelector('sym-component p') === window.serverSummary)).toBe(true);
   expect(await page.evaluate(() => document.querySelector('li') === window.serverRow)).toBe(true);

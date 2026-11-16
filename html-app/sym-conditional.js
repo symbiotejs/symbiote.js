@@ -76,7 +76,7 @@ export class SymConditional extends BaseClass {
     dataReference(this, reference, true);
     this.#reference = reference;
     this.updateContent();
-    this.#subscription = this.sub(reference, () => this.updateContent(), false);
+    this.#subscription = this.sub(reference, () => this.updateContent());
   }
 
   updateContent() {
