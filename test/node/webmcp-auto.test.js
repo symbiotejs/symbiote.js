@@ -67,6 +67,27 @@ describe('automatic WebMCP operations', () => {
     assert.equal(target, owner.querySelector('button'));
   });
 
+  it('reads tool metadata and annotated form eligibility through the optional dictionary', (t) => {
+    let original = {
+      TOOL_NAME_ATTR: MCP.TOOL_NAME_ATTR,
+      TOOL_DESCRIPTION_ATTR: MCP.TOOL_DESCRIPTION_ATTR,
+      TOOL_AUTOSUBMIT_ATTR: MCP.TOOL_AUTOSUBMIT_ATTR,
+    };
+    t.after(() => Object.assign(MCP, original));
+    Object.assign(MCP, {
+      TOOL_NAME_ATTR: 'data-tool-name',
+      TOOL_DESCRIPTION_ATTR: 'data-tool-description',
+      TOOL_AUTOSUBMIT_ATTR: 'data-tool-autosubmit',
+    });
+    ownerWith('<button data-tool-name="configured_action" data-tool-description="Configured description."></button>', { run() {} }, [['button', 'onclick', 'run']]);
+    assert.match(getActiveWebMCPTools().find((tool) => tool.name === 'configured_action').description, /^Configured description\./);
+    let formOwner = ownerWith('<form data-tool-name="configured_submit" data-tool-description="Submit the configured form."></form>', { submit() {} }, [['form', 'onsubmit', 'submit']]);
+    assert.equal(getActiveWebMCPTools().some((tool) => tool.name === 'configured_submit'), false);
+    formOwner.querySelector('form').setAttribute('data-tool-autosubmit', '');
+    syncWebMCPTools(formOwner);
+    assert.match(getActiveWebMCPTools().find((tool) => tool.name === 'configured_submit').description, /^Submit the configured form\./);
+  });
+
   it('falls back through referenced labels, aria-label, button text, title, name, and authored handler', () => {
     let generated = () => {};
     generated[DICT.GENERATED_HANDLER_KEY] = true;

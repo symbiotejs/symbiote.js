@@ -3,8 +3,8 @@
   <sym-context ctx="CONDITIONS">
     <script type="application/json">{"open": true, "status": "review"}</script>
     <div class="panel field-row mb-5 flex-wrap">
-      <button type="button" class="primary" bind="onclick: [toggle]open">Toggle open</button>
-      <label class="field-row whitespace-nowrap">Status<select class="w-auto" bind="value: status; onchange: [pub-to]status"><option>review</option><option>published</option></select></label>
+      <button type="button" class="primary" toolname="toggle_conditional_content" tooldescription="Toggle the open flag used by the show, hide, dom-add, and dom-remove examples." bind="onclick: [toggle]open">Toggle open</button>
+      <label class="field-row whitespace-nowrap">Status<select class="w-auto" toolname="set_content_status" tooldescription="Set the conditional content status to review or published." bind="value: status; onchange: [pub-to]status"><option>review</option><option>published</option></select></label>
       <sym-conditional when="CONDITIONS/status" is="published"><span class="text-sm text-accent">Published status matched.</span></sym-conditional>
     </div>
     <div class="grid gap-5 lg:grid-cols-2">

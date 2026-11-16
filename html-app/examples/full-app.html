@@ -110,7 +110,8 @@
             <p class="text-lg font-semibold tracking-tight">HTML-app<span class="text-accent">.</span></p>
             <nav class="grid gap-1" itemize="ROUTER/routes">
               <template>
-                <a class="nav-link" bind="@href: href; @hidden: !!error; onclick: [navigate]ROUTER">{{title}}
+                <a class="nav-link" tooldescription="Open this feature section."
+                  bind="@toolname: _KEY_; @href: href; @hidden: !!error; onclick: [navigate]ROUTER">{{title}}
                   <sym-conditional when="ROUTER/route" bind="@is: _KEY_">
                     <span class="size-1.5 rounded-full bg-accent"></span>
                   </sym-conditional>
@@ -118,7 +119,7 @@
               </template>
             </nav>
             <div class="mt-auto border-t border-line pt-5">
-              <label class="field-row"><input type="checkbox" bind="checked: dark; onchange: [pub-to]dark">Dark mode</label>
+              <label class="field-row"><input type="checkbox" toolname="set_dark_mode" tooldescription="Enable or disable dark mode for the feature guide." bind="checked: dark; onchange: [pub-to]dark">Dark mode</label>
             </div>
           </aside>
           <main class="min-w-0 md:overflow-y-auto">

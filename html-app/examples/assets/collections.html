@@ -2,8 +2,8 @@
   <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>sym-collection</code> projects shared records through filters, search and sorting, then native Itemize renders a reusable item. Item actions publish immutable updates by ID. Counts leave the controller through <code>pub-map</code>; page changes keep the source data.</p>
   <p class="max-w-3xl text-sm leading-relaxed text-muted">Load tasks from a JSON object containing <code>tasks</code>, edit the list, then save it in this browser. <strong>Reload JSON</strong> replaces the current list without changing your saved copy. <strong>Restore saved tasks</strong> discards unsaved edits and restores your last browser save.</p>
   <div class="panel grid gap-3">
-    <label>JSON source<input bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
-    <button type="button" class="justify-self-start" action-overwrite bind="onclick: [load]APP; disabled: APP/+busy">Reload JSON</button>
+    <label>JSON source<input toolname="set_tasks_source" tooldescription="Change the JSON source URL used to load task data." bind="value: ENDPOINTS/source; onchange: [pub-to]ENDPOINTS/source"></label>
+    <button type="button" class="justify-self-start" toolname="replace_tasks_from_json" tooldescription="Reload the configured JSON source and replace the current task list, including unsaved edits." action-overwrite bind="onclick: [load]APP; disabled: APP/+busy">Reload JSON</button>
   </div>
   <sym-conditional when="APP/+loading"><p class="text-sm text-accent">Loading tasks...</p></sym-conditional>
   <sym-conditional when="APP/+loadError"><p class="text-sm text-rose-500" bind="textContent: APP/+loadErrorMessage"></p></sym-conditional>
@@ -13,24 +13,24 @@
   </div>
   <div class="panel grid gap-4">
     <div class="flex flex-wrap items-center gap-3">
-      <input type="search" class="max-w-xs" placeholder="Search title or notes" bind="value: APP/query; oninput: [pub-to-200]APP/query">
-      <button type="button" action-data="APP/allFilter" bind="onclick: [set]APP/filter">All</button>
-      <button type="button" action-data="APP/activeFilter" bind="onclick: [set]APP/filter">Active</button>
-      <button type="button" action-data="APP/completedFilter" bind="onclick: [set]APP/filter">Completed</button>
+      <input type="search" class="max-w-xs" placeholder="Search title or notes" toolname="search_tasks" tooldescription="Filter tasks by title or notes after a 200 ms debounce." bind="value: APP/query; oninput: [pub-to-200]APP/query">
+      <button type="button" toolname="show_all_tasks" tooldescription="Show tasks regardless of completion status." action-data="APP/allFilter" bind="onclick: [set]APP/filter">All</button>
+      <button type="button" toolname="show_active_tasks" tooldescription="Show only incomplete tasks." action-data="APP/activeFilter" bind="onclick: [set]APP/filter">Active</button>
+      <button type="button" toolname="show_completed_tasks" tooldescription="Show only completed tasks." action-data="APP/completedFilter" bind="onclick: [set]APP/filter">Completed</button>
       <sym-context bind="$: APP/sort" pub-to="APP/sort">
-        <label class="field-row whitespace-nowrap">Task order<select class="w-auto" bind="value: direction; onchange: [pub-to]direction">
+        <label class="field-row whitespace-nowrap">Task order<select class="w-auto" toolname="set_task_order" tooldescription="Sort task titles in ascending or descending order." bind="value: direction; onchange: [pub-to]direction">
           <option value="asc">Title, ascending</option><option value="desc">Title, descending</option>
         </select></label>
       </sym-context>
     </div>
     <sym-context bind="$: APP/draft" pub-to="APP/draft">
-      <form class="field-row" action-data="APP/draft" action-reset="APP/draft" bind="onsubmit: [append]APP/tasks; inert: APP/+loading">
-        <input name="title" placeholder="New task" required pattern=".*\S.*" bind="value: title; oninput: [pub-to-200]title">
+      <form class="field-row" toolname="add_task" tooldescription="Add the draft task to the task list, then reset the draft." action-data="APP/draft" action-reset="APP/draft" bind="onsubmit: [append]APP/tasks; inert: APP/+loading">
+        <input name="title" placeholder="New task" required pattern=".*\S.*" toolname="edit_new_task_title" tooldescription="Edit the title of the new task draft; submit Add task to create it." bind="value: title; oninput: [pub-to-200]title">
         <button class="primary">Add task</button>
       </form>
     </sym-context>
   </div>
-  <form class="grid gap-5" bind="onsubmit: [persist]APP">
+  <form class="grid gap-5" toolname="save_tasks" tooldescription="Save the current tasks, preferences, and sorting in this browser." bind="onsubmit: [persist]APP">
     <sym-collection data="APP/tasks" filter="APP/filter" search="APP/query" search-fields="title,note" sort="APP/sort"
       pub-map="APP/shown: count; APP/total: totalCount">
       <div class="grid gap-3" itemize="items" item-tag="task-card"></div>
@@ -38,9 +38,9 @@
     </sym-collection>
     <div class="field-row flex-wrap">
       <button type="submit" class="primary" bind="disabled: APP/+busy">Save tasks</button>
-      <button type="button" bind="onclick: [restore]APP; disabled: APP/+busy">Restore saved tasks</button>
-      <button type="button" action-match="APP/allFilter" action-data="APP/completePatch" bind="onclick: [patch-matching]APP/tasks">Complete all</button>
-      <button type="button" action-match="APP/completedFilter" bind="onclick: [remove-matching]APP/tasks">Clear completed</button>
+      <button type="button" toolname="restore_saved_tasks" tooldescription="Discard unsaved browser data and restore the last saved tasks, preferences, and sorting." bind="onclick: [restore]APP; disabled: APP/+busy">Restore saved tasks</button>
+      <button type="button" toolname="complete_all_tasks" tooldescription="Mark every task as complete, including tasks outside the current filter." action-match="APP/allFilter" action-data="APP/completePatch" bind="onclick: [patch-matching]APP/tasks">Complete all</button>
+      <button type="button" toolname="clear_completed_tasks" tooldescription="Remove all completed tasks from the task list." action-match="APP/completedFilter" bind="onclick: [remove-matching]APP/tasks">Clear completed</button>
     </div>
     <p class="text-sm text-muted" bind="hidden: APP/+storageFound">No browser save yet. Use Save tasks to create one.</p>
     <p class="text-sm text-amber-500" bind="hidden: !APP/+storageDirty">Changes are not saved in this browser.</p>
@@ -59,14 +59,14 @@
 <template id="task-card">
   <script type="application/json">{"expanded": false}</script>
   <div class="field-row">
-    <input type="checkbox" bind="checked: done; onchange: [item-pub]done">
-    <input name="title" required pattern=".*\S.*" class="border-transparent bg-transparent font-medium" bind="value: title; oninput: [item-pub]title">
-    <button type="button" bind="onclick: [item-toggle]pinned">
+    <input type="checkbox" toolname="set_task_done" tooldescription="Mark this task as complete or incomplete." bind="checked: done; onchange: [item-pub]done">
+    <input name="title" required pattern=".*\S.*" class="border-transparent bg-transparent font-medium" toolname="edit_task_title" tooldescription="Edit this task's title." bind="value: title; oninput: [item-pub]title">
+    <button type="button" toolname="toggle_task_pinned" tooldescription="Pin or unpin this task." bind="onclick: [item-toggle]pinned">
       <sym-conditional when="^pinned">Unpin</sym-conditional>
       <sym-conditional when="^pinned" behavior="hide">Pin</sym-conditional>
     </button>
-    <button type="button" bind="onclick: [toggle]expanded">Notes</button>
-    <button type="button" class="text-muted hover:text-rose-500" bind="onclick: [item-remove]">Delete</button>
+    <button type="button" toolname="toggle_task_notes" tooldescription="Show or hide this task's notes editor." bind="onclick: [toggle]expanded">Notes</button>
+    <button type="button" class="text-muted hover:text-rose-500" toolname="delete_task" tooldescription="Remove this task from the task list." bind="onclick: [item-remove]">Delete</button>
   </div>
-  <sym-conditional when="^expanded"><textarea class="mt-3" rows="2" placeholder="Task notes" bind="value: ^note; oninput: [item-pub]note"></textarea></sym-conditional>
+  <sym-conditional when="^expanded"><textarea class="mt-3" rows="2" placeholder="Task notes" toolname="edit_task_notes" tooldescription="Edit this task's notes." bind="value: ^note; oninput: [item-pub]note"></textarea></sym-conditional>
 </template>

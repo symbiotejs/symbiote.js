@@ -1,4 +1,7 @@
 export const WEBMCP_DICT = {
+  TOOL_NAME_ATTR: 'toolname',
+  TOOL_DESCRIPTION_ATTR: 'tooldescription',
+  TOOL_AUTOSUBMIT_ATTR: 'toolautosubmit',
   TOOL_EVENTS: {
     onclick: { event: 'click', description: 'Activate control' },
     onsubmit: { event: 'submit', description: 'Submit form' },

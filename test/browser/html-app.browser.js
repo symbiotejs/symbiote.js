@@ -216,6 +216,7 @@ test('the full guide loads every authored feature section and keeps context clea
     },
   }));
   await page.goto('/html-app/examples/full-app.html');
+  await expect(page.getByRole('link', { name: 'State & bindings', exact: true })).toBeVisible();
   let links = await page.locator('aside nav a:visible').evaluateAll((links) => links.map((link) => ({
     href: link.getAttribute('href'),
     route: new URL(link.href).search.slice(1),
@@ -231,22 +232,18 @@ test('the full guide loads every authored feature section and keeps context clea
     })).toBe(true);
     expect(await page.evaluate(() => document.querySelector('main sym-import').$['+loadError'])).toBeNull();
   }
-  await page.getByRole('link', {
-    name: 'Components',
-    exact: true,
-  }).click();
+  expect(await page.evaluate(async () => (await import('/core/webmcp.js')).executeWebMCPTool('components'))).not.toHaveProperty('isError', true);
   await expect(page.locator('feature-note')).toHaveCount(2);
   await page.locator('feature-note').first().getByRole('button').click();
   await expect(page.locator('feature-note').first().locator('p')).toBeVisible();
   await expect(page.locator('feature-note').last().locator('p')).toBeHidden();
-  await page.getByRole('link', {
-    name: 'State & bindings',
-    exact: true,
-  }).click();
-  await page.getByRole('textbox', {
+  expect(await page.evaluate(async () => (await import('/core/webmcp.js')).executeWebMCPTool('state'))).not.toHaveProperty('isError', true);
+  await expect(page.getByRole('textbox', {
     name: 'Name',
     exact: true,
-  }).fill('Updated profile');
+  })).toBeVisible();
+  expect(await page.evaluate(async () => (await import('/core/webmcp.js')).executeWebMCPTool('edit_profile_name', { value: 'Updated profile' }))).not.toHaveProperty('isError', true);
+  await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Updated profile');
   expect(await page.evaluate(async () => {
     let {
       PubSub,

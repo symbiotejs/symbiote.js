@@ -535,8 +535,8 @@ function autoBindingAvailable(owner, binding) {
     return false;
   }
   let form = submissionForm(owner, binding);
-  if (form && textAttribute(form, 'toolname') && textAttribute(form, 'tooldescription')) {
-    if (hasNativeFormTools(form) || !form.hasAttribute('toolautosubmit')) {
+  if (form && textAttribute(form, MCP.TOOL_NAME_ATTR) && textAttribute(form, MCP.TOOL_DESCRIPTION_ATTR)) {
+    if (hasNativeFormTools(form) || !form.hasAttribute(MCP.TOOL_AUTOSUBMIT_ATTR)) {
       return false;
     }
   }
@@ -612,8 +612,8 @@ function autoControlInput(el, prop) {
 function autoMetadata(owner, binding) {
   let el = binding.el;
   let operation = MCP.TOOL_EVENTS[binding.prop];
-  let name = textAttribute(el, 'toolname');
-  let description = textAttribute(el, 'tooldescription');
+  let name = textAttribute(el, MCP.TOOL_NAME_ATTR);
+  let description = textAttribute(el, MCP.TOOL_DESCRIPTION_ATTR);
   let label = controlLabel(el);
   let handler = owner.$?.[binding.key];
   let authoredKey = !handler?.[DICT.GENERATED_HANDLER_KEY];

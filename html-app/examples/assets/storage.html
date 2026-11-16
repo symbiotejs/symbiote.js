@@ -2,11 +2,11 @@
   <p class="max-w-3xl text-sm leading-relaxed text-muted"><code>storage-key</code> and <code>storage-keys</code> opt into browser storage. <code>[persist]</code> saves selected fields; <code>[restore]</code> explicitly accepts them. These operations are separate from backend synchronization. Cross-tab changes flag a conflict without replacing your draft.</p>
   <div class="panel grid max-w-xl gap-4">
     <h2 class="font-semibold">Save tasks and preferences on this device</h2>
-    <label>List title<input bind="value: PREFERENCES/title; oninput: [pub-to]PREFERENCES/title"></label>
-    <label class="field-row"><input type="checkbox" bind="checked: PREFERENCES/showCounts; onchange: [pub-to]PREFERENCES/showCounts">Show task counts</label>
+    <label>List title<input toolname="edit_task_list_title" tooldescription="Edit the task board title in shared preferences." bind="value: PREFERENCES/title; oninput: [pub-to]PREFERENCES/title"></label>
+    <label class="field-row"><input type="checkbox" toolname="set_task_counts" tooldescription="Show or hide task counts on the collection view." bind="checked: PREFERENCES/showCounts; onchange: [pub-to]PREFERENCES/showCounts">Show task counts</label>
     <div class="field-row flex-wrap">
-      <button type="button" class="primary" bind="onclick: [persist]APP">Save in this browser</button>
-      <button type="button" bind="onclick: [restore]APP">Restore browser data</button>
+      <button type="button" class="primary" toolname="save_browser_data" tooldescription="Save the current tasks, preferences, and sorting in this browser." bind="onclick: [persist]APP">Save in this browser</button>
+      <button type="button" toolname="restore_browser_data" tooldescription="Replace unsaved tasks, preferences, and sorting with the last browser save." bind="onclick: [restore]APP">Restore browser data</button>
     </div>
     <p class="text-sm text-amber-500" bind="hidden: !APP/+storageDirty">Browser changes are not saved.</p>
     <p class="text-sm text-muted">Saved fields: tasks, settings and sorting.</p>
@@ -20,8 +20,8 @@
     <div class="panel grid gap-3 border-amber-400">
       <p>Another tab changed the saved data. Choose which version to keep.</p>
       <div class="field-row flex-wrap">
-        <button type="button" bind="onclick: [restore]APP">Use saved data</button>
-        <button type="button" action-overwrite bind="onclick: [persist]APP">Keep this draft</button>
+        <button type="button" toolname="accept_saved_browser_data" tooldescription="Resolve the storage conflict by discarding this draft and restoring the saved browser data." bind="onclick: [restore]APP">Use saved data</button>
+        <button type="button" toolname="overwrite_saved_browser_data" tooldescription="Resolve the storage conflict by overwriting the browser save with this draft." action-overwrite bind="onclick: [persist]APP">Keep this draft</button>
       </div>
     </div>
   </sym-conditional>
