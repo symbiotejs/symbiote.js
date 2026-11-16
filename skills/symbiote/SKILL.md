@@ -161,7 +161,30 @@ Use `Component.rootStyles = css` for regular Light DOM styles and `Component.sha
 
 For SSR, use the `@symbiotejs/symbiote/node` entrypoint and the optional `linkedom` dependency. Initialize `SSR` before dynamically importing component modules, because those modules extend `HTMLElement`. Clean up an explicitly initialized SSR environment after use. `ssrMode` attaches bindings to existing markup; `isoMode` selects hydration when content exists and normal rendering otherwise. Read the SSR reference for concurrency, streaming, and styles.
 
-For HTML-app, use `webmcp-mode="true"` on its external module loader to enable automatic tools for foundation components without activating them globally. For ordinary Symbiote components, import `@symbiotejs/symbiote/webmcp` before rendering participating components. `mcpToolMode` enables automatic event-handler tools; global activation exposes handlers across the application. Explicit `ToolDescriptor` state values register independently, so leave automatic mode disabled when exposing only selected actions. `ToolDescriptor` adds descriptions, input schemas, `execute`, and optional `when`/`deps`. Visibility dependencies must be explicit.
+### WebMCP
+
+For HTML-app, use the literal `webmcp-mode="true"` on its external module loader to load the optional extension and enable automatic tools for foundation components. For ordinary Symbiote components, import `@symbiotejs/symbiote/webmcp` before rendering participating components and enable `mcpToolMode` per component or globally. The core entry does not load WebMCP's dictionary or binding processors.
+
+Automatic discovery covers `onclick`, `onsubmit`, `onchange`, and `oninput`. Incidental events such as mouseup, hover, focus, scroll, and individual keystrokes remain ordinary UI bindings. Give eligible operations meaningful `toolname` and `tooldescription` attributes; generated handlers without a description, label, or authored tool name are skipped. Descriptions include the control, event, existing element ID, and component/item context. Use the feature guide's route-key binding pattern for names on generated navigation items. Call `syncWebMCPTools()` after changing metadata attributes or labels.
+
+An HTML-app input can expose data insertion through its existing publication handler:
+
+```html
+<script type="module" src="/vendor/symbiote/html-app/index.js" webmcp-mode="true"></script>
+<sym-context ctx="APP">
+  <script type="application/json">{"note":""}</script>
+  <label>Note
+    <input toolname="edit_note" tooldescription="Edit the current note."
+      bind="value: note; oninput: [pub-to]note">
+  </label>
+</sym-context>
+```
+
+Discover the tool's `inputSchema` before invocation. For the input above, `executeWebMCPTool('edit_note', { value: 'New note' })` sets the DOM value and calls the bound handler, which publishes the new state. Checkbox/radio tools use `checked` booleans; multiple selects use `value` arrays. Input tools require their value argument; change tools can also invoke against the current control state. Use explicit tools for unsupported controls and custom input schemas. See [data insertion](https://github.com/symbiotejs/symbiote.js/blob/main/docs/webmcp.md#data-insertion) for control types and validation.
+
+Annotated forms with native declarative WebMCP support own their submission tools; avoid duplicate registrations. Browser-owned form tools appear in native discovery, outside Symbiote's registry and direct invocation API. Preserve `toolparamdescription` and `toolautosubmit` semantics. Without native declarative support, an annotated form requiring user review has no automatic submission fallback. Read the [native form contract](https://github.com/symbiotejs/symbiote.js/blob/main/docs/webmcp.md#native-forms) before exposing form tools.
+
+Explicit `ToolDescriptor` state values register independently of automatic event filtering and HTML metadata. Leave automatic mode disabled when exposing only selected actions. Descriptors own their names, descriptions, input schemas, and `execute` logic, with optional `when`/`deps`. Visibility dependencies must be explicit.
 
 Use `getActiveWebMCPTools()` to discover current registrations and `executeWebMCPTool(name, input)` to invoke the chosen tool within the user's authorized task. Rediscover after UI changes. Handle returned errors and verify the resulting UI or data state. Discovery and visibility are not authorization; the application or transport must enforce access controls and validate input.
 
