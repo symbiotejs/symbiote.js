@@ -23,4 +23,8 @@ jobs:
         run: npm run test:setup
 
       - name: Complete test suite
+        env:
+          # The Ubuntu runner blocks Chrome for Testing's user-namespace sandbox.
+          # Puppeteer only opens repository fixtures in this disposable test job.
+          PUPPETEER_DANGEROUS_NO_SANDBOX: 'true'
         run: npm test
