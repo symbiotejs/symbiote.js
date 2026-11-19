@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { build } from 'esbuild';
+import { fileURLToPath } from 'node:url';
 
 let fixture = '/test/browser/fixtures/html-app-webmcp.html';
 
-async function open(page, mode, extra = '', entry = '/html-app/index.js') {
+async function open(page, entry = '/html-app/webmcp/index.js', extra = '') {
   await page.route('**/html-app-webmcp.html', async (route) => {
     let response = await route.fetch();
     let html = (await response.text())
-      .replace(' webmcp-mode="true"', mode === null ? '' : ` webmcp-mode="${mode}"`)
-      .replace('src="/html-app/index.js"', `src="${entry}"`)
+      .replace('src="/html-app/webmcp/index.js"', `src="${entry}"`)
       .replace('</head>', extra + '</head>');
     await route.fulfill({
       response,
@@ -21,20 +22,18 @@ async function open(page, mode, extra = '', entry = '/html-app/index.js') {
   })).toBeVisible();
 }
 
-async function modeState(page) {
-  return page.evaluate(async () => {
+async function modeState(page, entry = '/html-app/index.js') {
+  return page.evaluate(async (entry) => {
     let {
       BaseClass,
-    } = await import('/html-app/index.js');
-    let {
       Symbiote,
-    } = await import('/core/Symbiote.js');
+    } = await import(entry);
     return {
       extension: typeof globalThis.__SYMBIOTE_WEBMCP_SYNC_OWNER === 'function',
       foundation: BaseClass.mcpToolMode === true,
       global: Symbiote.mcpToolMode === true,
     };
-  });
+  }, entry);
 }
 
 async function executeAction(page, selector, label) {
@@ -76,7 +75,7 @@ async function invoke(page, name, input = {}) {
 }
 
 test('input and change tools insert data and publish through the authored handlers', async ({ page }) => {
-  await open(page, 'true');
+  await open(page);
   let tools = await discover(page);
   let title = tools.find((tool) => tool.name === 'insert_title');
   expect(title.description).toContain('Insert data into control: Title.');
@@ -105,7 +104,7 @@ test('input and change tools insert data and publish through the authored handle
 });
 
 test('input tools reject invalid values and unavailable controls before calling the handler', async ({ page }) => {
-  await open(page, 'true');
+  await open(page);
   for (let [name, input] of [
     ['insert_title', {}], ['insert_title', { value: 42 }],
     ['insert_amount', { value: 'not a number' }],
@@ -126,7 +125,7 @@ test('input tools reject invalid values and unavailable controls before calling 
 });
 
 test('generated action discovery uses operation metadata and excludes incidental or unlabeled actions', async ({ page }) => {
-  await open(page, 'true');
+  await open(page);
   await page.evaluate(() => {
     let owner = document.createElement('sym-context');
     owner.id = 'metadata-owner';
@@ -161,7 +160,7 @@ test('generated action discovery uses operation metadata and excludes incidental
 });
 
 test('forwarded operations preserve their selected target while explicit descriptors work on excluded events', async ({ page }) => {
-  await open(page, 'true');
+  await open(page);
   await page.evaluate(async () => {
     let { Symbiote } = await import('/core/Symbiote.js');
     let { ToolDescriptor } = await import('/core/webmcp.js');
@@ -207,17 +206,16 @@ test('annotated forms preserve review semantics and keep unrelated actions avail
   expect(await page.locator('webmcp-form-controls').evaluate((owner) => owner.$.reviews)).toBe(1);
 });
 
-for (let mode of [
-  null,
-  'false',
-  'TRUE',
+for (let entry of [
+  '/html-app/index.js',
+  '/html-app/index.js?standard=true#entry',
 ]) {
-  test(`entry does not activate WebMCP with ${mode === null ? 'no attribute' : mode}`, async ({
+  test(`standard entry does not load or activate WebMCP: ${entry}`, async ({
     page,
   }) => {
     let requested = [];
     page.on('request', (request) => requested.push(new URL(request.url()).pathname));
-    await open(page, mode);
+    await open(page, entry);
     await page.getByRole('button', {
       name: 'Toggle flag',
     }).click();
@@ -232,13 +230,13 @@ for (let mode of [
 }
 
 for (let entry of [
-  '/html-app/index.js',
-  '/html-app/index.js?bootstrap=enabled#entry',
+  '/html-app/webmcp/index.js',
+  '/html-app/webmcp/index.js?bootstrap=enabled#entry',
 ]) {
-  test(`entry opt-in exposes initial, imported and Itemize actions: ${entry}`, async ({
+  test(`WebMCP entry exposes initial, imported and Itemize actions: ${entry}`, async ({
     page,
   }) => {
-    await open(page, 'true', '', entry);
+    await open(page, entry);
     expect(await modeState(page)).toEqual({
       extension: true,
       foundation: true,
@@ -275,14 +273,14 @@ for (let entry of [
   });
 }
 
-test('a marked CDN module wrapper can opt in its imported implementation', async ({
+test('a CDN module wrapper enables tools through the WebMCP entry', async ({
   page,
 }) => {
   await page.route('**/cdn/bootstrap.js', (route) => route.fulfill({
     contentType: 'text/javascript',
-    body: 'export * from \'/html-app/index.js\';',
+    body: 'export * from \'/html-app/webmcp/index.js\';',
   }));
-  await open(page, 'true', '', '/cdn/bootstrap.js');
+  await open(page, '/cdn/bootstrap.js');
   expect(await modeState(page)).toEqual({
     extension: true,
     foundation: true,
@@ -292,37 +290,72 @@ test('a marked CDN module wrapper can opt in its imported implementation', async
   await expect(page.locator('output')).toHaveText('true');
 });
 
-for (let mode of [
-  null,
-  'false',
-  'true',
+for (let entry of [
+  '/html-app/index.js',
+  '/html-app/webmcp/index.js',
 ]) {
-  test(`an available currentScript takes precedence with ${mode === null ? 'no attribute' : mode}`, async ({
+  test(`entry does not inspect the loader script: ${entry}`, async ({
     page,
   }) => {
-    // ESM has no currentScript; supply the host value a classic bundle receives.
-    await page.addInitScript((mode) => {
-      let script = document.createElement('script');
-      if (mode !== null) {
-        script.setAttribute('webmcp-mode', mode);
-      }
+    await page.addInitScript(() => {
       Object.defineProperty(document, 'currentScript', {
-        get: () => script,
+        get() { throw new Error('Entry points must not inspect their loader script.'); },
       });
-    }, mode);
-    await open(page, 'true');
+    });
+    await open(page, entry);
+    let enabled = entry.includes('/webmcp/');
     expect(await modeState(page)).toEqual({
-      extension: mode === 'true',
-      foundation: mode === 'true',
+      extension: enabled,
+      foundation: enabled,
       global: false,
     });
-    if (mode === 'true') {
+    if (enabled) {
       expect((await executeAction(page, 'sym-context', 'Toggle flag')).failed).toBe(false);
     }
   });
 }
 
-test('opted-in components wait for the extension before registering and rendering', async ({
+for (let entry of ['index.js', 'webmcp/index.js']) {
+  test(`bundled HTML-app entry preserves its activation and public APIs: ${entry}`, async ({ page }) => {
+    let enabled = entry.startsWith('webmcp/');
+    let bundle = await build({
+      entryPoints: [fileURLToPath(new URL('../../html-app/' + entry, import.meta.url))],
+      bundle: true,
+      minify: true,
+      format: 'esm',
+      target: 'es2020',
+      write: false,
+      metafile: true,
+    });
+    if (!enabled) {
+      expect(Object.keys(bundle.metafile.inputs).some((path) => path.includes('core/webmcp'))).toBe(false);
+    }
+    await page.route('**/cdn/bundle.js', (route) => route.fulfill({
+      contentType: 'text/javascript',
+      body: bundle.outputFiles[0].text,
+    }));
+    await open(page, '/cdn/bundle.js');
+    expect(await modeState(page, '/cdn/bundle.js')).toEqual({
+      extension: enabled,
+      foundation: enabled,
+      global: false,
+    });
+    if (enabled) {
+      expect(await page.evaluate(async () => {
+        let { getActiveWebMCPTools, executeWebMCPTool } = await import('/cdn/bundle.js');
+        let names = getActiveWebMCPTools().map((tool) => tool.name);
+        let result = await executeWebMCPTool('insert_title', { value: 'Bundled insertion' });
+        return { names, failed: !!result.isError };
+      })).toMatchObject({ names: expect.arrayContaining(['insert_title', 'insert_notes']), failed: false });
+      await expect(page.locator('#input-title')).toHaveValue('Bundled insertion');
+    } else {
+      await page.getByRole('button', { name: 'Toggle flag', exact: true }).click();
+      await expect(page.locator('output')).toHaveText('true');
+    }
+  });
+}
+
+test('WebMCP components wait for the extension before registering and rendering', async ({
   page,
 }) => {
   let release;
@@ -343,13 +376,13 @@ test('opted-in components wait for the extension before registering and renderin
   expect((await executeAction(page, 'sym-context', 'Toggle flag')).failed).toBe(false);
 });
 
-test('SSR mode does not load the optional extension from a document script', async ({
+test('the standard entry stays independent during SSR', async ({
   page,
 }) => {
   await page.addInitScript(() => { globalThis.__SYMBIOTE_SSR = true; });
   await page.route('**/html-app-webmcp.html', (route) => route.fulfill({
     contentType: 'text/html',
-    body: '<!doctype html><script type="module" src="/html-app/index.js" webmcp-mode="true"></script>',
+    body: '<!doctype html><script type="module" src="/html-app/index.js"></script>',
   }));
   await page.goto(fixture);
   expect(await modeState(page)).toEqual({

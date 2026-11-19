@@ -56,6 +56,10 @@
       "types": "./types/html-app/index.d.ts",
       "default": "./html-app/index.js"
     },
+    "./html-app/webmcp": {
+      "types": "./types/html-app/webmcp/index.d.ts",
+      "default": "./html-app/webmcp/index.js"
+    },
     "./core/AppRouter.js": {
       "types": "./types/core/AppRouter.d.ts",
       "default": "./core/AppRouter.js"

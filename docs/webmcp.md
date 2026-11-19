@@ -13,6 +13,8 @@ import '@symbiotejs/symbiote/webmcp';
 
 The operation dictionary and WebMCP binding processors load with this extension. The core entry does not import them; its generic extension hooks also handle component and context lifecycle notifications.
 
+For [HTML-app](../html-app/README.md#webmcp), import `@symbiotejs/symbiote/html-app/webmcp` to load the foundation with automatic tools enabled. This entry re-exports both the HTML-app components and WebMCP APIs. It enables tools for foundation components before registration and works with direct modules, bundlers and CDN bundles.
+
 ## Automatic Tools
 
 Enable `mcpToolMode` globally or per component to generate tools from bound event handlers:

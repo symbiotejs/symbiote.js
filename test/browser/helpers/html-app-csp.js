@@ -14,4 +14,4 @@ class PlainCounter extends Symbiote {
 }
 PlainCounter.template = '<button bind="onclick: increment">Ordinary counter</button><output>{{count}}</output>';
 PlainCounter.reg('plain-counter');
-await import('/html-app/index.js');
+await import('/html-app/webmcp/index.js');

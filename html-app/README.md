@@ -45,13 +45,25 @@ For a bundler or an existing module, import `@symbiotejs/symbiote/html-app`. No 
 
 ### WebMCP
 
-Enable automatic UI tools on the external entry script:
+Load the dedicated entry to enable automatic UI tools:
 
 ```html
-<script type="module" src="/vendor/symbiote/html-app/index.js" webmcp-mode="true"></script>
+<script type="module" src="/vendor/symbiote/html-app/webmcp/index.js"></script>
 ```
 
-The literal `"true"` loads WebMCP and enables automatic tools for foundation components before they initialize, including generated items and imported fragments. At startup, the entry reads `document.currentScript` when available, otherwise the first external module script marked `webmcp-mode="true"`. This also supports CDN module wrappers whose URL differs from the imported implementation. The flag is read before asynchronous loading; an available current script takes precedence, including an absent or `"false"` flag. Without an opted-in loader, existing WebMCP settings stay unchanged. The full example opts in; the compact Todo keeps the default. Programmatic imports can use the native [WebMCP activation API](../docs/webmcp.md#activation).
+For a bundler or an existing module:
+
+```js
+import '@symbiotejs/symbiote/html-app/webmcp';
+```
+
+For a CDN module bundle:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote/html-app/webmcp/+esm"></script>
+```
+
+This entry loads WebMCP and enables automatic tools for foundation components before they register, including generated items and imported fragments. It re-exports the HTML-app components and the [WebMCP APIs](../docs/webmcp.md), so a module can import components, discovery and invocation from the same entry. Activation uses static module dependencies and works through bundlers or CDN wrappers without inspecting script tags. Ordinary Symbiote components keep their existing `mcpToolMode` setting. The standard `html-app` entry leaves WebMCP unloaded; the full example uses the WebMCP entry, while the compact Todo uses the standard entry.
 
 Automatic tools cover click, submit, change, and input operations. Incidental events such as mouseup and focus retain normal UI behavior without creating tools. Set `toolname` and `tooldescription` on an operation's control to provide a useful public name and description. Generated handlers without a description, label, or authored tool name are skipped. Descriptions include the event, control label, existing element ID, and component context.
 

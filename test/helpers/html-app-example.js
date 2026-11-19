@@ -5,10 +5,10 @@
 export async function useLocalExampleModules(page) {
   await page.route('https://cdn.jsdelivr.net/**', (route) => {
     let url = new URL(route.request().url());
-    if (url.pathname !== '/npm/@symbiotejs/symbiote/html-app/+esm') {
+    if (url.pathname !== '/npm/@symbiotejs/symbiote/html-app/webmcp/+esm') {
       return route.abort();
     }
-    let entry = new URL('/html-app/index.js', route.request().frame().url()).href;
+    let entry = new URL('/html-app/webmcp/index.js', route.request().frame().url()).href;
     return route.fulfill({
       contentType: 'text/javascript',
       headers: {

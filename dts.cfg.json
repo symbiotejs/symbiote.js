@@ -4,7 +4,8 @@
     "core/index.js",
     "core/full.js",
     "core/webmcp.js",
-    "html-app/index.js"
+    "html-app/index.js",
+    "html-app/webmcp/index.js"
   ],
   "compilerOptions": {
     "declaration": true,

@@ -163,14 +163,14 @@ For SSR, use the `@symbiotejs/symbiote/node` entrypoint and the optional `linked
 
 ### WebMCP
 
-For HTML-app, use the literal `webmcp-mode="true"` on its external module loader to load the optional extension and enable automatic tools for foundation components. For ordinary Symbiote components, import `@symbiotejs/symbiote/webmcp` before rendering participating components and enable `mcpToolMode` per component or globally. The core entry does not load WebMCP's dictionary or binding processors.
+For HTML-app, load `@symbiotejs/symbiote/html-app/webmcp` to enable automatic tools for foundation components before they register. For directly served modules, use `html-app/webmcp/index.js`; CDN bundles can use `https://cdn.jsdelivr.net/npm/@symbiotejs/symbiote/html-app/webmcp/+esm`. This entry re-exports the HTML-app components and WebMCP APIs and requires no script attributes. The standard HTML-app entry leaves WebMCP unloaded. For ordinary Symbiote components, import `@symbiotejs/symbiote/webmcp` before rendering participating components and enable `mcpToolMode` per component or globally. The core entry does not load WebMCP's dictionary or binding processors.
 
 Automatic discovery covers `onclick`, `onsubmit`, `onchange`, and `oninput`. Incidental events such as mouseup, hover, focus, scroll, and individual keystrokes remain ordinary UI bindings. Give eligible operations meaningful `toolname` and `tooldescription` attributes; generated handlers without a description, label, or authored tool name are skipped. Descriptions include the control, event, existing element ID, and component/item context. Use the feature guide's route-key binding pattern for names on generated navigation items. Call `syncWebMCPTools()` after changing metadata attributes or labels.
 
 An HTML-app input can expose data insertion through its existing publication handler:
 
 ```html
-<script type="module" src="/vendor/symbiote/html-app/index.js" webmcp-mode="true"></script>
+<script type="module" src="/vendor/symbiote/html-app/webmcp/index.js"></script>
 <sym-context ctx="APP">
   <script type="application/json">{"note":""}</script>
   <label>Note

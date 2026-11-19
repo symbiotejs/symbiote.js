@@ -116,7 +116,7 @@ describe('native WebMCP integration', () => {
     await new Promise((resolveClose) => server?.close(resolveClose));
   });
 
-  it('registers and invokes HTML-app actions through the script attribute opt-in', async (t) => {
+  it('registers and invokes HTML-app actions through the WebMCP entry', async (t) => {
     let page = await browser.newPage();
     t.after(() => page.close());
     await page.goto(`${baseURL}/test/browser/fixtures/html-app-webmcp.html`);

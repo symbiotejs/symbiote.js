@@ -44,6 +44,10 @@ async function run() {
       types: './types/html-app/index.d.ts',
       default: './html-app/index.js',
     },
+    './html-app/webmcp': {
+      types: './types/html-app/webmcp/index.d.ts',
+      default: './html-app/webmcp/index.js',
+    },
   };
 
   for (let dir of DIRS) {
