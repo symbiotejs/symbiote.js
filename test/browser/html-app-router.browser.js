@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { useLocalExampleModules } from '../helpers/html-app-example.js';
 
 let routes = {
   tasks: {
@@ -420,7 +421,7 @@ test('public WebMCP navigation awaits the native asynchronous guard', async ({
 test('the imported routing example navigates within the app and preserves its shell', async ({
   page,
 }) => {
-  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await useLocalExampleModules(page);
   await page.goto('/html-app/examples/full-app.html?routing');
   let shell = await page.locator('sym-router').elementHandle();
   await page.getByRole('link', {
@@ -454,7 +455,7 @@ test('the imported routing example navigates within the app and preserves its sh
 test('the feature guide shares collection data and persisted preferences across imported sections', async ({
   page,
 }) => {
-  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await useLocalExampleModules(page);
   await page.route('**/assets/tasks.json', (route) => route.fulfill({
     json: {
       tasks: [],

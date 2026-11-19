@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { useLocalExampleModules } from '../helpers/html-app-example.js';
 
 test.beforeEach(async ({
   page,
@@ -29,7 +30,7 @@ test('Collections loads external JSON and saves edits in local storage without a
   };
   let apiRequests = [];
   let sourceRequests = 0;
-  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await useLocalExampleModules(page);
   await page.route('**/api/tasks', (route) => {
     apiRequests.push(route.request().method());
     return route.fulfill({

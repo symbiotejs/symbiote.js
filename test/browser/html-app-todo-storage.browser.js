@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { useLocalExampleModules } from '../helpers/html-app-example.js';
 
 let record = {
   id: 'task',
@@ -11,7 +12,7 @@ let record = {
 test.beforeEach(async ({
   page,
 }) => {
-  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await useLocalExampleModules(page);
   await page.route('**/assets/tasks.json', (route) => route.fulfill({
     json: {
       tasks: [

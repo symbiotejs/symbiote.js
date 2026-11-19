@@ -1,3 +1,4 @@
+import { Symbiote, html, css } from '../core/Symbiote.js';
 import { BaseClass } from './BaseClass.js';
 import { SymComponent } from './sym-component.js';
 import { SymContext } from './sym-context.js';
@@ -24,6 +25,7 @@ SymImport.reg('sym-import');
 SymRouter.reg('sym-router');
 
 export {
+  Symbiote, html, css,
   BaseClass,
   SymComponent,
   SymContext,

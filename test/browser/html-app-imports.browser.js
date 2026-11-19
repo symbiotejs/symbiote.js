@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { useLocalExampleModules } from '../helpers/html-app-example.js';
 
 test.beforeEach(async ({
   page,
@@ -219,7 +220,7 @@ test('cycles and excessive nesting terminate with structured errors', async ({
 test('the full app imports live controls and restores selected browser data', async ({
   page,
 }) => {
-  await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+  await useLocalExampleModules(page);
   await page.route('**/assets/tasks.json', (route) => route.fulfill({
     json: {
       tasks: [],
