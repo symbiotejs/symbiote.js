@@ -44,12 +44,4 @@ This excerpt uses the `APP/draft` object and `APP/tasks` array declared in the c
 
 These features suit interactive editors, task lists and tools that need several views of locally editable data, including applications built against existing JSON APIs. A static server is enough for local interaction; shared or protected data still needs an appropriate backend.
 
-## Where htmx fits
-
-htmx is a natural fit when the server owns the application workflow and can return ready-to-display HTML. Its documented request triggers, targets, swap strategies and history integration let you extend that server-rendered experience from markup. See the [htmx documentation](https://htmx.org/docs/).
-
-htmx also supports scripting, extensions and Web Component integration. The difference is whether your main interaction asks the server for HTML or updates reactive records already in the page.
-
-Both still run JavaScript library code in the browser. HTML-app's HTML-only promise concerns application code: its supported declarative operations do not require handwritten JavaScript. Neither approach removes the backend's responsibility for authorization, validation or persistence.
-
-For complete applications, start with the [HTML-app feature guide](../html-app/examples/full-app.html) or [htmx examples](https://htmx.org/examples/).
+For complete applications, start with the [HTML-app feature guide](../html-app/examples/full-app.html).
